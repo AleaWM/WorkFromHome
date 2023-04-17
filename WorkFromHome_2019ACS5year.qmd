@@ -1,0 +1,915 @@
+---
+title: "Work From Home: Who Can and Who Does?"
+subtitle: "Using ACS & O*NET Data"
+output:
+  html_document:
+    toc: yes
+    toc_float: yes
+---
+
+# Getting Data
+
+```{r setup, warning=FALSE, message=FALSE}
+
+library(scales)
+library(reldist)
+library(pollster)
+library(labelled)
+library(weights)
+library(tigris)
+library(ipumsr)
+library(tidyverse)
+```
+
+# ACS data Notes
+
+-   INCWAGE is topcoded only at the 99.5th percentile within a state. So almost ALL obs should be close their actual income.
+
+    -   Incwage coding procedure [link](https://usa.ipums.org/usa-action/variables/INCWAGE#editing_procedure_section)
+
+-   INCTOT includes self-employment income, INCWAGE does not.
+
+    -   Some industries (e.g. farming) may not be included in sample if using INCWAGE. Does that matter?
+    -   Bottom coded at -\$19,988, is not top coded
+
+-   INCEARN includes salaries, wages, and business/farm income. Use this one I think
+
+    -   INCEARN is made from summing INCWAGE, INCBUS, and INCFARM
+
+    -   INCEARN is not itself topcoded, but some of the other variables may be, especially for early years of data collection (which don't apply to us)
+
+## 2021 1-Year Data
+
+```{r}
+
+ddi <- read_ipums_ddi("C:/Users/aleaw/Box/Fiscal Futures/FY22_Working/WFH/Data/IL_2019_5yrACSlabels_dat.xml")
+data <- read_ipums_micro(ddi) 
+
+# 630,921 observations
+
+```
+
+### Occupation codes
+
+`OCC2010` is a harmonized occupation coding scheme as broad groups. These are 4 characters long and are the first 4 characters of the longer ONET & SOC codes.
+
+`OCCSOC` is 6 digits long. It is the first 6 digits of 8-digit ONET code.
+
+-   Please note that in some cases the SOC occupation codes are aggregated if they do not have an exact match to a Census occupation code or to preserve confidentiality in cases where the category contained fewer than 10,000 people nationwide.
+
+`LABFORCE` for if in labor force. 1 = not in labor force, 2 = in labor force, 0 is NA
+
+`EMPSTAT` and `EMPSTATD` for employment status (simple and the detailed version). 1=employed, 2=unemployed, 3=not in labor force for empstat, 0 is NA
+
+`CLASSWKRD` might be useful. Contains info on self-employed, wages, salary, etc for class of worker.
+
+::: callout-note
+For persons who are unemployed, the data refer to the most recent job if it was within the last 5 years.
+:::
+
+IPUMS [link for Survey package](https://usa.ipums.org/usa/repwt.shtml)
+
+IPUMS OCC codes over time [link](https://usa.ipums.org/usa/volii/occsoc18.shtml)
+
+```{r worker-descstats}
+
+table(data$EMPSTAT) # unweighted
+
+data %>% 
+  group_by(as_factor(EMPSTAT)) %>%
+  dplyr::summarize(n=sum(PERWT)) %>% 
+  mutate(pct = n/sum(n))
+
+
+table(data$LABFORCE) # unweighted
+data %>% group_by(as_factor(LABFORCE)) %>%
+  dplyr::summarize(n=sum(PERWT)) %>% 
+  mutate(pct = n/sum(n))
+
+table(data$CLASSWKR)# unweighted
+data %>% 
+  group_by(as_factor(CLASSWKR)) %>%
+  dplyr::summarize(n=sum(PERWT)) %>% 
+  mutate(pct = n/sum(n))
+
+
+data %>% 
+  group_by(TRANWORK) %>%
+  dplyr::summarize(n = sum(PERWT)) 
+
+
+topline(df = data, variable = LABFORCE, weight = PERWT )
+
+topline(data, EMPSTAT, PERWT)
+
+```
+
+*Unweighted -*
+
+*EMPSTAT: 303,672 observations are employed, 17,088 unemployed observations, and 196,229 observations are not in the workforce (114,042 NAs)*
+
+*LABFORCE: 320,760 are in labor force, 196,119 are not. (114,042 NAs)*
+
+*CLASSWKR: Of these, 342,756 work for wages and 33,888 people are self-employed. (254,277 NA)*
+
+[**Weighted**]{.underline} **-**
+
+EMPSTAT: 6,268,818 people are employed (49%), 392,040 people are unemployed(3.01%), and 3,558,081 are not in the labor force (28%). There are 2,551,692 missing values; Same as LABFORCE.
+
+LABFORCE: 6,660,858 people (52%) are in the labor force. 3,668,081 (28%) of people are not in the labor force. 2,551,692 (20%) of observations missing values.
+
+-   employed and unemployed equal number of people in labor force - that's good
+
+Location of primary workplace: 5.8 million people located in Illinois.
+
+```{r warning=FALSE, message=FALSE}
+# State worked in:
+#0=NA, 17=Illinois
+
+
+table(data$COUPLETYPE)
+table(data$NFAMS)
+table(data$MULTGEN)
+table(data$ROOMS)
+table(data$BEDROOMS)
+table(data$FAMSIZE)
+table(data$FAMUNIT)
+table(data$NCHILD)
+table(data$NCHLT5)
+table(data$SEX)
+table(data$MARST)
+table(data$AGE)
+table(data$RACE)
+
+
+topline(data, COUPLETYPE, PERWT)
+# ipums_var_desc(data, PWSTATE2)
+
+data <- data %>% 
+  mutate(PWSTATE2_clean = as_factor(lbl_na_if(PWSTATE2, ~.val %in% c(0))))
+
+data %>% 
+  group_by(PWSTATE2) %>%
+  dplyr::summarize(n=sum(PERWT)) %>% #number of people that match that observation
+  mutate(pct = n/sum(n)) %>% 
+  arrange(desc(pct))
+
+summary(as.numeric(data$INCEARN))
+
+# 999999 is missing values and want positive income values
+data <- data %>% 
+  filter(INCEARN>0 & INCWAGE != 999999 & INCWAGE != 999998) %>% 
+  filter(AGE > 25)
+# 104,689 obs remaining if >=0
+# 65113 obs if > 0
+# 55332 observations if older than 25
+
+
+summary(as.numeric(data$INCEARN))
+
+```
+
+### Descriptive stats after dropping missing income obs
+
+```{r}
+table(data$EMPSTAT) # unweighted
+
+data %>% 
+  group_by(as_factor(EMPSTAT)) %>%
+  dplyr::summarize(n=sum(PERWT)) %>% 
+  mutate(pct = n/sum(n))
+
+
+table(data$LABFORCE) # unweighted
+data %>% group_by(as_factor(LABFORCE)) %>%
+  dplyr::summarize(n=sum(PERWT)) %>% 
+  mutate(pct = n/sum(n))
+
+table(data$CLASSWKR)# unweighted
+data %>% 
+  group_by(as_factor(CLASSWKR)) %>%
+  dplyr::summarize(n=sum(PERWT)) %>% 
+  mutate(pct = n/sum(n))
+
+
+data %>% 
+  group_by(TRANWORK) %>%
+  dplyr::summarize(n = sum(PERWT)) 
+
+
+topline(df = data, variable = LABFORCE, weight = PERWT )
+
+topline(data, EMPSTAT, PERWT)
+```
+
+**Xiaoyan decile cutoffs:**
+
+summarize incearn, detail\
+\*generate percentile and percent (equal frequency)\
+pctile pct=incearn, nq(10) genp(percent)\
+list percent pct in 1/10\
+\*how to incorporate svy weight in dividing the percentiles?\
+\*generate percentile range based on perentile calculation\
+gen pctr="(0,10%\]" if incearn\<= 2024\
+replace pctr="(10%,20%\]" if incearn\> 2024&incearn\<=13558\
+replace pctr="(20%,30%\]" if incearn\>13558&incearn\<=23417\
+replace pctr="(30%,40%\]" if incearn\>23417&incearn\<=31961\
+replace pctr="(40%,50%\]" if incearn\>31961&incearn\<=40725\
+replace pctr="(50%,60%\]" if incearn\>40725&incearn\<=51104\
+replace pctr="(60%,70%\]" if incearn\>51104&incearn\<=63922\
+replace pctr="(70%,80%\]" if incearn\>63922&incearn\<=81000\
+replace pctr="(80%,90%\]" if incearn\>81000&incearn\<=111993\
+replace pctr="(90%,100%\]" if incearn\>111993
+
+```{r}
+
+telework<- read_csv("teleworkable2018onward.csv")
+
+telework <- telework %>% 
+  mutate(CanWorkFromHome = case_when(
+  teleworkable == 0 ~ "No WFH",
+  teleworkable < 1 ~ "Some WFH",
+  teleworkable == 1 ~ "Can WFH",
+  TRUE ~ "Check Me")
+)
+table(telework$CanWorkFromHome)
+  
+# causes problems for any occupation code that has XX in it!! 
+#data_labforce$OCCSOC_num <- as.numeric(data_labforce$OCCSOC)
+
+joined<-left_join(data, telework, by = c("OCCSOC"= "occ_codes"))
+
+summary(joined$teleworkable)
+# teleworkable values are an average of occupations with same first 5 digits and first 4 digits.
+
+
+joined %>% filter(teleworkable=="Some WFH")
+
+
+library(srvyr)
+
+
+dstrata <- joined %>% as_survey(strata = STRATA , weights = PERWT)
+
+dstrata <- dstrata %>% 
+  mutate(percentile = ntile(INCEARN,100),
+         decile = ntile(INCEARN, 10))
+         #,decile2 = survey_quantile(INCEARN, c(0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9)))
+
+dstrata
+
+
+summary <- dstrata %>% 
+  group_by(decile) %>% 
+  summarize(min = min(INCEARN),
+            max=max(INCEARN),
+            avg_income = mean(INCEARN),
+            average_income = survey_mean(INCEARN),
+            pop_represented = sum(PERWT),
+            obs_count = n())
+summary 
+
+summary %>% ggplot(aes(x=decile, y=average_income)) + geom_col()
+
+
+dstrata %>% 
+  as_data_frame()%>% 
+  ggplot(aes(x=decile)) + 
+  geom_bar(aes(fill=CanWorkFromHome), position="dodge")
+
+
+dstrata %>% 
+  as_data_frame()%>% 
+  ggplot(aes(x=decile)) + 
+  geom_bar(aes(y = (..count../sum(..count..)), fill=CanWorkFromHome), position="dodge")
+
+dstrata %>% 
+  as_data_frame()%>% 
+  ggplot(aes(x=decile, y = (..count..)/sum(..count..)*10, fill = CanWorkFromHome)) + 
+  #geom_bar(aes(fill=CanWorkFromHome), position="dodge")+
+    geom_bar(aes(fill = CanWorkFromHome), position = "dodge") +
+
+  coord_flip()+   #geom_text(aes(y = ((..count..)/sum(..count..)), label = scales::percent((..count..)/sum(..count..))), stat = "count", vjust = -0.25) +
+     # scale_y_reverse(limits = rev)+
+
+  scale_x_discrete(limits = c("Bottom 10%", "20%", "30%", "40%", "50%", "60%", "70%", "80%", "90%", "Top 10%"))+ 
+  scale_y_continuous(labels = scales::percent)+
+  theme(legend.position = "bottom") +
+  labs(title = "Able to work from home by income decile", 
+       y = "Percent of Workers in each Income Decile",
+       x = "",
+       caption = "n = 282,546 in unweighted sample. Represents the 6.67 million in Illinois' workforce.
+       If 10% of workers in the 'Bottom 10%' income decile cannot work from home, 
+       that is equal to 1% of the total population who can't work from home.")
+
+
+dstrata %>% 
+  as_data_frame()%>% 
+  ggplot(aes(x=decile, y = (..count../sum(..count..)*10))) + 
+  geom_bar(aes(fill=CanWorkFromHome), position="dodge")+
+
+  scale_x_discrete(limits = c("Bottom 10%", "20%", "30%", "40%", "50%", "60%", "70%", "80%", "90%", "Top 10%"))+ 
+  theme(legend.position = "bottom") +
+  scale_y_continuous(labels = scales::percent)+
+  labs(title = "Able to work from home by income decile", 
+       y = "Percent of Workers in each Income Decile",
+       caption = "n = 282,546; Represents the 6.67 million in Illinois' workforce.
+       Data from 2019 5-Year ACS. 
+       Occupation and ability to work from home values based on the work of D&N")
+
+
+```
+
+```{r incearn-descripstats, warning=FALSE, message=FALSE}
+
+summary(as.numeric(data$INCTOT))
+summary(as.numeric(data$INCEARN))
+
+attributes(data$INCTOT)
+attributes(data$INCEARN)
+
+data <- data %>% 
+  mutate(incearn_decile = ntile(INCEARN, 10),
+         percent_weight = PERWT / sum(PERWT)*100) %>% #adds a variable to indicate which decile an observation falls within
+  mutate(perwt_decile = ntile(percent_weight, 10))
+
+
+breaksummary <- data %>% 
+  group_by(perwt_decile)%>%
+  #group_by(incearn_decile) %>%
+  summarize(decile_min = min(INCEARN),
+            decile_max = max(INCEARN)
+            ) 
+breaksummary
+
+table(data$incearn_decile) #equal number of people, yay
+ 
+
+data %>% ggplot() +
+  geom_bar(aes(x=INCEARN))
+#   
+# data %>% ggplot() +
+#   geom_col(aes(x=INCEARN, y=PERWT))+
+#   stat_bin(bins=10)#+ scale_x_continuous(labels = label_dollar())
+
+# histogram of wages and salary income
+#  # unweighted
+# data %>% ggplot(aes(x=INCEARN)) + 
+#   stat_bin(bins=30)+ 
+#   scale_x_continuous(labels = label_dollar())
+
+#unweighted
+h_unweighted<-wtd.hist(as.numeric(data$INCEARN), breaks = 10)
+#weighted
+h_weighted <- wtd.hist(as.numeric(data$INCEARN), breaks = 10,
+         weight = data$PERWT)
+
+h_unweighted
+h_weighted
+
+h_unweighted$breaks
+
+h_weighted$breaks
+```
+
+#### Adding Occupation codes
+
+```{r}
+
+# noOCCSOC<- data %>% 
+#   filter(OCCSOC == 0) #98205 with occsoc=0
+# 
+# table(noOCCSOC$EMPSTAT)
+# 
+# before filtering out the incwage and inctot variables for 0's and negatives, 
+# #98% of the people without Occupation codes are not in the labor force. Makes sense
+# all observations have occsoc codes after filtering for INCWAGE and INCTOT and previous steps
+
+data_labforce <- data %>% filter(OCCSOC != 0) # none are dropped
+
+topline(df = data_labforce, variable = EMPSTAT, weight = PERWT )
+
+sum(data_labforce$PERWT) # 6.67 million people
+
+
+```
+
+Look at decile breaks for INCEARN:
+
+*These are different than Xiaoyans*? Double check??
+
+```{r}
+income_deciles <- data_labforce %>% 
+  group_by(ntile(INCWAGE, 10)) %>%
+  dplyr::summarize(mean_inc = mean(INCWAGE)) 
+
+income_deciles
+
+data_labforce %>% 
+  group_by(ntile(INCWAGE,10)) %>%
+  dplyr::summarize(mean_inc = mean(as.numeric(INCWAGE)) )%>%
+  ungroup() %>%
+  mutate(INCWAGE_decile='ntile(INCWAGE,10)') %>%
+  ggplot(aes(x = ntile(INCWAGE_decile,10), y=mean_inc)) + 
+  geom_bar(stat = "identity") +
+  labs(x="Income decile", y="Mean Income", title = "Average Income for each Income Decile.") +
+  scale_x_continuous(breaks = 1:10)
+
+```
+
+*teleworkable2010.csv has the 6digit OCCSOC codes. I also added the 5 digit broader version that ends with a 0 in the 6th digit to increase the chances of matching. Updated teleworkable2010.csv again with 4digitXX codes and 5digitXcodes to increase matching. Final version with even more options was named teleworkable2018onward.csv*
+
+teleworkable2018onward.csv has all codes (2010, 2019 transition, & new 2018 codes)
+
+```{r eval = FALSE}
+#telework csv uses data from Dingle and Nieman
+# https://github.com/jdingel/DingelNeiman-workathome/blob/master/occ_manual_scores/input/Teleworkable_BNJDopinion.csv
+
+telework<- read_csv("teleworkable.csv")
+#telework<- read_csv("teleworkable2018onward.csv")
+
+telework <- telework %>% 
+  mutate(CanWorkFromHome = case_when(
+  teleworkable == 0 ~ "No WFH",
+  teleworkable < 1 ~ "Some WFH",
+  teleworkable == 1 ~ "Can WFH",
+  TRUE ~ "Check Me")
+)
+table(telework$CanWorkFromHome)
+  
+# causes problems for any occupation code that has XX in it!! 
+#data_labforce$OCCSOC_num <- as.numeric(data_labforce$OCCSOC)
+
+innerjoined<-inner_join(data_labforce, telework, by = c("OCCSOC"= "onetsoc_6digits"))
+# 65113 obs in innerjoin
+
+summary(innerjoined$teleworkable)
+# teleworkable values are an average of occupations with same first 5 digits and first 4 digits. 
+
+innerjoined %>% count()
+innerjoined %>% count()
+
+g <- ggplot(innerjoined, aes(INCEARN))
+
+g + geom_bar(width=10000)
+
+g + geom_bar(aes(weight = PERWT),width=10000)
+
+
+sum(innerjoined$PERWT)
+
+# innerjoined  %>% ggplot() +
+#   geom_bar(aes(ntile(INCEARN,10)), weight=PERWT, bins = 10)+
+#   labs(title = "Unweighted Income Distribution")
+
+# ggplot(innerjoined) +
+#   geom_bar(aes(x=ntile(INCEARN,10), weight = PERWT), bins = 10, stat = "identity")+
+#   labs(title = "Unweighted Income Distribution")
+# 
+# # didn't change =[ 
+# ggplot(innerjoined, aes(INCEARN)) +
+#   geom_histogram(aes(weight =  data_labforce$PERWT), bins = 100, stat = "freq")+
+#   labs(title = "Weighted Income Distribution")
+# 
+# ggplot(innerjoined, aes(INCEARN)) +
+#   geom_histogram(aes(), bins = 10)+
+#   labs(title = "Unweighted Income Distribution")
+
+# didn't change =[ 
+h_w <- ggplot(innerjoined, aes(INCEARN)) +
+  geom_histogram(aes(weight =  data_labforce$PERWT), bins = 10)+
+  labs(title = "Weighted Income Distribution")
+h_w$breaks
+
+
+
+
+```
+
+```{r eval=FALSE}
+innerjoined %>% ggplot() + 
+  geom_col(aes(x=ntile(INCWAGE,10), y=PERWT, fill = CanWorkFromHome), position = "dodge") +
+  labs(title = "Ability to Work from Home based on Occupation Characteristics", x = "Income decile", caption= "Based on D&N teleworkable categorization and expanded for new 2018 SOC OCC codes. 
+       Sample: 2021 ACS 1-Year, 65,113 observations 
+       representing 6.67 million people in Illinois' workforce.")
+
+innerjoined %>% ggplot() + 
+  geom_bar(aes(x=ntile(INCWAGE,10), fill = CanWorkFromHome), position = "dodge") +
+  labs(title = "Ability to Work from Home based on Occupation Characteristics", x = "Income decile", caption= "Based on D&N teleworkable categorization and expanded for new 2018 SOC OCC codes. 
+       Sample: 2021 ACS 1-Year, 65,113 observations 
+       representing 6.67 million people in Illinois' workforce.")
+
+leftjoined<-left_join(data_labforce, telework, by = c("OCCSOC"= "occ_codes"))
+summary(innerjoined$teleworkable)
+#innerjoined<-inner_join(data_labforce, telework, by = c("OCCSOC_num"= "BroadGroupCode"))
+
+#leftjoined<-left_join(data_labforce, telework, by = c("OCCSOC_num"= "BroadGroupCode"))
+# keeps all observations in data 2 even if they don't match
+
+#antijoin <-anti_join(data_labforce, telework, by = c("OCCSOC_num"= "onetsoc_6digits"))
+# 158525. Many were aggregated to 5digits with 6digit as 0.
+# 91403 obs after updating teleworkable file to 5digits with 6digit as 0
+
+#couldnt use _num version due to XX in values.
+#antijoin <-anti_join(data_labforce, telework, by = c("OCCSOC"= "onetsoc_6digits"))
+# 50,659 obs after adding 5digitsX and 4digitsXX and 5digits with sixth as 0 to csv file
+
+#unique(antijoin$OCCSOC) #121 unique codes did not match.
+# down to 67 after adding 5digitsX and 4digitsXX and 5digits with sixth as 0 to csv file
+
+#joined <- joined %>% mutate(occsoc5digits = substr(OCCSOC,1,5))
+#table(joined$occsoc5digits)
+
+
+#table(joined$Teleworkable)
+```
+
+Drops a lot of observations using inner join (equivalent to Stata merge==1) this join. 67,299 observations match SOC codes. I think so many do not match due to the use of 2010 , 2019 transition, and 2018 SOC OCC codes. To check this, I try joining the ACS data with the updated 2018 codes. (Authors used 2010 codes in original paper but they did do one for states that appear to have the 2018 codes?) Double check this.
+
+-   Using the 2021 ACS 1-year Sample should use only 2018 OCC codes since that data should be collected after they transitioned their occupation codes.
+
+```{r occ-joins, eval=FALSE}
+
+occ_2018 <- read_csv("2018OCCcodes.csv") %>% 
+  mutate(soc2018_6figs = as.character(soc2018_6figs))
+
+joined2018codes <- inner_join(data_labforce, occ_2018, 
+                              by = c("OCCSOC" = "soc2018_6figs")) %>%
+  mutate(occsoc5digits = substr(OCCSOC,1,5))
+# 59,626 observations
+
+antijoin <- anti_join(data_labforce, occ_2018, by = c("OCCSOC" = "soc2018_6figs"))
+table(antijoin$OCCSOC)
+
+
+
+table(joined2018codes$occsoc5digits)
+
+occ_2018 <- read_csv("teleworkable2018onwards.csv") %>% 
+  mutate(onetsoc_6digits = as.character(onetsoc_6digits))
+
+joined2018codes <- inner_join(data_labforce, occ_2018, 
+                              by = c("OCCSOC" = "onetsoc_6digits")) %>%
+  mutate(occsoc5digits = substr(OCCSOC,1,5))
+# 65113 observations? 
+# I think they all matched? Now I just need to finish creating the average teleworkable variable
+
+
+
+```
+
+joining the remaining observations from 2021 1-year ACS data to the 2018 OCC codes results in 65113 matches
+
+**OCC2010 variable labels:**
+
+From DDI on IPUMS download: https://live.usa.datadownload.ipums.org/web/extracts/usa/1985137/usa_00006.xml#OCC
+
+Management, Business, Science, and Arts = 10-430\
+Business Operations Specialists = 500-730\
+Financial Specialists = 800-950\
+Computer and Mathematical = 1000-1240\
+Architecture and Engineering = 1300-1540\
+Technicians = 1550-1560\
+Life, Physical, and Social Science = 1600-1980\
+Community and Social Services = 2000-2060\
+Legal = 2100-2150\
+Education, Training, and Library = 2200-2550\
+Arts, Design, Entertainment, Sports, and Media = 2600-2920\
+Healthcare Practitioners and Technicians = 3000-3540\
+Healthcare Support = 3600-3650\
+Protective Service = 3700-3950\
+Food Preparation and Serving = 4000-4150\
+Building and Grounds Cleaning and Maintenance = 4200-4250\
+Personal Care and Service = 4300-4650\
+Sales and Related = 4700-4965\
+Office and Administrative Support = 5000-5940\
+Farming, Fishing, and Forestry = 6005-6130\
+Construction = 6200-6765\
+Extraction = 6800-6940\
+Installation, Maintenance, and Repair = 7000-7630\
+Production = 7700-8965\
+Transportation and Material Moving = 9000-9750\
+Military Specific = 9800-9830\
+Unemployed (no occupation for 5+ years) or Never Worked = 9920\
+
+## PUMAs and Shapefiles
+
+```{r warning = FALSE, message=FALSE, results='hide'}
+
+
+# PUMA shapefiles
+pumasIL <- pumas("IL", cb=T, year=2019)
+#county shapefiles
+countyIL <- counties("IL", cb=T, year=2019)
+
+#pumasdf <- fortify(pumasIL, region = 'PUMACE10')
+```
+
+```{r warning = FALSE, message=FALSE}
+
+pums_weighted <- data %>% 
+  group_by(PUMA, COUNTYFIP) %>% 
+  summarize(weighted = sum(PERWT)) %>%  #number of people the sample represents
+  mutate(PUMA = str_pad(PUMA, 5, pad="0"),
+         countyFIP = str_pad(COUNTYFIP, 3, pad = "0"))
+
+pums_unweight <- data %>% 
+  group_by(PUMA, COUNTYFIP) %>% 
+  summarize(unweight = n()) %>% #unweighted number of observations
+  mutate(PUMA = str_pad(PUMA, 5, pad="0"),
+         countyFIP = str_pad(COUNTYFIP, 3, pad = "0"))
+
+plotweighted <- pumasIL %>% 
+  left_join(pums_weighted, by = c("PUMACE10" = "PUMA"))
+
+plotunweight <- pumasIL %>% 
+  left_join(pums_unweight, by = c("PUMACE10" = "PUMA"))
+
+plot(plotweighted["weighted"])
+plot(plotunweight["unweight"])
+
+FIPweighted <- countyIL %>% left_join(pums_weighted, by = c("COUNTYFP" = "countyFIP"))
+FIPunweight <- countyIL %>% left_join(pums_unweight, by = c("COUNTYFP" = "countyFIP"))
+plot(FIPweighted["weighted"])
+plot(FIPunweight["unweight"])
+
+
+plot(countyIL["COUNTYFP"])
+
+
+```
+
+#### PUMAS vs COMMZONE vs COUNTIES
+
+[Link from Francis on COMZONE variable](https://eig.org/the-uneven-geography-of-remote-work/) (Commuter Zones)
+
+[Interactive ESRI Map of all PUMA outlines](https://univofillinois.maps.arcgis.com/apps/mapviewer/index.html?layers=71eb4ef236ca42c4b577a0a105e790e2)
+
+[Article on calculating mean income for groups of geographies with ACS data](https://atcoordinates.info/2019/05/13/calculating-mean-income-for-groups-of-geographies-with-census-acs-data/)
+
+## ACS 2019 5-year Data - Original Download
+
+First download that had 2019 and 2021 data together. Then filtered for just 2019. Will probably delete. If anything, the 2019 data needs to be redownloaded if we do use it to add a few variables.
+
+```{r eval=FALSE}
+ddi <- read_ipums_ddi("usa_00006.xml")
+data <- read_ipums_micro(ddi)
+data_labforce019 <- data %>% select(-c(STATEFIP, REGION)) %>% filter(YEAR == "2019")
+rm(data)
+# 621,164 observations for ACS2021 5-Year sample
+```
+
+### Descriptive Statistics
+
+```{r eval=FALSE}
+data <- data_labforce019
+rm(data_labforce019)
+table(data$EMPSTAT) # unweighted
+table(data$LABFORCE) # unweighted
+
+table(data$CLASSWKR)# unweighted
+
+
+topline(df = data, variable = LABFORCE, weight = PERWT )
+crosstab(data, x=MULTYEAR, y = LABFORCE, weight = PERWT)
+topline(data, EMPSTAT, PERWT)
+crosstab(data, x=MULTYEAR, y = EMPSTAT, weight = PERWT)
+```
+
+```{r eval = FALSE}
+#library(srvyr)
+#library(survey)
+data <- data %>% 
+  mutate(PWSTATE2_clean = as_factor(lbl_na_if(PWSTATE2, ~.val %in% c(0)))) %>%
+  mutate(inctot_decile = ntile(INCTOT, 10),
+         incwage_decile = ntile(INCWAGE, 10),
+         incearn_decile =ntile(INCEARN, 10))  #adds a variable to indicate which decile an observation falls within
+
+#attempt <- svydesign(id=~row(data) , weights=data$PERWT, data=data)
+#a <- svyquantile(design=attempt, quantiles = seq(0,1, by=0.1))
+
+#quantile(x, probs = seq(0, 1, 1/10))    # Deciles
+
+summary(as.numeric(data$INCEARN))
+
+
+# weighted_breaksummary <- data %>% 
+#   #srvyr::as_survey(weights = PERWT) %>%
+#   group_by(incearn_decile) %>%
+#   summarize(decile_min = min(INCEARN),
+#             decile_max = max(INCEARN)
+#             ) 
+# weighted_breaksummary # not actually weighted yet because I used incearn_decile which was created without weighing the data...
+
+unweighted_breaksummary <- data %>% 
+  #srvyr::as_survey(weights = c(PERWT)) %>%
+  group_by(incearn_decile) %>%
+  summarize(decile_min = min(INCEARN),
+            decile_max = max(INCEARN)
+            ) 
+unweighted_breaksummary # NOT WEIGHTED!!!!
+
+# histogram of total income
+hist(data$INCEARN, breaks = 60) # unweighted
+
+
+data %>% 
+ # filter (INCTOT < 400000) %>% 
+  ggplot(aes(x=INCEARN)) + 
+  geom_histogram(bins =  60) + 
+  scale_x_continuous(labels = label_dollar())
+
+
+topline(data, incearn_decile, weight = PERWT)
+
+
+data$decile <- ntile(data$INCEARN, 10)
+
+# from weights() package
+wtd.hist(as.numeric(data$INCEARN), breaks = 40, weight = data$PERWT)
+
+wtd.hist(as.numeric(data$INCEARN), weight = data$PERWT)
+
+
+# data_svy = svydesign(~1, #no clusters
+#                      data = data, 
+#                      weight=~PERWT)
+
+  #svyquantile(~INCTOT,data_svy, 
+   #                          quantiles=seq(0.1, 0.9, 0.1))
+
+ggplot(data, aes(x=INCEARN)) + 
+  geom_histogram(bins =  30) + 
+  scale_x_continuous(labels = label_dollar())
+
+
+```
+
+```{r}
+#telework csv uses data from Dingle and Nieman
+# https://github.com/jdingel/DingelNeiman-workathome/blob/master/occ_manual_scores/input/Teleworkable_BNJDopinion.csv
+
+telework<- read_csv("teleworkable2010_v2.csv")
+
+#telework<- read_csv("teleworkable2010.csv")
+
+# causes problems for any occupation code that has XX in it!! 
+#data_labforce$OCCSOC_num <- as.numeric(data_labforce$OCCSOC)
+
+innerjoined<-inner_join(data_labforce, telework, by = c("OCCSOC"= "onetsoc_6digits"))
+# ___ obs in innerjoin
+# __ obs after updating teleworkable2010 file with broader 5digit codes that 6digit 0
+
+# 312350 obs after adding 5digitsX and 4digitsXX codes to teleworkable.
+# teleworkable values are an average of occupations with same first 5 digits and first 4 digits. 
+
+leftjoined<-left_join(data_labforce, telework, by = c("OCCSOC"= "onetsoc_6digits"))
+
+#innerjoined<-inner_join(data_labforce, telework, by = c("OCCSOC_num"= "BroadGroupCode"))
+
+#leftjoined<-left_join(data_labforce, telework, by = c("OCCSOC_num"= "BroadGroupCode"))
+# keeps all observations in data 2 even if they don't match
+
+#antijoin <-anti_join(data_labforce, telework, by = c("OCCSOC_num"= "onetsoc_6digits"))
+# 158525. Many were aggregated to 5digits with 6digit as 0.
+# 91403 obs after updating teleworkable file to 5digits with 6digit as 0
+
+#couldnt use _num version due to XX in values.
+antijoin <-anti_join(data_labforce, telework, by = c("OCCSOC"= "onetsoc_6digits"))
+# 50,584 obs after adding 5digitsX and 4digitsXX and 5digits with sixth as 0 to csv file
+
+unique(antijoin$OCCSOC)
+# down to 73 after adding 5digitsX and 4digitsXX and 5digits with sixth as 0 to csv file
+
+#table(joined$Teleworkable)
+```
+
+## Xiaoyan's Merging Notes
+
+Code chunk below is my attempt to manually recode items that didn't match. I think I have an excel file of OCCSOC codes that should match almost completely.
+
+*Double check*
+
+```{r eval=FALSE}
+
+data_labforce021 %>% 
+  filter(OCCSOC >0) %>% 
+  mutate(telworkable = case_when(
+    OCCSOC == "113013" ~ ,
+    OCCSOC == "131081" ~ ,
+    OCCSOC == "151255" ~ ,
+    OCCSOC == "195010" ~ ,
+    OCCSOC == "211019" ~ ,
+    OCCSOC == "211029" ~ ,    
+    OCCSOC == "211092" ~ ,
+    OCCSOC == "211093" ~ ,
+    OCCSOC == "212099" ~ ,
+    OCCSOC == "232099" ~ ,
+    OCCSOC == "2504022" ~ "0", # libararians and media collections specialists. 
+    OCCSOC == "272091" ~ , # disc jockets. Was 272099
+    OCCSOC == "272099" ~ "RECODED",
+    OCCSOC == "273092" ~  "1", #court reporters and captioners 
+    OCCSOC == "273099" ~ "1", # media and comunication workers, all other
+    OCCSOC == "311122" ~ "0",   # personal care aids
+    OCCSOC == "331090" ~ "0",    # healthcare and support specialists 
+    OCCSOC == "339094" ~ ,    
+    OCCSOC == "359099" ~ ,    
+    OCCSOC == "413091" ~ "0",
+    OCCSOC == "419099" ~  "0", # sales and related workers all other
+    OCCSOC == "432099" ~ "0.5", # communications equipment operators, all other
+    OCCSOC == "4330XX" ~ "0.5", # 43 is office and admin support
+    OCCSOC == "513099" ~ "0", #food processing workers
+    OCCSOC == "533099" ~  "0", # motor vehicle operators
+    OCCSOC == "537065" ~ "0", # stockers and order fillers
+    OCCSOC == "551010" ~ "0", # miltary 
+    OCCSOC == "552020" ~ "0", # military
+    OCCSOC == "553010" ~ "0", # military
+    OCCSOC == "559830" ~ "0", # military
+TRUE ~ as.character(OCCSOC))
+
+
+
+    )
+```
+
+\*\*\*\*merge\*\*\*\*
+
+merge m:1 occsoc using "/Users/xiaoyanhu/Desktop/crosswalk.dta"
+
+\*IL has but DN no: 29, merge==2
+
+\*113013 Facilities Managers
+
+\*131082 Project Management Specialists
+
+\*151255 Web And Digital Interface Designers
+
+\*195010 Occupational Health And Safety Specialists And Technicians
+
+\*211019 Counselors, All Other
+
+\*211029 Social Workers All Other
+
+\*211092 Probation Officers and Correctional Treatment Specialists
+
+\*211093 Social and Human Service Assistants
+
+\*212099 Religious Workers, All Other
+
+\*232099 Legal Support Workers, All Other
+
+\*272091 Disc Jockeys, Except Radio
+
+\*272099 Entertainers and Performers, Sports and Related Workers, All Other
+
+\*273092 Court Reporters And Simultaneous Captioners
+
+\*273099 Media And Communications Workers, All Other
+
+\*311122 Personal Care Aides
+
+\*331090 Miscellaneous First-Line Supervisors, Protective Service Workers
+
+\*339094 School Bus Monitors
+
+\*359099 Food Preparation and Serving Related Workers, All Other
+
+\*413091 Sales Representatives Of Services, Except Advertising, Insurance, Financial Services, And Travel
+
+\*419099 Sales and Related Workers, All Other
+
+\*432099 Communications Equipment Operators, All Other
+
+\*4330XX Other Financial Clerks
+
+\*513099 Food Processing Workers, All Other
+
+\*533099 Motor Vehicle Operators, All Other
+
+\*537065 Stockers And Order Fillers
+
+\*551010 Military Officer Special and Tactical Operations Leaders
+
+\*552010 First-Line Enlisted Military Supervisors
+
+\*553010 Military Enlisted Tactical Operations and Air/Weapons Specialists and Crew Members
+
+\*559830 Military, Rank Not Specified
+
+\*DN has but IL no: 7, merge==1
+
+\*\* AWM - These were 2010 codes that have been changed to 2018 SOC codes
+
+\*119061 Funeral Service Managers #Code and Title change to 119171
+
+\*119131 Postmasters and Mail Superintendents #Didn't change, should have been in their file?
+
+\*173021 Aerospace Engineering and Operations Technicians
+
+\*173022 Civil Engineering Technicians
+
+\*232091 Court Reporters
+
+\*413099 Energy Brokers
+
+\*433041 Gaming Cage Workers

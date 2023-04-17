@@ -1,0 +1,6 @@
+
+Files used to make "teleworkable2018_nodups.xlsx" and "teleworkable2018onward.csv"
+2010_to_2019_Crosswalk
+2010_to_SOC_Crosswalk
+occsoc_crosswalk_2000_onward_with_code_descriptions
+soc_transition_all_years
