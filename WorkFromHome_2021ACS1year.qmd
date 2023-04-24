@@ -24,9 +24,13 @@ library(ipumsr)
 library(tidyverse)
 #install.packages("naniar")
 library(naniar)
+
+knitr::opts_chunk$set(warning=FALSE, message=FALSE)
 ```
 
 ## ACS data Notes
+
+IPUMS [link for Survey package](https://usa.ipums.org/usa/repwt.shtml)
 
 Survey questions for EMPSTAT & LABFORCE:
 
@@ -65,7 +69,7 @@ data <- read_ipums_micro(ddi) # 126623 observations before any filtering
 #ddi <- read_ipums_ddi("C:/Users/aleaw/Box/Fiscal Futures/FY22_Working/WFH/Data/IL_2021_1yrACS_datDDI.xml") # downloaded April 10 2023
 #data <- read_ipums_micro(ddi) # 126623 observations before any filtering
 
-data <- data %>% select(INCEARN, INCWAGE, INCTOT,TRANWORK, OCCSOC,CLASSWKR, EMPSTAT, LABFORCE, PERWT, COUNTYFIP, PUMA, PWSTATE2, AGE, STRATA, RACE, SEX,)
+data <- data %>% select(INCEARN, INCWAGE, INCTOT, TRANWORK, OCCSOC,CLASSWKR, EMPSTAT, LABFORCE, PERWT, COUNTYFIP, PUMA, PWSTATE2, AGE, STRATA, CLUSTER, RACE, SEX )
 
 
 
@@ -85,6 +89,8 @@ data <- data %>% replace_with_na(replace = list(
 # Xiaoyan replication
 
 126,623 observations originally in ACS 2021 1-year sample.
+
+Note: Dropping groups of people using filter() from the sample will change the standard errors of estimates since it changes the sample size. Use the survey() or svy() command to drop subsets of people (like if we wanted to filter age groups). Google what commands to use to drop observations without impacting standard errors.
 
 ```{r}
 
@@ -113,6 +119,8 @@ dataXH %>%
 
 
 ```
+
+Race and sex counts and proportions matches Xiaoyans output from April 22 2023. Yay.
 
 ```{r desc-sex}
 dataXH %>% 
@@ -154,8 +162,7 @@ topline(dataXH, did_wfh, weight = PERWT)
 
 18.9% of Illinois workers worked at home. 74% went to work using some form of transportation, 7.4% of observations were missing values.
 
--   20.5% of observations with responses did WFH
--   79.4% of observations with responses did not WFH
+-   Valid percent: 20.5% of observations with responses did WFH and 79.4% of observations with responses did not WFH.
 
 ```{r binary-variables-for-tables}
 dataXH <- dataXH %>% 
@@ -176,8 +183,95 @@ table(dataXH$did_wfh, dataXH$has_incearn)
 
 ```
 
-9,464 observations worked from home and have income values\
+9,464 observations worked from home and have income values.\
 37,561 observations did not work from home and have income values.
+
+```{r message = FALSE, warning=FALSE}
+telework <- read_csv("teleworkable_AWM.csv")
+joined <- left_join(dataXH, telework, by = c("OCCSOC" = "occ_codes"))
+
+table(joined$teleworkable)
+hist(joined$teleworkable)
+
+library(srvyr)
+library(survey)
+#as_survey() from srvyr package
+
+dstrata <- joined %>% as_survey(strata = STRATA, 
+                                ids = CLUSTER, 
+                                weights = PERWT)
+class(dstrata)
+
+dstrata <- dstrata %>% 
+  mutate(percentile = ntile(INCEARN,100),
+         decile = ntile(INCEARN, 10))
+
+inc_quantiles<-survey::svyquantile(~INCEARN, design=dstrata, 
+                    quantiles = c(0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9) ,
+                    #interval.type = "quantile",
+                    na.rm=TRUE, 
+                    ci = FALSE 
+                    )
+
+# joined <-joined %>% 
+#   mutate(inc_quantiles = survey::svyquantile(~INCEARN, design=dstrata, 
+#                     quantiles = c(0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9) ,
+#                     #interval.type = "quantile",
+#                     na.rm=TRUE, 
+#                     ci = FALSE 
+#                     ))
+
+inc_quantiles
+
+
+
+# Here we use "subset" to tell "nhanesDesign" that we want to only look at a
+# specific subpopulation (i.e., those age between 18-79 years). This is
+# important to do. If you don't do this and just restrict it in a different way
+# your estimates won't have correct SEs.
+ 
+#ageDesign <- subset(nhanesDesign, age > 24 &
+#                                  age < 65)
+
+dstrata
+
+```
+
+```{r eval = FALSE}
+
+
+summary <- dstrata %>% 
+  summarize(decile = survey_quantile(INCEARN,  
+                                     quantiles = c(0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9), 
+                                     vartype = c(NULL),
+                                   #  interval_type = "quantile", 
+                                     na.rm = TRUE)) %>%
+  group_by(decile) %>% 
+  summarise(min = min(INCEARN),
+            max=max(INCEARN),
+            avg_income = mean(INCEARN),
+            average_income = survey_mean(INCEARN),
+            pop_represented = sum(PERWT),
+            obs_count = n())
+```
+
+[OLD stata code: Xiaoyan decile cutoffs, stata code:]{.underline}\
+summarize incearn, detail\
+\*generate percentile and percent (equal frequency)\
+pctile pct=incearn, nq(10) genp(percent)\
+list percent pct in 1/10\
+\*how to incorporate svy weight in dividing the percentiles?\
+\*generate percentile range based on perentile calculation\
+gen pctr="(0,10%\]" if incearn\<= 2024\
+replace pctr="(10%,20%\]" if incearn\> 2024&incearn\<=13558\
+replace pctr="(20%,30%\]" if incearn\>13558&incearn\<=23417\
+replace pctr="(30%,40%\]" if incearn\>23417&incearn\<=31961\
+replace pctr="(40%,50%\]" if incearn\>31961&incearn\<=40725\
+replace pctr="(50%,60%\]" if incearn\>40725&incearn\<=51104\
+replace pctr="(60%,70%\]" if incearn\>51104&incearn\<=63922\
+replace pctr="(70%,80%\]" if incearn\>63922&incearn\<=81000\
+replace pctr="(80%,90%\]" if incearn\>81000&incearn\<=111993\
+replace pctr="(90%,100%\]" if incearn\>111993
 
 # Alea dwelling on which observations to include
 
@@ -199,7 +293,19 @@ How many people are in labor force and have incomes of zero or less than zero? (
 
 Should they be removed right away?
 
-```{r}
+```{r reloading-sampledata}
+
+ddi <- read_ipums_ddi("usa_00011.xml") # downloaded April 10 2023
+data <- read_ipums_micro(ddi) # 126623 observations before any filtering
+
+data <- data %>% select(INCEARN, INCWAGE, INCTOT, TRANWORK, OCCSOC,CLASSWKR, EMPSTAT, LABFORCE, PERWT, COUNTYFIP, PUMA, PWSTATE2, AGE, STRATA, CLUSTER, RACE, SEX )
+
+data <- data %>% replace_with_na(replace = list(
+  EMPSTAT= c(0), 
+  LABFORCE=c(0), 
+  CLASSWKR = c(0),
+  OCCSOC = c(0),
+  TRANWORK = c("N/A","0")))
 
 # data %>% filter(INCEARN > 0) 
 # 63,113 observations have incomes greater than zero
@@ -260,7 +366,8 @@ data %>%
 data %>% 
   filter(INCEARN < 0) %>% 
   group_by(EMPSTAT) %>% 
-  summarize(count = n())
+  summarize(count = n()) %>% 
+  arrange(desc(count))
 
 ## Very few observations have incearned less than zero. 
 ## Let's drop INCEARN <0 from sample. 
@@ -276,19 +383,18 @@ data %>%
 They should all be dropped, right??
 :::
 
-```{r eval=FALSE}
+```{r dropping-obs, eval=FALSE}
 #Do any observations have missing values for incearn but values for inctot?
 
 #48,056 observations have total income values > $0 but earned income values = $0. retired people with SSI? 
 
-#How many of 48,056 are in labor force?…. Only 7. So don't worry about it. 
+#How many of 48,056 are in labor force?…. 
+# Only 7. So don't worry about it. 
 data %>% filter(INCEARN == 0 & 
                   INCTOT > 0 &
                   EMPSTAT == 1
                 )
-```
 
-```{r eval=FALSE}
 data %>% 
   filter(EMPSTAT == 3) %>%  
   # 41,289 observations are NOT in the labor force. 
@@ -312,10 +418,8 @@ data %>%
   summarize(count = n())
 # 12,656 are not in labor force but have occupation codes
 # remember, if not in labor force, ACS uses occupation that they had in the last 5 years
-# drop from sample. We are interested in workers with data about this yer. 
+# drop from sample. We are interested in workers with data who worked in 2021. 
 ```
-
-Now using only observations that are between the ages of 25 and 65:
 
 ::: callout-note
 ## Why don't we care about younger workers?
@@ -327,12 +431,15 @@ Are we still using the 25-64 age range for our sample? Pros and cons of includin
 -   Con: Smaller sample. Loss of potentially interesting information on younger workers.
 :::
 
-```{r}
+If the sample keeps only individuals between the ages of 25 and 65, sample size goes from over 126,623 observations to around 65,000 observations. BUT many of these observations may not include income data or other important variables in the responses. Only 50,817 observations were in the labor force and between those ages. 50,993 observations are 25-65 with incomes \> \$0. The sample size is shrinking quickly.....
+
+```{r eval=FALSE}
 data25to64 <- data %>% 
   filter(AGE > 24 & AGE < 65)
 # 65,675 observations in age range
+# in actual analysis, do NOT exclude observations this way. Changings population size and changes all  error calculations.
 
-data25to64 %>% filter(INCEARN >0)
+# data25to64 %>% filter(INCEARN >0)
 # 50,993 observations with earned income > $0
 
 ```
@@ -343,7 +450,7 @@ data25to64 %>% filter(INCEARN >0)
 
 `OCCSOC` is 6 digits long. It is the first 6 digits of 8-digit ONET code.
 
--   Please note that in some cases the SOC occupation codes are aggregated if they do not have an exact match to a Census occupation code or to preserve confidentiality in cases where the category contained fewer than 10,000 people nationwide.
+-   In some cases the SOC occupation codes are aggregated if they do not have an exact match to a Census occupation code or to preserve confidentiality in cases where the category contained fewer than 10,000 people nationwide.
 
 `LABFORCE` for if in labor force. 1 = not in labor force, 2 = in labor force, 0 is NA
 
@@ -353,21 +460,9 @@ data25to64 %>% filter(INCEARN >0)
 
 `CLASSWKRD` might be useful. Contains info on self-employed, wages, salary, etc for class of worker.
 
-IPUMS [link for Survey package](https://usa.ipums.org/usa/repwt.shtml)
-
 IPUMS OCC codes over time [link](https://usa.ipums.org/usa/volii/occsoc18.shtml)
 
 ```{r worker-descstats}
-
-# replaces 0 with NA for variables listed. Allows topline to calculate "Valid Percent" when it recognizes missing values
-
-data <- data %>% replace_with_na(replace = list(
-  EMPSTAT= c(0), 
-  LABFORCE=c(0), 
-  CLASSWKR = c(0),
-  TRANWORK = c("N/A","0")))
-
-
 # Employment Status
 table(data$EMPSTAT) # unweighted
 
@@ -403,18 +498,27 @@ data %>%
 #   mutate(pct_weight = weightedcount/sum(weightedcount),
 #          pct_noweight = unweightedcount/sum(unweightedcount))
 
+data <- data %>% 
+  mutate(did_wfh = if_else(TRANWORK==80, 1,2)) # 1 = wfh, 2 = did not wfh
+# 10,949 observations worked from home
+# 47,584 did not work from home.
+#table(data$did_wfh)
+topline(df = data, variable = did_wfh, weight = PERWT)
+
 topline(df = data, variable = LABFORCE, weight = PERWT )
 
 
 ```
 
-*Unweighted -*
+[***Unweighted***]{.underline} *-*
 
 *EMPSTAT: 59,259 observations are employed, 4,194 unemployed observations, and 41,289 observations are not in the workforce (21,881 NAs)*
 
 *LABFORCE: 63,453 are in labor force, 41,289 are not. (21,881 NAs)*
 
 *CLASSWKR: Of these, 68,388 work for wages and 7183 people are self-employed. (51,052 NA)*
+
+*`did_wfh`: 10,949 observations worked from home, 47,584 did not work from home. Based on TRANWORK variable: recoded as binary variable (either did wfh or did not wfh).*
 
 [**Weighted**]{.underline} **-**
 
@@ -424,11 +528,17 @@ LABFORCE: 6,582,401 people (52%) are in the labor force. 3,625,811 (28%) of peop
 
 -   employed and unemployed equal number of people in labor force - that's good
 
+`did_wfh`: 19.2% did work from home and 80.8% did not work from home in Illinois (when not filtering for age or employment)
+
 Location of primary workplace: 5.8 million people located in Illinois.
 
-Compare average income for counties in Illinois to Summary tables from Census.
+::: {.callout-note icon="false"}
+## To Do: Compare summary tables and output from individual data
 
-For the counties that can be identified in the data (populations \> 60,000 or 100,000 or 200,000? Double check), the census summary tables are close but not identical to the tables calculated with the ACS sample data.
+Compare average income for counties in Illinois to Summary tables from Census.
+:::
+
+For the counties that can be identified in the data (populations \> 100,000 & \< 200,000. 1-Year ACS have minimum of 65,000 population), the census summary tables are close but not identical to the tables calculated with the ACS sample data. "In this way more densely populated areas, like Chicago and Cook County will contain many PUMAs within their boundaries, while multiple sparsely populated entire counties, e.g., Jackson, Perry, Franklin, and Williamson, will comprise one PUMA." - [IPUMS v other Geographies](https://iecam.illinois.edu/browse/about-public-use-microdata-areas-pumas#:~:text=What%20is%20a%20PUMA%3F,Community%20Survey%201%2Dyear%20estimates)
 
 ```{r summarytable-check}
 
@@ -453,10 +563,12 @@ Economic Characteristics summary table: [link](https://data.census.gov/table?t=E
 
 summary(as.numeric(data$INCEARN))
 
-# 999999 is missing values and want positive income values
+# we want positive income values
 data <- data %>% 
-  filter(INCEARN>0 & INCWAGE != 999999 & INCWAGE != 999998)  %>% 
-  filter(AGE > 25)
+  filter(INCEARN>0 
+       #  & INCWAGE != 999999 & INCWAGE != 999998
+       # 999999 is missing values for the WAGE variable
+         ) #  %>% filter(AGE > 25)
 # 104,689 obs remaining if >=0
 # 65113 obs if > 0
 # 55332 observations if also older than 25
@@ -467,38 +579,18 @@ summary(as.numeric(data$INCEARN))
 
 ```
 
-> When filtering for ages greater than 25, observations go from \~65,000 to \~55,000. Do we want to drop this age group? Are we not interested in younger workers?
+> When filtering for ages greater than 25, observations go from \~65,000 to \~55,000. Do we want to drop this age group? Are we not interested in younger workers? I don't think we should drop any age of workers...
 
-[Xiaoyan decile cutoffs, stata code:]{.underline}\
-summarize incearn, detail\
-\*generate percentile and percent (equal frequency)\
-pctile pct=incearn, nq(10) genp(percent)\
-list percent pct in 1/10\
-\*how to incorporate svy weight in dividing the percentiles?\
-\*generate percentile range based on perentile calculation\
-gen pctr="(0,10%\]" if incearn\<= 2024\
-replace pctr="(10%,20%\]" if incearn\> 2024&incearn\<=13558\
-replace pctr="(20%,30%\]" if incearn\>13558&incearn\<=23417\
-replace pctr="(30%,40%\]" if incearn\>23417&incearn\<=31961\
-replace pctr="(40%,50%\]" if incearn\>31961&incearn\<=40725\
-replace pctr="(50%,60%\]" if incearn\>40725&incearn\<=51104\
-replace pctr="(60%,70%\]" if incearn\>51104&incearn\<=63922\
-replace pctr="(70%,80%\]" if incearn\>63922&incearn\<=81000\
-replace pctr="(80%,90%\]" if incearn\>81000&incearn\<=111993\
-replace pctr="(90%,100%\]" if incearn\>111993
+After dropping income values below zero, the median earned income is 40,000. According to the census website, the per capita earned income is \$39,571. That seems like a good sign?
 
 ```{r message=FALSE, warning=FALSE}
-
-telework<- read_csv("teleworkable2018onward.csv")
-
 telework <- telework %>% 
   mutate(CanWorkFromHome = case_when(
   teleworkable == 0 ~ "No WFH",
   teleworkable < 1 ~ "Some WFH",
   teleworkable == 1 ~ "Can WFH",
   TRUE ~ "Check Me")
-  )
-
+)
 table(telework$CanWorkFromHome)
   
 # causes problems for any occupation code that has XX in it!! 
@@ -514,21 +606,62 @@ joined %>%
   filter(CanWorkFromHome == "Some WFH") %>% 
   distinct(OCCSOC)
 
+#joined %>% arrange(INCEARN)
 
-library(srvyr)
+#library(srvyr)
 #as_survey() from srvyr package
 
 dstrata <- joined %>% as_survey(strata = STRATA , weights = PERWT)
 
+inc_quantiles<-survey::svyquantile(~INCEARN, design=dstrata, 
+                    quantiles = c(0, 0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1) ,
+                    #interval.type = "quantile",
+                    na.rm=TRUE, 
+                    ci = FALSE 
+                    )
+inc_quantiles
+
 dstrata <- dstrata %>% 
-  mutate(percentile = ntile(INCEARN,100),
-         decile = ntile(INCEARN, 10))
-         #,decile2 = survey_quantile(INCEARN, c(0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9)))
+  mutate(percentile = ntile(INCEARN, 100),
+         decile = ntile(INCEARN, 10)
+         ) 
 
-dstrata
+dstrata %>%
+          group_by(decile) %>% 
+  summarize(min = min(INCEARN),
+            max=max(INCEARN),
+            avg_income = mean(INCEARN),
+            average_income = survey_mean(INCEARN),
+            pop_represented = sum(PERWT),
+            obs_count = n())
 
+
+# no weights comparison
+data %>%
+  mutate(
+        decile = ntile(INCEARN, 10)
+         ) %>%
+          group_by(decile) %>%
+  summarize(min = min(INCEARN),
+            max=max(INCEARN),
+            avg_income = mean(INCEARN),
+            pop_represented = sum(PERWT),
+            obs_count = n())
+
+
+
+
+
+
+```
+
+```{r}
 
 summary <- dstrata %>% 
+  filter(EMPSTAT != 3)%>%
+  mutate(percentile = ntile(INCEARN, 100),
+         decile = ntile(INCEARN, 10)
+         ) %>%
   group_by(decile) %>% 
   summarize(min = min(INCEARN),
             max=max(INCEARN),
@@ -540,7 +673,9 @@ summary <- dstrata %>%
 sum(summary$pop_represented)
 summary 
 
-summary %>% ggplot(aes(x=decile, y=average_income)) + geom_col()
+summary %>% 
+  ggplot(aes(x=decile, y=average_income)) + 
+  geom_col()
 
 
 dstrata %>% 
@@ -555,6 +690,8 @@ dstrata %>%
   ggplot(aes(x=decile)) + 
   geom_bar(aes(y = (..count../sum(..count..)), fill=CanWorkFromHome), position="dodge")+
   labs(title = "Percent of observations")
+
+
 
 dstrata %>% 
   as_data_frame()%>% 
@@ -578,8 +715,9 @@ dstrata %>%
 
 
 dstrata %>% 
-  as_data_frame()%>% 
-  ggplot(aes(x=decile, y = (..count../sum(..count..)*10))) + 
+  as_data_frame() %>% 
+#  mutate(ypct = (..count../sum(..count..)*10)) %>%
+  ggplot(aes(x=decile, y = (..count../sum(..count..)*10), fill = CanWorkFromHome) )+ 
   geom_bar(aes(fill=CanWorkFromHome), position="dodge")+
 
   scale_x_discrete(limits = c("Bottom 10%", "20%", "30%", "40%", "50%", "60%", "70%", "80%", "90%", "Top 10%"))+ 
@@ -588,10 +726,9 @@ dstrata %>%
   labs(title = "Same graph but flipped axes: 
        Able to work from home by income decile", 
        y = "Percent of Workers in each Income Decile",
-       caption = "n = 55,332 observations in sample. 
-       Represents the 5.58 million people in Illinois with INCEARN>0 and older than 25.")
-
-
+       caption = "n = 55,332 observations in sample for dataXH.
+       Over 61,000 obs when all ages are kept.
+       Represents the 5.58 million people in Illinois with INCEARN>0 and older than 25.") 
 ```
 
 ```{r incearn-descripstats, warning=FALSE, message=FALSE}
@@ -602,68 +739,27 @@ summary(as.numeric(data$INCEARN))
 attributes(data$INCTOT)
 attributes(data$INCEARN)
 
-#### WRONG ####
-data <- data %>% 
-  mutate(incearn_decile = ntile(INCEARN, 10)#,
-         
-         ## WRONG ###
-      #   percent_weight = PERWT / sum(PERWT)*100) %>% 
-  #adds a variable to indicate which decile an observation falls within
-#  mutate(perwt_decile = ntile(percent_weight, 10)
-)
-
-### WRONG ##### 
-breaksummary <- data %>% 
-  group_by(incearn_decile)%>%
-  #group_by(incearn_decile) %>%
-  summarize(decile_min = min(INCEARN),
-            decile_max = max(INCEARN)
-            ) 
-breaksummary
-
-table(data$incearn_decile) #equal number of people, yay
- # but are these deciles based on weighted or unweighted observations....
-
 
 ```
 
-Another attempt to see weighted vs unweighted counts that become deciles.
+#### INCWAGE vs INCEARN vs INCTOT deciles
 
-```{r}
-
-# Not deciles! histogram broke it into 10 chunks with equal distance between each income level ($100K, 200K, 300K, etc. )
-
-# 
-# #unweighted
-# h_unweighted<-wtd.hist(as.numeric(data$INCEARN), breaks = 10)
-# 
-# #weighted
-# h_weighted <- wtd.hist(as.numeric(data$INCEARN), breaks = 10,
-#          weight = data$PERWT)
-# 
-# 
-# h_unweighted
-# h_weighted
-# 
-# h_unweighted$breaks
-# 
-# h_weighted$breaks
-```
-
-Look at decile breaks for **INCWAGE** and **INCEARN**:
-
-*These are different than Xiaoyans*? Double check??
+Look at decile breaks for **INCWAGE** and **INCEARN**: THESE ARE NOT WEIGHTED in this comparison.
 
 ```{r}
 data2 <- data %>% filter(OCCSOC != 0) # none are dropped
 
 
-### WAGES ####
+### WAGES - not weighted ####
 income_deciles <- data2 %>% 
+  filter(INCWAGE > 0) %>%
   group_by(ntile(INCWAGE, 10)) %>%
-  dplyr::summarize(mean_inc = mean(INCWAGE)) 
+  dplyr::summarize(mean_inc = mean(INCWAGE),
+                   decile_min = min(INCWAGE),
+            decile_max = max(INCWAGE)
+            ) 
 
-income_deciles
+income_deciles # WAGES 
 
 data2 %>% 
   group_by(ntile(INCWAGE,10)) %>%
@@ -672,15 +768,19 @@ data2 %>%
   mutate(INCWAGE_decile='ntile(INCWAGE,10)') %>%
   ggplot(aes(x = ntile(INCWAGE_decile,10), y=mean_inc)) + 
   geom_bar(stat = "identity") +
-  labs(x="Income decile", y="Mean Income", title = "Average Income for each Income Decile.") +
+  labs(x="Income decile", y="Mean Income from WAGES", title = "Average Income for each Income Decile WAGES ONLY.") +
   scale_x_continuous(breaks = 1:10)
 
 
 
 ### INCEARN ###
 income_deciles <- data2 %>% 
+  filter(INCEARN > 0) %>%
   group_by(ntile(INCEARN, 10)) %>%
-  dplyr::summarize(mean_inc = mean(INCEARN)) 
+  dplyr::summarize(mean_inc = mean(INCEARN),
+                   decile_min = min(INCEARN),
+            decile_max = max(INCEARN)
+            ) 
 
 income_deciles
 
@@ -693,15 +793,31 @@ data2 %>%
   geom_bar(stat = "identity") +
   labs(x="Income decile", y="Mean Income", title = "Average Income for each Income Decile using INCEARN.") +
   scale_x_continuous(breaks = 1:10)
+
+
+### INCTOT ###
+income_deciles <- data2 %>% 
+  filter(INCTOT > 0 & INCTOT < 9999998) %>%
+  group_by(ntile(INCTOT, 10)) %>%
+  dplyr::summarize(mean_inc = mean(INCTOT),
+                   decile_min = min(INCTOT),
+            decile_max = max(INCTOT)
+            ) 
+
+income_deciles
 ```
 
 ### Occupation codes & teleworkability
 
-teleworkable2010.csv has the 6digit OCCSOC codes. I also added the 5 digit broader version that ends with a 0 in the 6th digit to increase the chances of matching.
+Old files:
 
-Updated teleworkable2010.csv again with 4digitXX codes and 5digitXcodes to increase matching.
+-   teleworkable2010.csv has the 6digit OCCSOC codes. I also added the 5 digit broader version that ends with a 0 in the 6th digit to increase the chances of matching.
 
-`teleworkable2018onward.csv` has all codes (2010, 2019 transition, & new 2018 codes).
+-   Updated teleworkable2010.csv again with 4digitXX codes and 5digitXcodes to increase matching.
+
+-   `teleworkable2018onward.csv` has all codes (2010, 2019 transition, & new 2018 codes).
+
+-   renamed teleworkable_AWM.csv and has NA values added for 0's and unemployed code to help matching
 
 ```{r}
 
@@ -714,48 +830,22 @@ Updated teleworkable2010.csv again with 4digitXX codes and 5digitXcodes to incre
 # #98% of the people without Occupation codes are not in the labor force. Makes sense
 # all observations have occsoc codes after filtering for INCWAGE and INCTOT and previous steps
 
-data2 <- data %>% filter(OCCSOC != 0) # none are dropped
 
-topline(df = data2, variable = EMPSTAT, weight = PERWT )
+topline(df = data, variable = EMPSTAT, weight = PERWT )
 
-sum(data2$PERWT) # 5.58 million people represented by remaining observations in sample
-
+sum(data$PERWT) # 5.58 million people represented by remaining observations in sample
 
 
-#telework csv uses data from Dingle and Nieman
-# https://github.com/jdingel/DingelNeiman-workathome/blob/master/occ_manual_scores/input/Teleworkable_BNJDopinion.csv
+joined %>% count()
 
-#telework<- read_csv("teleworkable2010.csv")
-telework<- read_csv("teleworkable2018onward.csv")
-
-telework <- telework %>% 
-  mutate(CanWorkFromHome = case_when(
-  teleworkable == 0 ~ "No WFH",
-  teleworkable < 1 ~ "Some WFH",
-  teleworkable == 1 ~ "Can WFH",
-  TRUE ~ "Check Me")
-)
-table(telework$CanWorkFromHome)
-  
-# causes problems for any occupation code that has XX in it!! 
-#data2$OCCSOC_num <- as.numeric(data2$OCCSOC)
-
-innerjoined<-inner_join(data2, telework, by = c("OCCSOC"= "occ_codes"))
-# 65113 obs in innerjoin
-
-summary(innerjoined$teleworkable)
-# teleworkable values are an average of occupations with same first 5 digits and first 4 digits. 
-
-innerjoined %>% count()
-
-g <- ggplot(innerjoined, aes(INCEARN))
+g <- ggplot(joined, aes(INCEARN))
 
 g + geom_bar(width=10000)
 
 g + geom_bar(aes(weight = PERWT),width=10000)
 
 
-sum(innerjoined$PERWT)
+sum(joined$PERWT)
 
 # innerjoined  %>% ggplot() +
 #   geom_bar(aes(ntile(INCEARN,10)), weight=PERWT, bins = 10)+
@@ -775,8 +865,8 @@ sum(innerjoined$PERWT)
 #   labs(title = "Unweighted Income Distribution")
 
 # didn't change =[ 
-h_w <- ggplot(innerjoined, aes(INCEARN)) +
-  geom_histogram(aes(weight =  data2$PERWT), bins = 10)+
+h_w <- ggplot(joined, aes(INCEARN)) +
+  geom_histogram(aes(weight =  data$PERWT), bins = 10)+
   labs(title = "Weighted Income Distribution")
 h_w$breaks
 
@@ -786,20 +876,19 @@ h_w$breaks
 ```
 
 ```{r}
-innerjoined %>% ggplot() + 
+joined %>% ggplot() + 
   geom_col(aes(x=ntile(INCWAGE,10), y=PERWT, fill = CanWorkFromHome), position = "dodge") +
   labs(title = "Ability to Work from Home based on Occupation Characteristics", x = "Income decile", caption= "Based on D&N teleworkable categorization and expanded for new 2018 SOC OCC codes. 
        Sample: 2021 ACS 1-Year, 65,113 observations 
        representing 6.67 million people in Illinois' workforce.")
 
-innerjoined %>% ggplot() + 
+joined %>% ggplot() + 
   geom_bar(aes(x=ntile(INCWAGE,10), fill = CanWorkFromHome), position = "dodge") +
   labs(title = "Ability to Work from Home based on Occupation Characteristics", x = "Income decile", caption= "Based on D&N teleworkable categorization and expanded for new 2018 SOC OCC codes. 
        Sample: 2021 ACS 1-Year, 65,113 observations 
        representing 6.67 million people in Illinois' workforce.")
 
-leftjoined<-left_join(data2, telework, by = c("OCCSOC"= "occ_codes"))
-summary(innerjoined$teleworkable)
+## OLD JOINING NOTES## 
 #innerjoined<-inner_join(data2, telework, by = c("OCCSOC_num"= "BroadGroupCode"))
 
 #leftjoined<-left_join(data2, telework, by = c("OCCSOC_num"= "BroadGroupCode"))
@@ -822,42 +911,6 @@ summary(innerjoined$teleworkable)
 
 #table(joined$Teleworkable)
 ```
-
-Drops a lot of observations using inner join (equivalent to Stata merge==1) this join. 67,299 observations match SOC codes. I think so many do not match due to the use of 2010 , 2019 transition, and 2018 SOC OCC codes. To check this, I try joining the ACS data with the updated 2018 codes. (Authors used 2010 codes in original paper but they did do one for states that appear to have the 2018 codes?) Double check this.
-
--   Using the 2021 ACS 1-year Sample should use only 2018 OCC codes since that data should be collected after they transitioned their occupation codes.
-
-```{r occ-joins, eval=FALSE}
-
-occ_2018 <- read_csv("2018OCCcodes.csv") %>% 
-  mutate(soc2018_6figs = as.character(soc2018_6figs))
-
-joined2018codes <- inner_join(data2, occ_2018, 
-                              by = c("OCCSOC" = "soc2018_6figs")) %>%
-  mutate(occsoc5digits = substr(OCCSOC,1,5))
-# 59,626 observations
-
-antijoin <- anti_join(data2, occ_2018, by = c("OCCSOC" = "soc2018_6figs"))
-table(antijoin$OCCSOC)
-
-
-
-table(joined2018codes$occsoc5digits)
-
-occ_2018 <- read_csv("teleworkable2018onwards.csv") %>% 
-  mutate(onetsoc_6digits = as.character(onetsoc_6digits))
-
-joined2018codes <- inner_join(data2, occ_2018, 
-                              by = c("OCCSOC" = "onetsoc_6digits")) %>%
-  mutate(occsoc5digits = substr(OCCSOC,1,5))
-# 65113 observations? 
-# I think they all matched? Now I just need to finish creating the average teleworkable variable
-
-
-
-```
-
-joining the remaining observations from 2021 1-year ACS data to the 2018 OCC codes results in 65113 matches
 
 **OCC2010 variable labels:**
 
@@ -892,6 +945,25 @@ Military Specific = 9800-9830\
 Unemployed (no occupation for 5+ years) or Never Worked = 9920\
 
 ## PUMAs and Shapefiles
+
+PUMAs contain around 100,000 people.
+
+For the counties that can be identified in the data (populations \> 100,000 & \< 200,000. 1-Year ACS have minimum of 65,000 population), the census summary tables are close but not identical to the tables calculated with the ACS sample data. "In this way more densely populated areas, like Chicago and Cook County will contain many PUMAs within their boundaries, while multiple sparsely populated entire counties, e.g., Jackson, Perry, Franklin, and Williamson, will comprise one PUMA." - [IPUMS v other Geographies](https://iecam.illinois.edu/browse/about-public-use-microdata-areas-pumas#:~:text=What%20is%20a%20PUMA%3F,Community%20Survey%201%2Dyear%20estimates)
+
+```{r summarytables-check}
+
+data %>% 
+   group_by(as_factor(EMPSTAT), COUNTYFIP) %>% 
+   dplyr::summarize(weightedcount=sum(PERWT), unweightedcount = n()) %>% #weighted 
+   mutate(pct_weight = weightedcount/sum(weightedcount), 
+          pct_noweight = unweightedcount/sum(unweightedcount)) 
+ 
+crosstab(data, COUNTYFIP, EMPSTAT, weight=PERWT)
+```
+
+19 is Champaign, 31 is Cook, 37 is DeKalb, 43 is DuPage, 89 is Kane, 111 is McHenry, etc.
+
+Economic Characteristics summary table: [link](https://data.census.gov/table?t=Employment&g=040XX00US17,17$0500000&tid=ACSDP1Y2021.DP03&moe=false&tp=false)
 
 ```{r warning = FALSE, message=FALSE, results='hide'}
 
@@ -962,4 +1034,28 @@ data %>%
   dplyr::summarize(n=sum(PERWT)) %>% #number of people that match that observation
   mutate(pct = n/sum(n)) %>% 
   arrange(desc(pct))
+```
+
+# Srvyr and survey packages
+
+## survey() package
+
+```{r eval=FALSE}
+survey::svydesign()
+
+svy <- svydesign(~CLUSTER, weights = ~PERWT, strata = ~STRATA, data = data, nest = TRUE, check.strata = FALSE)
+
+svymean(~EMPSTAT, svy)
+```
+
+## srvyr() package
+
+```{r eval= FALSE}
+
+srvyr::as_survey_design(strata = _, weights = __)
+
+svy <- as_survey(data, ids = CLUSTER, weights = PERWT, strata = STRATA, nest = TRUE)
+
+summarize(svy, HISPAN = survey_mean(HISPAN))
+
 ```
