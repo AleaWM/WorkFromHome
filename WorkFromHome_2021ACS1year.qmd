@@ -93,14 +93,22 @@ data <- data %>% replace_with_na(replace = list(
 Note: Dropping groups of people using filter() from the sample will change the standard errors of estimates since it changes the sample size. Use the survey() or svy() command to drop subsets of people (like if we wanted to filter age groups). Google what commands to use to drop observations without impacting standard errors.
 
 ```{r}
+# Before any filtering, median income is $30,361
+summary(as.numeric(data$INCEARN)) 
+
 
 data25to64 <- data %>% 
   filter(AGE > 24 & AGE < 65)
 # 65,675 observations in age range
+summary(as.numeric(data25to64$INCEARN)) # median = $36,900
+
 
 dataXH <- data25to64 %>% filter(LABFORCE == 2)
 # 50,817 observations are in labor force and 25-64 years old
+summary(as.numeric(dataXH$INCEARN)) # median = $50,000
+# Higher than ACS per capita amount, if that matters
 
+dataXH %>% filter(INCEARN >0) %>% summary(as.numeric(INCEARN)) # median = $50,000 still
 rm(data25to64)
 
 
@@ -143,10 +151,13 @@ dataXH %>%
 #table(dataXH$TRANWORK)
 
 dataXH <- dataXH %>% 
-  mutate(did_wfh = if_else(TRANWORK==80, 1,2)) # 1 = wfh, 2 = did not wfh
+  mutate(did_wfh = if_else(TRANWORK==80, 1,0)) # 1 = wfh, 0 = did not wfh
 # 9,470 observations worked from home
 # 37,584 did not work from home.
 table(dataXH$did_wfh)
+
+dataXH <- dataXH %>% replace_with_na(replace = list(
+  did_wfh= c(NA)))
 
 
 dataXH %>% 
@@ -167,15 +178,28 @@ topline(dataXH, did_wfh, weight = PERWT)
 ```{r binary-variables-for-tables}
 dataXH <- dataXH %>% 
   mutate(
-    has_incearn = ifelse(INCEARN > 0, 1, 2), ## has earned income = 1
-    has_occsoc = ifelse(OCCSOC > 0, 1, 2) ## OCCSOC code greater than zero coded as 1
+    did_wfh_labels = ifelse(did_wfh == 1, "Did WFH", "Did not WFH"),
+    has_incearn = ifelse(INCEARN > 0, 1, 0), ## has earned income = 1
+    has_occsoc = ifelse(OCCSOC > 0, 1, 0),# has occupation = 1
+    has_incearn_labels = ifelse(INCEARN > 0, "Has EarnInc", "No IncData"), ## has earned income = 1
+    has_occsoc_labels = ifelse(OCCSOC > 0, "Has Occ", "No Occ") ## OCCSOC code greater than zero coded as 1
     )
-table(dataXH$has_occsoc)
+table(dataXH$has_occsoc) # all have occupations after filtering for income, labor force, etc. 
+
+
+
+# worked when coded as 0 or 1.
 xtabs(did_wfh~has_incearn, data = dataXH)
+
+
 
 xtabs(has_occsoc~has_incearn, data = dataXH)
 table(dataXH$has_incearn, dataXH$has_occsoc)
 table(dataXH$did_wfh, dataXH$has_occsoc)
+
+
+table(dataXH$did_wfh_labels, dataXH$has_occsoc_labels)
+# could apply labels to the variable but I'm lazy. Made two variables instead.
 table(dataXH$did_wfh, dataXH$has_incearn)
 # 9,464 observations worked from home and have income values
 # 37,561 observations did not work from home and have income values.
@@ -193,6 +217,14 @@ joined <- left_join(dataXH, telework, by = c("OCCSOC" = "occ_codes"))
 table(joined$teleworkable)
 hist(joined$teleworkable)
 
+joined <- joined %>% 
+  mutate(CanWorkFromHome = case_when(
+  teleworkable == 0 ~ "No WFH",
+  teleworkable < 1 ~ "Some WFH",
+  teleworkable == 1 ~ "Can WFH",
+  TRUE ~ "Check Me")
+)
+
 library(srvyr)
 library(survey)
 #as_survey() from srvyr package
@@ -207,7 +239,7 @@ dstrata <- dstrata %>%
          decile = ntile(INCEARN, 10))
 
 inc_quantiles<-survey::svyquantile(~INCEARN, design=dstrata, 
-                    quantiles = c(0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9) ,
+                    quantiles = c(0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1) ,
                     #interval.type = "quantile",
                     na.rm=TRUE, 
                     ci = FALSE 
@@ -237,15 +269,44 @@ dstrata
 
 ```
 
-```{r eval = FALSE}
+#### Gender and Working from home
+
+20.5% of those in the labor force worked from home in 2021.
+
+-   10.7% were women, 9.8% were men.
+
+52.6% of those in the labor force were Men, 47.4% were Women.
+
+> Is this when t-tests are supposed to be used? Comparing two groups but are they actually statistically significantly different?
+
+```{r}
+
+dataXH %>% 
+  filter(LABFORCE == 2 &  did_wfh==1) %>%  #9470 people who worked from home and were in the labor force. 
+  mutate(total = n())  %>%
+  group_by(SEX) %>% 
+  dplyr::summarize(n=n())
 
 
-summary <- dstrata %>% 
-  summarize(decile = survey_quantile(INCEARN,  
-                                     quantiles = c(0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9), 
-                                     vartype = c(NULL),
-                                   #  interval_type = "quantile", 
-                                     na.rm = TRUE)) %>%
+round(prop.table(svytable(~has_occsoc+SEX, design=dstrata))*100,digits=2)
+
+round(prop.table(svytable(~did_wfh_labels, design=dstrata))*100,digits=2) # 1 is Male, 2 is female
+
+round(prop.table(svytable(~did_wfh_labels+SEX, design=dstrata))*100,digits=2) # 1 is Male, 2 is female
+
+
+```
+
+#### Income Deciles
+
+```{r}
+#min= -8000, max=949000 for INCEARN 
+breaks <- c(-8000, 9400, 20000, 30000, 40000, 48000, 60000, 72000, 90000, 124000)
+decile_labels <- c("Bottom 10%", "20%", "30%", "40%", "50%", "60%", "70%", "80%", "90%", "Top 10%")
+#code from above
+
+
+summary <- dstrata %>%
   group_by(decile) %>% 
   summarise(min = min(INCEARN),
             max=max(INCEARN),
@@ -253,25 +314,264 @@ summary <- dstrata %>%
             average_income = survey_mean(INCEARN),
             pop_represented = sum(PERWT),
             obs_count = n())
+
+sum(summary$pop_represented)
+sum(summary$obs_count)
+
+
+dstrata %>%
+  as_data_frame() %>%
+  ggplot(aes(x=decile, 
+             y=did_wfh 
+             
+             )) + 
+  geom_col()+
+  scale_x_discrete(limits = c("Bottom 10%", "20%", "30%", "40%", "50%", "60%", "70%", "80%", "90%", "Top 10%"))  +
+  #scale_y_continuous(labels=percent) +
+  labs(x="",y="",
+       title = "Count of workers who worked at home by income decile during 2021")
+#+ 
+#
+
+
+
+
+
+
+graph<- dstrata %>%
+as_data_frame() %>%
+ # mutate(total = n()) %>%
+  filter(CanWorkFromHome != "Check Me") %>%
+  ggplot(aes(x=decile, 
+             y = (..count..)/sum(..count..)*10,
+             fill = CanWorkFromHome)) + 
+  geom_bar( position = "dodge") +
+  #coord_flip()+
+    theme(legend.position = "bottom") +
+
+  scale_x_discrete(limits = c("Bottom 10%", "20%", "30%", "40%", "50%", "60%", "70%", "80%", "90%", "Top 10%"))+
+  scale_y_continuous(labels=scales::percent) +
+  labs(x="",y="", title = "2021, 25-64, Labor force, Weighted. Xiaoyan Comparison ")
+
+graph  # +geom_text(aes(label= (..count..)/sum(..count..)*10 ), position = position_dodge(width=1))
+
+dstrata %>%
+as_data_frame() %>%
+  count(did_wfh, decile) %>%
+  mutate(pct = round(n/sum(n)*1000, 1))%>%
+  filter(did_wfh == 1)%>%
+  #filter(did_wfh == "Can WFH") %>%
+  #group_by(decile)%>%
+  #summarize(count2 = n()) %>%
+  ggplot(aes(x=decile,
+             fill = did_wfh,
+             y = pct,
+            # label = paste0(round(count/sum(count),2)*100,"%")
+               #(..count..)/sum(..count..)*10
+             )) + 
+  geom_col() +
+  coord_flip()+
+    theme(legend.position = "bottom") +
+
+  scale_x_discrete(limits = c("Bottom 10%", "20%", "30%", "40%", "50%", "60%", "70%", "80%", "90%", "Top 10%"))+
+  #scale_y_continuous(labels=scales::percent) +
+  geom_text(aes(label=paste0(pct,"%")), hjust=1.3)+
+  labs(x="",y="% Worked at Home", title = "Individuals with higher income were more able to work from home",
+       caption = "Did work from home is based on ACS variable TRANWORK.")+
+  theme_minimal()+
+  theme(legend.position = "none")
+
+
+# dstrata %>%
+# as_data_frame() %>%
+#  # mutate(total = n()) %>%
+#  # filter(CanWorkFromHome == "Can WFH") %>%
+#  # group_by(did_wfh)%>%
+#  # summarize(count = n()) %>%
+#   ggplot(aes(
+#              x= SEX,
+#              fill = TRANWORK
+#              )) + 
+#   geom_bar(position = "stack") +
+#     theme(legend.position = "bottom") +
+# 
+#   #scale_x_discrete(limits = c("Bottom 10%", "20%", "30%", "40%", "50%", "60%", "70%", "80%", "90%", "Top 10%"))+
+#   #scale_y_continuous(labels=scales::percent) +
+#   labs(x="",y="Count of Those Who Worked From Home by Sex", title = "Did Work From Home")
 ```
 
-[OLD stata code: Xiaoyan decile cutoffs, stata code:]{.underline}\
-summarize incearn, detail\
-\*generate percentile and percent (equal frequency)\
-pctile pct=incearn, nq(10) genp(percent)\
-list percent pct in 1/10\
-\*how to incorporate svy weight in dividing the percentiles?\
-\*generate percentile range based on perentile calculation\
-gen pctr="(0,10%\]" if incearn\<= 2024\
-replace pctr="(10%,20%\]" if incearn\> 2024&incearn\<=13558\
-replace pctr="(20%,30%\]" if incearn\>13558&incearn\<=23417\
-replace pctr="(30%,40%\]" if incearn\>23417&incearn\<=31961\
-replace pctr="(40%,50%\]" if incearn\>31961&incearn\<=40725\
-replace pctr="(50%,60%\]" if incearn\>40725&incearn\<=51104\
-replace pctr="(60%,70%\]" if incearn\>51104&incearn\<=63922\
-replace pctr="(70%,80%\]" if incearn\>63922&incearn\<=81000\
-replace pctr="(80%,90%\]" if incearn\>81000&incearn\<=111993\
-replace pctr="(90%,100%\]" if incearn\>111993
+```{r}
+
+dstrata %>%
+as_data_frame() %>%
+  filter(CanWorkFromHome != "Check Me") %>%
+  count(decile, CanWorkFromHome) %>%
+  mutate(pct = round(n/sum(n/10), 3)*100)%>%
+  ggplot(aes(x=decile, 
+             y = n,
+         fill = factor(CanWorkFromHome, levels = c( "Some WFH", "No WFH", "Can WFH"))
+         )) + 
+  geom_bar( stat = "identity") +
+  coord_flip()+
+  geom_text(aes(label=paste0(pct, "%")), 
+            position = position_stack(vjust=0.5), size=3)+
+    theme(legend.position = "bottom", legend.title = element_blank()) +
+
+  scale_x_discrete(limits = c("Bottom 10%", "20%", "30%", "40%", "50%", "60%", "70%", "80%", "90%", "Top 10%"))+
+  #scale_y_continuous(labels=scales::percent) +
+  labs(x="Earned Income Deciles", y="# Survey Responses", 
+       title = "Ability to work from home based on occupational characteristics",
+       caption = "Occupation data from ACS 1-year 2021 sample. 
+       The ability to work from home is based on occupation characteristics from BLS occupation 
+       surveys & D&N's paper. Includes workers wo were 25-64 and responded to OCCSOC n=>50,000.")
+
+
+
+dstrata %>%
+as_data_frame() %>%
+  filter(CanWorkFromHome != "Check Me") %>%
+  ggplot(aes(x=decile, 
+         #    y = (..count..)/sum(..count..)*10,
+          
+         fill = factor(CanWorkFromHome, levels = c( "Some WFH", "No WFH", "Can WFH"))
+         )) + 
+  geom_bar( position = "fill", stat= "count") +
+  coord_flip()+
+  #geom_text(aes(label=after_stat(count)), position = position_stack(vjust=0.5), size=3)+
+    theme(legend.position = "bottom", legend.title = element_blank()) +
+
+  scale_x_discrete(limits = c("Bottom 10%", "20%", "30%", "40%", "50%", "60%", "70%", "80%", "90%", "Top 10%"))+
+  #scale_y_continuous(labels=scales::percent) +
+  labs(x="Earned Income Deciles", y="% Survey Responses", 
+       title = "Ability to work from home based on occupational characteristics",
+       caption = "Occupation data from ACS 1-year 2021 sample. 
+       The ability to work from home is based on occupation characteristics from BLS occupation 
+       surveys & D&N's paper. Includes workers wo were 25-64 and responded to OCCSOC n=>50,000.") 
+```
+
+```{r dataXH-graphs}
+
+summary(as.numeric(dataXH$INCEARN))
+
+
+summary <- dstrata %>% 
+  group_by(decile) %>% 
+  summarize(min = min(INCEARN),
+            max=max(INCEARN),
+            avg_income = mean(INCEARN),
+            average_income = survey_mean(INCEARN),
+            pop_represented = sum(PERWT),
+            obs_count = n())
+summary %>% 
+  ggplot(aes(x=decile, y=average_income, label=scales::dollar(average_income))) + 
+  geom_col()+
+  scale_x_discrete(limits = c("Bottom 10%", "20%", "30%", "40%", "50%", "60%", "70%", "80%", "90%", "Top 10%"))+
+  scale_y_continuous(labels = scales::dollar)+labs(x="",y="", title = "Average earned income for each income decile")+
+  geom_text(vjust = -0.5, size = 3)
+
+
+```
+
+## Francis replication
+
+Using INCEARN and Labor Force workers ages 25-64:
+
+Percentage of WFH workers by income decile in 2019
+
+Percentage of WFH workers by Income decile in 2021.
+
+```{r}
+dstrata %>%
+  as_data_frame() %>%
+#  filter(did_wfh == 1) %>% # did work from home according to TRANWORK ACS question on commuting to work
+#  group_by(decile) %>%
+  #summarize(avgincearn = survey::svymean(INCEARN, dstrata)) %>%
+  #ungroup%>%
+  ggplot()+
+  geom_col(aes(x=decile, y=did_wfh, group = decile))+coord_flip()
+
+#+scale_x_continuous()
+#+
+
+dstrata %>%
+as_data_frame() %>%
+  ggplot(aes(x=decile, 
+           #  y = (..count../sum(..count..)*10), 
+             fill = CanWorkFromHome
+         )) + 
+  geom_bar()+
+  coord_flip()+
+  #geom_text(aes(label=after_stat(count)), position = position_stack(vjust=0.5), size=3)+
+    theme(legend.position = "bottom", legend.title = element_blank()) +
+#  geom_text(aes(label = after_stat()))+
+  scale_x_discrete(limits = c("Bottom 10%", "20%", "30%", "40%", "50%", "60%", "70%", "80%", "90%", "Top 10%"))+
+  labs(x="Earned Income Deciles", y="# Survey Responses", 
+       title = "Who did work from home, by income deciles",
+       caption = "Occupation data from ACS 1-year 2021 sample. 
+       The ability to work from home is based on TRANWORK survey question.. Includes workers wo were 25-64 and responded to TRANWORK n=~47,000.")
+```
+
+```{r}
+
+topline(dataXH, did_wfh,  weight=PERWT)
+# All members of the labor force could have said they either work from home (TRANWORK=80), go to work using some form of transportation, or didn't answer the question. 8.2% of the labor force did not answer the TRANWORK question and should not be included in calculations.
+crosstab(dataXH, x=LABFORCE, y=RACE, weight = PERWT, pct_type = "row", unwt_n=TRUE, n=FALSE)  # matches Francis Total Row in Race output
+
+
+crosstab(dataXH, x=RACE, y=did_wfh, weight = PERWT, unwt_n=TRUE, n=FALSE)
+crosstab(dataXH, x=RACE, y=did_wfh, weight = PERWT, pct_type = "column", unwt_n=TRUE, n=FALSE)
+crosstab(dataXH, x=did_wfh, y=RACE, weight = PERWT, pct_type = "row", unwt_n=TRUE, n=FALSE)
+crosstab(dataXH, x=did_wfh, y=RACE, weight = PERWT)
+
+crosstab_3way(dataXH, z=LABFORCE, y=did_wfh, x=RACE, weight = PERWT)
+crosstab_3way(dataXH, y=LABFORCE, x=did_wfh, z=RACE, weight = PERWT)
+crosstab_3way(dataXH, x=RACE, y=did_wfh, z=LABFORCE, weight = PERWT)
+crosstab_3way(dataXH, x=RACE, y=did_wfh, z=LABFORCE, weight = PERWT, pct_type = "cell")
+
+
+
+
+```
+
+```{r}
+crosstab(dataXH, x=LABFORCE, y=SEX, weight = PERWT, pct_type = "row", unwt_n=TRUE, n=FALSE) # matches Francis, 52% male, 48% female in laborforce
+crosstab(dataXH, x=did_wfh, y=SEX, weight = PERWT, pct_type = "row", unwt_n=TRUE, n=FALSE)
+crosstab(dataXH, x=SEX, y=did_wfh, weight = PERWT, pct_type = "row", unwt_n=TRUE, n=FALSE)
+crosstab_3way(dataXH, x=did_wfh, y=SEX, z=LABFORCE,weight = PERWT, )
+
+```
+
+```{r}
+dataXH %>% 
+  mutate(total = n()) %>%
+  dplyr::group_by(TRANWORK)%>%
+  dplyr::summarize(count=n())
+```
+
+### Pulling in 2019 data as comparison
+
+```{r}
+ddi <- read_ipums_ddi("usa_00011.xml") # downloaded April 10 2023
+data <- read_ipums_micro(ddi) # 126623 observations before any filtering
+
+# same sample but with 150+ variables. 
+# NEED TO CHANGE XML file that referneces the data file. currently says usa_00011.dat.gz so these two lines of code do not work. 
+#ddi <- read_ipums_ddi("C:/Users/aleaw/Box/Fiscal Futures/FY22_Working/WFH/Data/IL_2021_1yrACS_datDDI.xml") # downloaded April 10 2023
+#data <- read_ipums_micro(ddi) # 126623 observations before any filtering
+
+data <- data %>% select(INCEARN, INCWAGE, INCTOT, TRANWORK, OCCSOC,CLASSWKR, EMPSTAT, LABFORCE, PERWT, COUNTYFIP, PUMA, PWSTATE2, AGE, STRATA, CLUSTER, RACE, SEX )
+
+
+
+# replaces 0 with NA for variables listed. Allows topline to calculate "Valid Percent" when it recognizes missing values
+
+data <- data %>% replace_with_na(replace = list(
+  EMPSTAT= c(0), 
+  LABFORCE=c(0), 
+  CLASSWKR = c(0),
+  OCCSOC = c(0),
+  TRANWORK = c("N/A","0")))
+```
 
 # Alea dwelling on which observations to include
 
@@ -650,7 +950,7 @@ data %>%
 
 
 
-
+breaks2 <- c(5400, 14000, 23400, 31200, 40000, 50000, 65000, 84000, 115000)
 
 
 ```
@@ -658,7 +958,7 @@ data %>%
 ```{r}
 
 summary <- dstrata %>% 
-  filter(EMPSTAT != 3)%>%
+  #filter(EMPSTAT != 3)%>%
   mutate(percentile = ntile(INCEARN, 100),
          decile = ntile(INCEARN, 10)
          ) %>%
@@ -670,7 +970,8 @@ summary <- dstrata %>%
             pop_represented = sum(PERWT),
             obs_count = n())
 
-sum(summary$pop_represented)
+sum(summary$pop_represented) #6.67 when only wages > $0 are filtered for
+sum(summary$obs_count)
 summary 
 
 summary %>% 
@@ -708,10 +1009,8 @@ dstrata %>%
   labs(title = "Able to work from home by income decile", 
        y = "Percent of Workers in each Income Decile",
        x = "",
-       caption = "n = 55,332 observations in 2021 1-year sample. 
-       Represents the 5.58 million people in Illinois' workforce older than 25 and with earned income > $0.
-       Reading image example: If 10% of workers in the 'Bottom 10%' income decile cannot work from home, 
-       that is roughly equivalent to 1% of the labor force who can't work from home.")
+       caption = "n = 65,113 observations in 2021 1-year sample. 
+       Represents the 6.67 million people in Illinois' workforce with earned income > $0.")
 
 
 dstrata %>% 
@@ -725,10 +1024,7 @@ dstrata %>%
   scale_y_continuous(labels = scales::percent)+
   labs(title = "Same graph but flipped axes: 
        Able to work from home by income decile", 
-       y = "Percent of Workers in each Income Decile",
-       caption = "n = 55,332 observations in sample for dataXH.
-       Over 61,000 obs when all ages are kept.
-       Represents the 5.58 million people in Illinois with INCEARN>0 and older than 25.") 
+       y = "Percent of Workers in each Income Decile") 
 ```
 
 ```{r incearn-descripstats, warning=FALSE, message=FALSE}
@@ -833,7 +1129,7 @@ Old files:
 
 topline(df = data, variable = EMPSTAT, weight = PERWT )
 
-sum(data$PERWT) # 5.58 million people represented by remaining observations in sample
+sum(data$PERWT) # 6.67 million people represented by remaining observations in sample
 
 
 joined %>% count()
@@ -847,46 +1143,74 @@ g + geom_bar(aes(weight = PERWT),width=10000)
 
 sum(joined$PERWT)
 
-# innerjoined  %>% ggplot() +
-#   geom_bar(aes(ntile(INCEARN,10)), weight=PERWT, bins = 10)+
-#   labs(title = "Unweighted Income Distribution")
-
-# ggplot(innerjoined) +
-#   geom_bar(aes(x=ntile(INCEARN,10), weight = PERWT), bins = 10, stat = "identity")+
-#   labs(title = "Unweighted Income Distribution")
-# 
-# # didn't change =[ 
-# ggplot(innerjoined, aes(INCEARN)) +
-#   geom_histogram(aes(weight =  data2$PERWT), bins = 100, stat = "freq")+
-#   labs(title = "Weighted Income Distribution")
-# 
-# ggplot(innerjoined, aes(INCEARN)) +
-#   geom_histogram(aes(), bins = 10)+
-#   labs(title = "Unweighted Income Distribution")
-
-# didn't change =[ 
-h_w <- ggplot(joined, aes(INCEARN)) +
-  geom_histogram(aes(weight =  data$PERWT), bins = 10)+
-  labs(title = "Weighted Income Distribution")
-h_w$breaks
-
-
-
 
 ```
 
 ```{r}
-joined %>% ggplot() + 
-  geom_col(aes(x=ntile(INCWAGE,10), y=PERWT, fill = CanWorkFromHome), position = "dodge") +
-  labs(title = "Ability to Work from Home based on Occupation Characteristics", x = "Income decile", caption= "Based on D&N teleworkable categorization and expanded for new 2018 SOC OCC codes. 
-       Sample: 2021 ACS 1-Year, 65,113 observations 
-       representing 6.67 million people in Illinois' workforce.")
+dstrata <- joined %>% as_survey(strata = STRATA , weights = PERWT)
 
-joined %>% ggplot() + 
+dstrata <- dstrata %>% 
+  mutate(decile = ntile(INCWAGE, 10)
+         ) 
+
+
+summary <- dstrata %>% 
+  #filter(EMPSTAT != 3)%>%
+  mutate(
+         decile = ntile(INCWAGE, 10)
+         ) %>%
+  group_by(decile) %>% 
+  summarize(min = min(INCWAGE),
+            max=max(INCWAGE),
+            avg_income = mean(INCWAGE),
+            average_income = survey_mean(INCWAGE),
+            pop_represented = sum(PERWT),
+            obs_count = n())
+
+sum(summary$pop_represented)
+sum(summary$obs_count)
+
+dstrata %>% 
+  as_data_frame()%>% 
+  ggplot(aes(x=decile, y = (..count..)/sum(..count..)*10, fill = CanWorkFromHome)) + 
+  #geom_bar(aes(fill=CanWorkFromHome), position="dodge")+
+    geom_bar(aes(fill = CanWorkFromHome), position = "dodge") +
+
+  coord_flip()+ 
+
+  scale_x_discrete(limits = c("Bottom 10%", "20%", "30%", "40%", "50%", "60%", "70%", "80%", "90%", "Top 10%"))+ 
+  scale_y_continuous(labels = scales::percent)+
+  theme(legend.position = "bottom") +
+  labs(title = "Ability to Work from Home based on Occupation Characteristics", x = "Income decile from WAGES, All Ages", caption= "Based on D&N teleworkable categorization and expanded for new 2018 SOC OCC codes.")
+
+  
+dstrata <- joined %>% 
+  filter(AGE > 25 & AGE < 65) %>% 
+  as_survey(strata = STRATA , weights = PERWT)
+
+dstrata <- dstrata %>% 
+  mutate(decile = ntile(INCWAGE, 10)
+         ) 
+
+dstrata %>% 
+  as_data_frame()%>% 
+  ggplot(aes(x=decile, y = (..count..)/sum(..count..)*10, fill = CanWorkFromHome)) + 
+  #geom_bar(aes(fill=CanWorkFromHome), position="dodge")+
+    geom_bar(aes(fill = CanWorkFromHome), position = "dodge") +
+
+  coord_flip()+   #geom_text(aes(y = ((..count..)/sum(..count..)), label = scales::percent((..count..)/sum(..count..))), stat = "count", vjust = -0.25) +
+     # scale_y_reverse(limits = rev)+
+
+  scale_x_discrete(limits = c("Bottom 10%", "20%", "30%", "40%", "50%", "60%", "70%", "80%", "90%", "Top 10%"))+ 
+  scale_y_continuous(labels = scales::percent)+
+  theme(legend.position = "bottom") +
+  labs(title = "Ability to Work from Home based on Occupation Characteristics", x = "Income decile from WAGES, 25-65", caption= "Based on D&N teleworkable categorization and expanded for new 2018 SOC OCC codes.")
+
+dstrata %>% 
+  as_data_frame()%>% 
+  ggplot() + 
   geom_bar(aes(x=ntile(INCWAGE,10), fill = CanWorkFromHome), position = "dodge") +
-  labs(title = "Ability to Work from Home based on Occupation Characteristics", x = "Income decile", caption= "Based on D&N teleworkable categorization and expanded for new 2018 SOC OCC codes. 
-       Sample: 2021 ACS 1-Year, 65,113 observations 
-       representing 6.67 million people in Illinois' workforce.")
+  labs(title = "Ability to Work from Home based on Occupation Characteristics", x = "Income decile from WAGES", caption= "Based on D&N teleworkable categorization and expanded for new 2018 SOC OCC codes")
 
 ## OLD JOINING NOTES## 
 #innerjoined<-inner_join(data2, telework, by = c("OCCSOC_num"= "BroadGroupCode"))
@@ -1037,6 +1361,8 @@ data %>%
 ```
 
 # Srvyr and survey packages
+
+notes to myself on the two options for survey data and syntax
 
 ## survey() package
 

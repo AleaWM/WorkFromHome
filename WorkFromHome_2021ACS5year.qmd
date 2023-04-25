@@ -1,7 +1,8 @@
 ---
 title: "Work From Home: Who Can and Who Does?"
 subtitle: "Using 2021 5-Year ACS & O*NET Data"
-format:
+format: 
+#docx
   html:
     toc: true
     toc_float: true
@@ -21,6 +22,22 @@ library(tigris)
 library(ipumsr)
 library(tidyverse)
 library(naniar)
+
+ddi <- read_ipums_ddi("usa_00010.xml") # 45 variables
+data <- read_ipums_micro(ddi) # 126623 observations before any filtering
+
+
+# same sample but with 150+ variables. 
+#ddi <- read_ipums_ddi("usa_00010.xml") # downloaded April 10 2023
+#data <- read_ipums_micro(ddi) # 632,265 obs observations before any filtering
+
+# same sample but with 150+ variables. 
+#ddi <- read_ipums_ddi("C:/Users/aleaw/Box/Fiscal Futures/FY22_Working/WFH/Data/IL_2021_1yrACSlabels.xml") # downloaded April 10 2023
+#data <- read_ipums_micro(ddi) # 126623 observations before any filtering
+
+
+
+
 ```
 
 # ACS data Notes
@@ -43,19 +60,145 @@ library(naniar)
 ## 2021 5-Year Data
 
 ```{r}
-#ddi <- read_ipums_ddi("usa_00009.xml") # 45 variables
-#data <- read_ipums_micro(ddi) # 126623 observations before any filtering
+data <- data %>% 
+#  filter(LABFORCE == 2 & AGE > 24 & AGE < 65) %>%
+ 
+ replace_with_na(replace = list(
+  EMPSTAT= c(0), 
+  LABFORCE=c(0), 
+  CLASSWKR = c(0),
+  OCCSOC = c(0),
+  TRANWORK = c("N/A","0")))
+
+data <- data %>% 
+  mutate(did_wfh = if_else(TRANWORK==80, 1,0),
+    has_incearn = ifelse(INCEARN > 0, 1, 0), ## has earned income = 1
+    has_occsoc = ifelse(OCCSOC > 0, 1, 0)) %>%
+  replace_with_na(replace = list(
+  did_wfh= c(NA))) %>%
+  mutate(# has occupation = 1
+    has_incearn_labels = ifelse(INCEARN > 0, "Has EarnInc", "No IncData"), ## has earned income = 1
+    did_wfh_labels = ifelse(did_wfh == 1, "Did WFH", "Did not WFH"),
+
+    has_occsoc_labels = ifelse(OCCSOC > 0, "Has Occ", "No Occ") ## OCCSOC code greater than zero coded as 1
+    )
+
+telework <- read_csv("teleworkable_AWM.csv")
+joined <- left_join(data, telework, by = c("OCCSOC" = "occ_codes"))
+
+joined <- joined %>% 
+  mutate(CanWorkFromHome = case_when(
+  teleworkable == 0 ~ "No WFH",
+  teleworkable < 1 ~ "Some WFH",
+  teleworkable == 1 ~ "Can WFH",
+  TRUE ~ "Check Me")
+)
 
 
-# same sample but with 150+ variables. 
-ddi <- read_ipums_ddi("usa_00010.xml") # downloaded April 10 2023
-data <- read_ipums_micro(ddi) # 632,265 obs observations before any filtering
-
-# same sample but with 150+ variables. 
-#ddi <- read_ipums_ddi("C:/Users/aleaw/Box/Fiscal Futures/FY22_Working/WFH/Data/IL_2021_1yrACSlabels.xml") # downloaded April 10 2023
-#data <- read_ipums_micro(ddi) # 126623 observations before any filtering
+precovid <- joined %>% filter(MULTYEAR <= 2019)
+postcovid <- joined %>% filter(MULTYEAR > 2019)
 
 
+library(srvyr)
+library(survey)
+
+predesign <- precovid %>% as_survey(strata = STRATA, 
+                                ids = CLUSTER, 
+                                weights = PERWT)
+prepop<- subset(predesign, LABFORCE == 2 & AGE > 24 & AGE < 65)
+prepop <- prepop %>% 
+  mutate(percentile = ntile(INCEARN,100),
+         decile = ntile(INCEARN, 10))
+
+postdesign <- postcovid %>% as_survey(strata = STRATA, 
+                                ids = CLUSTER, 
+                                weights = PERWT)
+postpop<- subset(postdesign, LABFORCE == 2 & AGE > 24 & AGE < 65)
+postpop <- postpop %>% 
+  mutate(percentile = ntile(INCEARN,100),
+         decile = ntile(INCEARN, 10))
+
+inc_quantiles<-survey::svyquantile(~INCEARN, design=prepop, 
+                    quantiles = c(0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1) ,
+                    #interval.type = "quantile",
+                    na.rm=TRUE, 
+                    ci = FALSE 
+)
+inc_quantiles
+
+inc_quantiles<-survey::svyquantile(~INCEARN, design=postpop, 
+                    quantiles = c(0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1) ,
+                    #interval.type = "quantile",
+                    na.rm=TRUE, 
+                    ci = FALSE 
+)
+inc_quantiles
+
+```
+
+```{r}
+prepop %>%
+as_data_frame() %>%
+  count(did_wfh, decile) %>%
+  mutate(pct = round(n/sum(n)*1000, 1))%>%
+  filter(did_wfh == 1)%>%
+  ggplot(aes(x=decile,
+             fill = did_wfh,
+             y = pct           )) + 
+  geom_col() +
+  coord_flip()+
+    theme(legend.position = "bottom") +
+
+  scale_x_discrete(limits = c("Bottom 10%", "20%", "30%", "40%", "50%", "60%", "70%", "80%", "90%", "Top 10%"))+
+  #scale_y_continuous(labels=scales::percent) +
+  geom_text(aes(label=paste0(pct,"%")), hjust=1.3)+
+  labs(x="",y="% Worked at Home", title = "Individuals with higher income were more able to work from home",
+       caption = "Uses ACS 2021 5-year Sample with MULTYEAR <=2019 2019.Did work from home is based on ACS variable TRANWORK.")+
+  theme_minimal()+
+  theme(legend.position = "none")
+
+postpop %>%
+as_data_frame() %>%
+  count(did_wfh, decile) %>%
+  mutate(pct = round(n/sum(n)*1000, 1))%>%
+  filter(did_wfh == 1)%>%
+  ggplot(aes(x=decile,
+             fill = did_wfh,
+             y = pct           )) + 
+  geom_col() +
+  coord_flip()+
+    theme(legend.position = "bottom") +
+
+  scale_x_discrete(limits = c("Bottom 10%", "20%", "30%", "40%", "50%", "60%", "70%", "80%", "90%", "Top 10%"))+
+  #scale_y_continuous(labels=scales::percent) +
+  geom_text(aes(label=paste0(pct,"%")), hjust=1.3)+
+  labs(x="",y="% Worked at Home", title = "Individuals with higher income were more able to work from home",
+       caption = "Uses ACS 2021 5-year Sample with MULTYEAR > 2019.
+       Worked from home is based on ACS variable TRANWORK.")+
+  theme_minimal()+
+  theme(legend.position = "none")
+
+postpop %>%
+as_data_frame() %>%
+  filter(MULTYEAR == 2021) %>%
+  count(did_wfh, decile) %>%
+  mutate(pct = round(n/sum(n)*1000, 1))%>%
+  filter(did_wfh == 1)%>%
+  ggplot(aes(x=decile,
+             fill = did_wfh,
+             y = pct           )) + 
+  geom_col() +
+  coord_flip()+
+    theme(legend.position = "bottom") +
+
+  scale_x_discrete(limits = c("Bottom 10%", "20%", "30%", "40%", "50%", "60%", "70%", "80%", "90%", "Top 10%"))+
+  #scale_y_continuous(labels=scales::percent) +
+  geom_text(aes(label=paste0(pct,"%")), hjust=1.3)+
+  labs(x="",y="% Worked at Home", title = "Individuals with higher income were more able to work from home",
+       caption = "Uses ACS 2021 5-year Sample but keeps ONLY MULTYEAR=2021.
+       Worked from home is based on ACS variable TRANWORK.")+
+  theme_minimal()+
+  theme(legend.position = "none")
 ```
 
 ### Occupation codes
