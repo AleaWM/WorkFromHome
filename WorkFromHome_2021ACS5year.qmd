@@ -178,6 +178,29 @@ as_data_frame() %>%
   theme_minimal()+
   theme(legend.position = "none")
 
+
+prepop %>%
+as_data_frame() %>%
+  filter(MULTYEAR == 2019) %>%
+  count(did_wfh, decile) %>%
+  mutate(pct = round(n/sum(n)*1000, 1))%>%
+  filter(did_wfh == 1)%>%
+  ggplot(aes(x=decile,
+             fill = did_wfh,
+             y = pct           )) + 
+  geom_col() +
+  coord_flip()+
+    theme(legend.position = "bottom") +
+
+  scale_x_discrete(limits = c("Bottom 10%", "20%", "30%", "40%", "50%", "60%", "70%", "80%", "90%", "Top 10%"))+
+  ylim(0,45) +
+  geom_text(aes(label=paste0(pct,"%")), hjust=1.3)+
+  labs(x="",y="% Worked at Home", title = "2019: Working from home was evenly distributed across incomes deciles",
+       caption = "Uses ACS 2021 5-year Sample but keeps ONLY MULTYEAR=2019.
+       Worked from home is based on ACS variable TRANWORK.")+
+  theme_minimal()+
+  theme(legend.position = "none")
+
 postpop %>%
 as_data_frame() %>%
   filter(MULTYEAR == 2021) %>%
@@ -192,7 +215,7 @@ as_data_frame() %>%
     theme(legend.position = "bottom") +
 
   scale_x_discrete(limits = c("Bottom 10%", "20%", "30%", "40%", "50%", "60%", "70%", "80%", "90%", "Top 10%"))+
-  #scale_y_continuous(labels=scales::percent) +
+  ylim(0,45) +
   geom_text(aes(label=paste0(pct,"%")), hjust=1.3)+
   labs(x="",y="% Worked at Home", title = "Individuals with higher income were more able to work from home",
        caption = "Uses ACS 2021 5-year Sample but keeps ONLY MULTYEAR=2021.
@@ -740,7 +763,7 @@ Unemployed (no occupation for 5+ years) or Never Worked = 9920\
 ## PUMAs and Shapefiles
 
 ```{r warning = FALSE, message=FALSE, results='hide'}
-
+#| eval: FALSE
 
 # PUMA shapefiles
 pumasIL <- pumas("IL", cb=T, year=2019)
@@ -751,6 +774,8 @@ countyIL <- counties("IL", cb=T, year=2019)
 ```
 
 ```{r warning = FALSE, message=FALSE}
+#| eval: FALSE
+
 
 pums_weighted <- data %>% 
   group_by(PUMA, COUNTYFIP) %>% 
