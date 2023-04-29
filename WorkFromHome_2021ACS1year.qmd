@@ -245,25 +245,7 @@ inc_quantiles<-survey::svyquantile(~INCEARN, design=dstrata,
                     ci = FALSE 
                     )
 
-# joined <-joined %>% 
-#   mutate(inc_quantiles = survey::svyquantile(~INCEARN, design=dstrata, 
-#                     quantiles = c(0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9) ,
-#                     #interval.type = "quantile",
-#                     na.rm=TRUE, 
-#                     ci = FALSE 
-#                     ))
-
 inc_quantiles
-
-
-
-# Here we use "subset" to tell "nhanesDesign" that we want to only look at a
-# specific subpopulation (i.e., those age between 18-79 years). This is
-# important to do. If you don't do this and just restrict it in a different way
-# your estimates won't have correct SEs.
- 
-#ageDesign <- subset(nhanesDesign, age > 24 &
-#                                  age < 65)
 
 dstrata
 
@@ -300,6 +282,8 @@ round(prop.table(svytable(~did_wfh_labels+SEX, design=dstrata))*100,digits=2) # 
 #### Income Deciles
 
 ```{r}
+#| code-fold: TRUE
+
 #min= -8000, max=949000 for INCEARN 
 breaks <- c(-8000, 9400, 20000, 30000, 40000, 48000, 60000, 72000, 90000, 124000)
 decile_labels <- c("Bottom 10%", "20%", "30%", "40%", "50%", "60%", "70%", "80%", "90%", "Top 10%")
@@ -330,8 +314,6 @@ dstrata %>%
   #scale_y_continuous(labels=percent) +
   labs(x="",y="",
        title = "Count of workers who worked at home by income decile during 2021")
-#+ 
-#
 
 
 
@@ -381,26 +363,10 @@ as_data_frame() %>%
   theme_minimal()+
   theme(legend.position = "none")
 
-
-# dstrata %>%
-# as_data_frame() %>%
-#  # mutate(total = n()) %>%
-#  # filter(CanWorkFromHome == "Can WFH") %>%
-#  # group_by(did_wfh)%>%
-#  # summarize(count = n()) %>%
-#   ggplot(aes(
-#              x= SEX,
-#              fill = TRANWORK
-#              )) + 
-#   geom_bar(position = "stack") +
-#     theme(legend.position = "bottom") +
-# 
-#   #scale_x_discrete(limits = c("Bottom 10%", "20%", "30%", "40%", "50%", "60%", "70%", "80%", "90%", "Top 10%"))+
-#   #scale_y_continuous(labels=scales::percent) +
-#   labs(x="",y="Count of Those Who Worked From Home by Sex", title = "Did Work From Home")
 ```
 
 ```{r}
+#| code-fold: true
 
 dstrata %>%
 as_data_frame() %>%
@@ -409,7 +375,7 @@ as_data_frame() %>%
   mutate(pct = round(n/sum(n/10), 3)*100)%>%
   ggplot(aes(x=decile, 
              y = n,
-         fill = factor(CanWorkFromHome, levels = c( "Some WFH", "No WFH", "Can WFH"))
+         fill = factor(CanWorkFromHome, levels = c("No WFH", "Some WFH",  "Can WFH"))
          )) + 
   geom_bar( stat = "identity") +
   coord_flip()+
@@ -418,6 +384,8 @@ as_data_frame() %>%
     theme(legend.position = "bottom", legend.title = element_blank()) +
 
   scale_x_discrete(limits = c("Bottom 10%", "20%", "30%", "40%", "50%", "60%", "70%", "80%", "90%", "Top 10%"))+
+    guides(fill = guide_legend(reverse = TRUE))+
+
   #scale_y_continuous(labels=scales::percent) +
   labs(x="Earned Income Deciles", y="# Survey Responses", 
        title = "Ability to work from home based on occupational characteristics",
@@ -430,26 +398,30 @@ as_data_frame() %>%
 dstrata %>%
 as_data_frame() %>%
   filter(CanWorkFromHome != "Check Me") %>%
+
   ggplot(aes(x=decile, 
          #    y = (..count..)/sum(..count..)*10,
           
-         fill = factor(CanWorkFromHome, levels = c( "Some WFH", "No WFH", "Can WFH"))
+         fill = factor(CanWorkFromHome, levels = c("No WFH", "Some WFH",  "Can WFH"))
          )) + 
-  geom_bar( position = "fill", stat= "count") +
+  geom_bar( position = "fill") +
   coord_flip()+
-  #geom_text(aes(label=after_stat(count)), position = position_stack(vjust=0.5), size=3)+
+  geom_text( aes(label=paste0(signif(..count.. / tapply(..count.., ..x.., sum)[as.character(..x..)], digits=3)*100,"%")),
+    stat="count", position = position_fill(vjust=0.5)) +
     theme(legend.position = "bottom", legend.title = element_blank()) +
 
   scale_x_discrete(limits = c("Bottom 10%", "20%", "30%", "40%", "50%", "60%", "70%", "80%", "90%", "Top 10%"))+
+  guides(fill = guide_legend(reverse = TRUE))+
   #scale_y_continuous(labels=scales::percent) +
   labs(x="Earned Income Deciles", y="% Survey Responses", 
        title = "Ability to work from home based on occupational characteristics",
        caption = "Occupation data from ACS 1-year 2021 sample. 
        The ability to work from home is based on occupation characteristics from BLS occupation 
-       surveys & D&N's paper. Includes workers wo were 25-64 and responded to OCCSOC n=>50,000.") 
+       surveys & D&N's paper. Includes workers who were 25-64 and responded to OCCSOC question. n=>50,000.") 
 ```
 
 ```{r dataXH-graphs}
+#| code-fold: TRUE
 
 summary(as.numeric(dataXH$INCEARN))
 
@@ -481,6 +453,7 @@ Percentage of WFH workers by income decile in 2019
 Percentage of WFH workers by Income decile in 2021.
 
 ```{r}
+#| code-fold: TRUE
 dstrata %>%
   as_data_frame() %>%
 #  filter(did_wfh == 1) %>% # did work from home according to TRANWORK ACS question on commuting to work
@@ -622,7 +595,7 @@ table(data$LABFORCE)
 #63,453 obs in labor force (LABFORCE ==2)
 
 table(data$EMPSTAT)
-#59,259 obs are employed (EMPSTAT == 1)
+# 59,259 obs are employed (EMPSTAT == 1)
 # 41,289 obs are not in labor force (EMPSTAT == 3)
 
 
@@ -762,7 +735,7 @@ data25to64 <- data %>%
 
 IPUMS OCC codes over time [link](https://usa.ipums.org/usa/volii/occsoc18.shtml)
 
-```{r worker-descstats}
+```{r worker-descstats, eval=FALSE}
 # Employment Status
 table(data$EMPSTAT) # unweighted
 
@@ -896,7 +869,7 @@ table(telework$CanWorkFromHome)
 # causes problems for any occupation code that has XX in it!! 
 #data2$OCCSOC_num <- as.numeric(data2$OCCSOC)
 
-joined<-left_join(data, telework, by = c("OCCSOC"= "occ_codes"))
+joined<-left_join(dataXH, telework, by = c("OCCSOC"= "occ_codes"))
 
 summary(joined$teleworkable)
 # teleworkable values are an average of occupations with same first 5 digits and first 4 digits.
@@ -1276,7 +1249,7 @@ For the counties that can be identified in the data (populations \> 100,000 & \<
 
 ```{r summarytables-check}
 
-data %>% 
+dataXH %>% 
    group_by(as_factor(EMPSTAT), COUNTYFIP) %>% 
    dplyr::summarize(weightedcount=sum(PERWT), unweightedcount = n()) %>% #weighted 
    mutate(pct_weight = weightedcount/sum(weightedcount), 
@@ -1303,8 +1276,14 @@ countyIL <- counties("IL", cb=T, year=2019)
 ```{r warning = FALSE, message=FALSE}
 
 pums_weighted <- data %>% 
+  filter(INCEARN>0)%>%
   group_by(PUMA, COUNTYFIP) %>% 
-  summarize(weighted = sum(PERWT)) %>%  #number of people the sample represents
+  summarize(weighted_obs = sum(PERWT),
+            pct_telework = mean(teleworkable),
+            pct_didwfh = mean(did_wfh),
+            observs = n(),
+            avg_inc = mean(INCEARN),
+            avg_inc_w = mean(INCEARN, weight = PERWT)) %>%  #number of people the sample represents
   mutate(PUMA = str_pad(PUMA, 5, pad="0"),
          countyFIP = str_pad(COUNTYFIP, 3, pad = "0"))
 
@@ -1321,6 +1300,11 @@ plotunweight <- pumasIL %>%
   left_join(pums_unweight, by = c("PUMACE10" = "PUMA"))
 
 plot(plotweighted["weighted"])
+
+plot(plotweighted["avg_inc"])
+plot(plotweighted["avg_inc"])
+
+
 plot(plotunweight["unweight"])
 
 FIPweighted <- countyIL %>% left_join(pums_weighted, by = c("COUNTYFP" = "countyFIP"))
@@ -1332,6 +1316,24 @@ plot(FIPunweight["unweight"])
 plot(countyIL["COUNTYFP"])
 
 
+```
+
+Observations using `CITY` variable: identifies observations from Chicago.
+
+88 distinct PUMA areas.
+
+```{r}
+data %>% group_by(CITY) %>% distinct(CITY)
+data %>% group_by(PUMA) %>% summarize(observs = n())
+data %>% filter(INCEARN > 0) %>% group_by(PUMA) %>% summarize(observs = n())
+
+data %>% group_by(COUNTYFIP, PUMA) %>% summarize(observs = n())
+
+data %>% 
+  group_by(COUNTYFIP, PUMA) %>% 
+  summarize(observs = n(),
+            avg_inc = mean(INCEARN),
+            avg_inc_w= mean(INCEARN, weight = PERWT))
 ```
 
 #### PUMAS vs COMMZONE vs COUNTIES
@@ -1359,6 +1361,14 @@ data %>%
   mutate(pct = n/sum(n)) %>% 
   arrange(desc(pct))
 ```
+
+# Other Sources and Papers
+
+Ability to work from home: evidence from two surveys and implications for the labor market in the COVID-19 pandemic. June 2020. [BLS Monthly Labor Review](https://www.bls.gov/opub/mlr/2020/article/ability-to-work-from-home.htm)
+
+-   Authors used Current Population Survey data and O\*NET job-content data to categorize jobs as able or unable to telework. Followed Dingel & Neiman's methodology of classifying telework feasibility and merging with data from American Time Use Survey (ATUS)
+
+-   Compares ability to work from home with actual occurance of working from home based on American Time Use Survey and Occupational Information Network (O\*NET). Also uses Current Population Survey data to look at how effects differed between occupations where telework was feasible or not.
 
 # Srvyr and survey packages
 
