@@ -24,6 +24,7 @@ library(ipumsr)
 library(tidyverse)
 #install.packages("naniar")
 library(naniar)
+library(gmodels)
 
 knitr::opts_chunk$set(warning=FALSE, message=FALSE)
 ```
@@ -40,14 +41,14 @@ Survey questions for EMPSTAT & LABFORCE:
 Survey questions for INCEARN:
 
 1.  INCEARN = INCWAGE + INCBUS00
-    1.  Total amount earned in last 12 months: Wages, salary, commissions, bonuses, tips. \[Yes --\> \_\_\_\_\_\_ \] is coded as INCWAGE value.
+    -   Total amount earned in last 12 months: Wages, salary, commissions, bonuses, tips. \[Yes --\> \_\_\_\_\_\_ \] is coded as INCWAGE value.
 
-        1.  INCWAGE is topcoded only at the 99.5th percentile with a state. So less than 1% of incomes will be coded as a lower value. [Source](https://usa.ipums.org/usa-action/variables/INCWAGE#editing_procedure_section). Not a problem.
+        -   INCWAGE is topcoded only at the 99.5th percentile with a state. So less than 1% of incomes will be coded as a lower value. [Source](https://usa.ipums.org/usa-action/variables/INCWAGE#editing_procedure_section). Not a problem.
 
-    2.  Total amount earned in last 12 months: Self-employment income from own businesses (includes farms, nonfarms, proprietorship, and partnerships). \[Yes --\> \$\_\_\_\_\] is coded as INCBUS00 value.
+    -   Total amount earned in last 12 months: Self-employment income from own businesses (includes farms, nonfarms, proprietorship, and partnerships). \[Yes --\> \$\_\_\_\_\] is coded as INCBUS00 value.
 
--   INCEARN includes self-employment income, INCWAGE does not.
-
+        -   Note: I somehow missed downloading INCBUS00 in the IPUMS extract but we should not need it and it doesn't seem worth re-downloading all the extracts in different formats and re-adding them to box.
+2.  INCEARN includes self-employment income, INCWAGE does not.
     -   INCWAGE does not include Farming income and self-employment income, but INCEARN does.
     -   INCEARN is not itself topcoded but some variables that go into it are slightly topcoded. Shouldn't impact analysis.
 
@@ -173,7 +174,7 @@ topline(dataXH, did_wfh, weight = PERWT)
 
 18.9% of Illinois workers worked at home. 74% went to work using some form of transportation, 7.4% of observations were missing values.
 
--   Valid percent: 20.5% of observations with responses did WFH and 79.4% of observations with responses did not WFH.
+-   Valid percent: 20.5% of observations with responses did WFH and 79.4% of observations with responses did not WFH. **This is the statistic we would use**
 
 ```{r binary-variables-for-tables}
 dataXH <- dataXH %>% 
@@ -184,31 +185,41 @@ dataXH <- dataXH %>%
     has_incearn_labels = ifelse(INCEARN > 0, "Has EarnInc", "No IncData"), ## has earned income = 1
     has_occsoc_labels = ifelse(OCCSOC > 0, "Has Occ", "No Occ") ## OCCSOC code greater than zero coded as 1
     )
-table(dataXH$has_occsoc) # all have occupations after filtering for income, labor force, etc. 
 
 
+CrossTable(dataXH$did_wfh, dataXH$has_incearn)
 
-# worked when coded as 0 or 1.
-xtabs(did_wfh~has_incearn, data = dataXH)
+xtabs(has_occsoc~has_incearn, data = dataXH) #49K + have OCCSOC codes
 
 
-
-xtabs(has_occsoc~has_incearn, data = dataXH)
-table(dataXH$has_incearn, dataXH$has_occsoc)
 table(dataXH$did_wfh, dataXH$has_occsoc)
 
 
-table(dataXH$did_wfh_labels, dataXH$has_occsoc_labels)
+CrossTable(dataXH$did_wfh_labels, dataXH$has_occsoc_labels)
 # could apply labels to the variable but I'm lazy. Made two variables instead.
 table(dataXH$did_wfh, dataXH$has_incearn)
+CrossTable(dataXH$did_wfh, dataXH$has_incearn)
 # 9,464 observations worked from home and have income values
 # 37,561 observations did not work from home and have income values.
+
 
 
 ```
 
 9,464 observations worked from home and have income values.\
 37,561 observations did not work from home and have income values.
+
+```{r ttest}
+
+#### T-tests
+
+t.test(INCEARN~did_wfh, data = dataXH)
+# statistically significant difference between those that did and did not work from home in their earned wages
+
+### Chi-squared
+
+chisq.test(dataXH$did_wfh_labels, dataXH$SEX)
+```
 
 ```{r message = FALSE, warning=FALSE}
 telework <- read_csv("teleworkable_AWM.csv")
@@ -275,6 +286,11 @@ round(prop.table(svytable(~has_occsoc+SEX, design=dstrata))*100,digits=2)
 round(prop.table(svytable(~did_wfh_labels, design=dstrata))*100,digits=2) # 1 is Male, 2 is female
 
 round(prop.table(svytable(~did_wfh_labels+SEX, design=dstrata))*100,digits=2) # 1 is Male, 2 is female
+
+
+# Chi square goodness of fit
+# practice test to see if sex is 52% male and 48% female. 
+chisq.test(table(dataXH$SEX), p = c(52, 48)/100)
 
 
 ```
@@ -1247,7 +1263,7 @@ PUMAs contain around 100,000 people.
 
 For the counties that can be identified in the data (populations \> 100,000 & \< 200,000. 1-Year ACS have minimum of 65,000 population), the census summary tables are close but not identical to the tables calculated with the ACS sample data. "In this way more densely populated areas, like Chicago and Cook County will contain many PUMAs within their boundaries, while multiple sparsely populated entire counties, e.g., Jackson, Perry, Franklin, and Williamson, will comprise one PUMA." - [IPUMS v other Geographies](https://iecam.illinois.edu/browse/about-public-use-microdata-areas-pumas#:~:text=What%20is%20a%20PUMA%3F,Community%20Survey%201%2Dyear%20estimates)
 
-```{r summarytables-check}
+```{r summarytables-check, eval=FALSE}
 
 dataXH %>% 
    group_by(as_factor(EMPSTAT), COUNTYFIP) %>% 
@@ -1275,7 +1291,7 @@ countyIL <- counties("IL", cb=T, year=2019)
 
 ```{r warning = FALSE, message=FALSE}
 
-pums_weighted <- data %>% 
+pums_weighted <- dataXH %>% 
   filter(INCEARN>0)%>%
   group_by(PUMA, COUNTYFIP) %>% 
   summarize(weighted_obs = sum(PERWT),
@@ -1287,7 +1303,7 @@ pums_weighted <- data %>%
   mutate(PUMA = str_pad(PUMA, 5, pad="0"),
          countyFIP = str_pad(COUNTYFIP, 3, pad = "0"))
 
-pums_unweight <- data %>% 
+pums_unweight <- dataXH %>% 
   group_by(PUMA, COUNTYFIP) %>% 
   summarize(unweight = n()) %>% #unweighted number of observations
   mutate(PUMA = str_pad(PUMA, 5, pad="0"),
