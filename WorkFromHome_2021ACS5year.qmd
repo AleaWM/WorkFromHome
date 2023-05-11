@@ -22,6 +22,8 @@ library(tigris)
 library(ipumsr)
 library(tidyverse)
 library(naniar)
+library(srvyr)
+library(survey)
 
 ddi <- read_ipums_ddi("usa_00010.xml") # 45 variables
 data <- read_ipums_micro(ddi) # 126623 observations before any filtering
@@ -59,6 +61,19 @@ data <- read_ipums_micro(ddi) # 126623 observations before any filtering
 
 ## 2021 5-Year Data
 
+Values came from filtering the 2019 and 2021 data into separate dataframes and using as_survey() and svyquantiles(). The income breaks for 2019 are higher than the 2019 1 year sample, but that is probably because they have been adjusted for inflation?
+
+-   2019 Strata income decile breaks (using the 2021 5-year extract):
+
+    -   4 9538 18016 26494 33912 42390 52988 66765 84781 121873 988757
+
+    -   Deciles using the 2019 1-year extract: 4 9000 17000 25000 32000 40000 50000 63000 80000 114000 933000
+
+-   2021 income decile breaks (using 2021 5-year extract):
+
+    -   4 8100 18000 26000 35000 43000 54000 68000 86000 120000 949000
+    -   Matches the 1-year extract deciles!
+
 ```{r}
 data <- data %>% 
 #  filter(LABFORCE == 2 & AGE > 24 & AGE < 65) %>%
@@ -68,7 +83,9 @@ data <- data %>%
   LABFORCE=c(0), 
   CLASSWKR = c(0),
   OCCSOC = c(0),
-  TRANWORK = c("N/A","0")))
+  TRANWORK = c("N/A","0"))) %>%
+  filter(#AGE > 17 & 
+           INCEARN > 0 & LABFORCE ==2)
 
 data <- data %>% 
   mutate(did_wfh = if_else(TRANWORK==80, 1,0),
@@ -95,12 +112,30 @@ joined <- joined %>%
 )
 
 
+
+data2019 <- joined %>% filter(MULTYEAR == 2019) %>% as_survey(strata = STRATA,  ids = CLUSTER, weights = PERWT)
+
+data2021 <- joined %>% filter(MULTYEAR == 2021) %>% as_survey(strata = STRATA, ids = CLUSTER,  weights = PERWT)
+
+
+inc_quantiles<-survey::svyquantile(~INCEARN, design=data2019, 
+                    quantiles = c(0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1) ,
+                    na.rm=TRUE, ci = FALSE )
+inc_quantiles
+#     0  0.1   0.2   0.3   0.4   0.5   0.6   0.7   0.8    0.9      1
+#[1,] 4 8478 16956 25434 32853 42390 52988 65705 84781 120813 988757
+# values are already adjusted to 2021 dollars
+
+
+inc_quantiles<-survey::svyquantile(~INCEARN, design=data2021, 
+                    quantiles = c(0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1) ,
+                    na.rm=TRUE, ci = FALSE )
+inc_quantiles
+#     0  0.1   0.2   0.3   0.4   0.5   0.6   0.7   0.8    0.9      1
+#[1,] 4 7300 16200 25000 34300 42000 52000 68000 85000 120000 949000
+
 precovid <- joined %>% filter(MULTYEAR <= 2019)
 postcovid <- joined %>% filter(MULTYEAR > 2019)
-
-
-library(srvyr)
-library(survey)
 
 predesign <- precovid %>% as_survey(strata = STRATA, 
                                 ids = CLUSTER, 

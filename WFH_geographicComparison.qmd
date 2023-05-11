@@ -1,16 +1,14 @@
 ---
 title: "Work From Home: Who Can and Who Does?"
-subtitle: "Using 2021 1-Year ACS Data"
 
-format: 
-  docx:
-    toc: true
-
-# format:
-#  html:
-#    toc: true
-#    toc_float: true
-#    df-print: paged
+format:
+ # html:
+ #  toc: true
+ #  toc_float: true
+ #  df-print: paged
+ #   
+ docx:
+  toc: true
 ---
 
 # Getting Data
@@ -66,14 +64,14 @@ Survey questions for INCEARN:
 # larger version with 147 variables. uses same file as Box file named "IL_2021_1yr_ACS.dat.gz and IL_2021_1yr_ACS_datDDI.xml
 ddi <- read_ipums_ddi("usa_00011.xml") # downloaded April 10 2023
 data2021 <- read_ipums_micro(ddi) # 126623 observations before any filtering
-data2021 <- data2021 %>% select(YEAR, INCEARN, INCWAGE, INCTOT, TRANWORK, OCCSOC, CLASSWKR, EMPSTAT, LABFORCE, PERWT, COUNTYFIP, PUMA, PWSTATE2, AGE, STRATA, CLUSTER, RACE, HISPAN, SEX, CIHISPEED, CINETHH, MULTGEN, NCHILD, NCHLT5, MARST, FERTYR, EDUC, DEGFIELD )
+data2021 <- data2021 %>% select(YEAR, INCEARN, INCWAGE, INCTOT, TRANWORK, OCCSOC, CLASSWKR, EMPSTAT, LABFORCE, PERWT, COUNTYFIP, PUMA, PWSTATE2, AGE, STRATA, CLUSTER, RACE, HISPAN, SEX, CIHISPEED, CINETHH, MULTGEN, NCHILD, NCHLT5, MARST, FERTYR, EDUC, DEGFIELD, OCC, IND, OCC2010 )
 
 # same sample but with 150+ variables. 
 # NEED TO CHANGE XML file that referneces the data file. currently says usa_00011.dat.gz so these two lines of code do not work. 
 
 ddi <- read_ipums_ddi("C:/Users/aleaw/Box/Fiscal Futures/FY22_Working/WFH/Data/IL_2019_1yearACS_datDDI.xml") # downloaded April 10 2023
 data2019 <- read_ipums_micro(ddi) # 126623 observations before any filtering
-data2019 <- data2019 %>% select(YEAR, INCEARN, INCWAGE, INCTOT, TRANWORK, OCCSOC, CLASSWKR, EMPSTAT, LABFORCE, PERWT, COUNTYFIP, PUMA, PWSTATE2, AGE, STRATA, CLUSTER, RACE, HISPAN, SEX, CIHISPEED, CINETHH, MULTGEN, NCHILD, NCHLT5, MARST, FERTYR, EDUC, DEGFIELD )
+data2019 <- data2019 %>% select(YEAR, INCEARN, INCWAGE, INCTOT, TRANWORK, OCCSOC, CLASSWKR, EMPSTAT, LABFORCE, PERWT, COUNTYFIP, PUMA, PWSTATE2, AGE, STRATA, CLUSTER, RACE, HISPAN, SEX, CIHISPEED, CINETHH, MULTGEN, NCHILD, NCHLT5, MARST, FERTYR, EDUC, DEGFIELD, OCC, IND, OCC2010 )
 
 data <- rbind(data2019, data2021) #125,007 observations before any filtering. 
 
@@ -136,6 +134,43 @@ data <- data %>%
          countyFIP = str_pad(COUNTYFIP, 3, pad = "0"))
 
 
+data <- data %>%
+  mutate(occ_2digits = substr(OCCSOC,1,2)) %>% 
+  mutate(occ_2dig_labels = case_when(
+ occ_2digits %in% c(11,13,19,15,17,19,21,23,25,27,29) ~ "Mgt, Business, Sci & Arts",
+ occ_2digits %in% c(31,32,33,34,35,36,37,38,39) ~ "Service Occupations",
+ occ_2digits %in% c(41,42,43) ~ "Sales & Office Jobs",
+occ_2digits %in% c(45,46,47,48,49 ) ~"Nat. Res., Constr., Maintenance",
+occ_2digits %in% c(51, 52, 53) ~ "Production, Transportation",
+occ_2digits == 55 ~ "Military")) 
+
+data <- data %>%
+  mutate(occ_2digits = substr(OCCSOC,1,2)) %>% 
+  mutate(occ_2dig_labels_d = case_when(
+ occ_2digits %in% c(11) ~ "Management",
+
+  occ_2digits %in% c(13) ~ "Bus. & Fin.",
+  occ_2digits %in% c(15) ~ "Computer, engineering & science",
+  occ_2digits %in% c(17) ~ "Architecture & Eng.",
+  occ_2digits %in% c(19) ~ "Life/Social Sciences",
+ occ_2digits == 21 ~ "Comm & soc. Services",
+occ_2digits == 23 ~ "Legal",
+occ_2digits == 25 ~ "Edu. Instruc.",
+occ_2digits == 27 ~ "Arts., Design, Entertain.",
+occ_2digits == 29 ~ "Health Practictioners",
+occ_2digits == 31 ~ "Healthcare Support",
+occ_2digits == 33 ~ "Protective services",
+occ_2digits == 35 ~ "Food Services",
+occ_2digits == 37 ~ "Building Clean. & Main.",
+occ_2digits == 41 ~ "Sales",
+occ_2digits == 43 ~"Office & Admin",
+occ_2digits == 45 ~ "Farm., Fish., Forest.",
+occ_2digits == 47 ~ "Construct. & Extract.",
+occ_2digits == 49 ~"Install., Maintenance",
+occ_2digits == 51 ~"Production",
+occ_2digits == 53 ~ "Transpo & Material Moving",
+occ_2digits == 55 ~ "Military",
+TRUE~"Other") )
 
 rm(ddi)
 rm(data2019)
@@ -245,7 +280,7 @@ the ntile() decile variable is what is used to graph all decile images and for a
 
 `incdecile_w` is made using the breaks returned from the svyquantile command.
 
--   now use this variable in graphs? or create the summary tables using weights and then pass that to the graph commands.
+-   ~~now use this variable in graphs? or create the summary tables using weights and then pass that to the graph commands.~~ - done
 :::
 
 ```{r survey-design, message = FALSE, warning=FALSE}
@@ -278,6 +313,252 @@ dstrata2021 <- survey::svydesign(id = ~CLUSTER, strata = ~STRATA, weights = ~PER
 
 
 ```
+
+### Occupations
+
+```{r}
+#| code-fold: true
+table(joined$occ_2dig_labels, joined$did_wfh_labels)
+
+
+table(joined$occ_2digits)
+
+#occupation_labels <- c("Management", "Business", "Computer/Math", "Architecture/Engineering", "Physical/Social Science", "Social Services","Legal", "Education", "Art/Design/Sports/Media", "Healthcare/Technical", "Healthcare Support","Protective Servics", "Food Services", "Maintenance", "Personal Services")
+
+table(joined$occ_2dig_labels)
+
+
+crosstab_3way(joined, YEAR, occ_2dig_labels, did_wfh_labels, weight = PERWT)
+
+table <- svytable(~YEAR+occ_2dig_labels, design = dstrata) 
+table <- table %>% 
+  as_tibble() %>% 
+  group_by(YEAR)%>% 
+  mutate(Prop =round(n/sum(n), digits=3)) %>%
+  arrange(-n)
+table
+
+table %>% ggplot(aes(x=fct_rev(fct_inorder(occ_2dig_labels)), y=n, group = YEAR)) + 
+  geom_col(stat = "identity") +
+  facet_wrap(~YEAR)+
+        geom_text(aes(label = scales::percent(as.numeric(ifelse(Prop>0.02,Prop, "")), accuracy = .1),accuracy  = .1L ),position = position_stack(vjust=.5), size=3) +
+  theme_classic() + theme(legend.position = "bottom", legend.title = element_blank())+
+  labs(title ="Percent of people in each Major Occupation Group",
+       x = "", y = "# of People",
+      caption = "ACS 1 year samples for 2019 and 2021 used for weighted population estimates,") + scale_y_continuous(labels = scales::comma)+
+  coord_flip()
+
+table <- svytable(~YEAR+occ_2dig_labels_d, design = dstrata) 
+table <- table %>% 
+  as_tibble() %>% 
+  group_by(YEAR)%>% 
+  mutate(Prop =round(n/sum(n), digits=3)) %>%
+  arrange(-n)
+table
+
+table %>% ggplot(aes(x=fct_rev(fct_inorder(occ_2dig_labels_d)), y=n, group = YEAR)) + 
+  geom_col(stat = "identity") +
+  facet_wrap(~YEAR)+
+        geom_text(aes(label = scales::percent(as.numeric(ifelse(Prop>0.02,Prop, "")), accuracy = .1),accuracy  = .1L ),position = position_stack(vjust=.5), size=3) +
+  theme_classic() + theme(legend.position = "bottom", legend.title = element_blank())+
+  labs(title ="Percent of people in each Major Occupation Group",
+       x = "", y = "# of People",
+      caption = "ACS 1 year samples for 2019 and 2021 used for weighted population estimates,") + scale_y_continuous(labels = scales::comma)+
+  coord_flip()
+
+table <- svytable(~YEAR+did_wfh_labels+occ_2dig_labels, design = dstrata) 
+# proportion of each respondant's sex and if they worked from home for each year in sample
+table <- table %>% 
+  as_tibble() %>% 
+  group_by(YEAR, occ_2dig_labels)%>% 
+  mutate(Prop =round(n/sum(n), digits=3)) %>%
+  arrange(-n)
+table
+
+table %>% ggplot(aes(x=fct_rev(fct_inorder(occ_2dig_labels)), y=n, fill = did_wfh_labels, group = YEAR)) + 
+  geom_col(stat = "identity", position = "stack") +
+  facet_wrap(~YEAR)+
+  #  geom_text(aes(label = scales::percent(Prop, accuracy = .1L)), position = position_stack(vjust=.5), size=3) + 
+        geom_text(aes(label = scales::percent(as.numeric(ifelse(Prop>0.05,Prop, "")), accuracy = .1),accuracy  = .1L ),position = position_stack(vjust=.5), size=3) +
+
+  theme_classic() + theme(legend.position = "bottom", legend.title = element_blank())+
+  labs(title ="Percent working from home by Broad Occupation type",
+       x = "", y = "# of People",
+      caption = "ACS 1 year samples for 2019 and 2021 used for weighted population estimates,") + scale_y_continuous(labels = scales::comma)+
+  scale_fill_manual(values = c("#a6bddb", "#2b8cbe")) +
+  coord_flip()
+
+
+
+table <- svytable(~YEAR+did_wfh_labels+occ_2dig_labels, design = dstrata) 
+
+table <- table %>% 
+  as_tibble() %>% 
+  group_by(YEAR)%>% 
+  mutate(Prop =round(n/sum(n), digits=3)) %>%
+  arrange(did_wfh_labels, -n)
+table
+
+table %>% ggplot(aes(x=fct_rev(fct_inorder(occ_2dig_labels)), y=n, fill = did_wfh_labels, group = YEAR)) + 
+  geom_col(stat = "identity", position = "stack") +
+  facet_wrap(~YEAR)+
+ #   geom_text(aes(label = scales::percent(Prop, accuracy = .1L)), position = position_stack(vjust=.5), size=3) + 
+      geom_text(aes(label = scales::percent(as.numeric(ifelse(Prop>0.02,Prop, "")), accuracy = .1),accuracy  = .1L ),position = position_stack(vjust=.5), size=3) +
+  theme_classic() + theme(legend.position = "bottom", legend.title = element_blank())+
+  labs(title ="Percent working from home by Broad Occupation type",
+       x = "", y = "# of People",
+      caption = "ACS 1 year samples for 2019 and 2021 used for weighted population estimates,") + scale_y_continuous(labels = scales::comma)+
+  scale_fill_manual(values = c("#a6bddb", "#2b8cbe")) +
+  coord_flip()
+
+
+table <- svytable(~YEAR+did_wfh_labels+occ_2dig_labels_d, design = dstrata) 
+
+table <- table %>% 
+  as_tibble() %>% 
+  group_by(YEAR)%>% 
+  mutate(Prop =round(n/sum(n), digits=3)) %>%
+  arrange(did_wfh_labels, -n)
+table
+
+table %>%ggplot(aes(x=fct_rev(fct_inorder(occ_2dig_labels_d)), y=n, fill = did_wfh_labels, group = YEAR)) + 
+  geom_col(stat = "identity", position = "stack") +
+  facet_wrap(~YEAR)+
+ #   geom_text(aes(label = scales::percent(Prop, accuracy = .1L)), position = position_stack(vjust=.5), size=3) + 
+    geom_text(aes(label = scales::percent(as.numeric(ifelse(Prop>0.01,Prop, "")), accuracy = .1),accuracy  = .1L ),position = position_stack(vjust=.5), size=3) +
+  theme_classic() + theme(legend.position = "bottom", legend.title = element_blank())+
+  labs(title ="Percent working from home by Broad Occupation type: 2019 vs 2021",
+       x = "", y = "# of People",
+      caption = "ACS 1 year samples for 2019 and 2021 used for weighted population estimates,") + scale_y_continuous(labels = scales::comma)+
+  scale_fill_manual(values = c("#a6bddb", "#2b8cbe")) +
+  coord_flip()
+
+
+table <- svytable(~YEAR+CanWorkFromHome+occ_2dig_labels_d, design = dstrata) 
+
+table <- table %>% 
+  as_tibble() %>% 
+  group_by(YEAR)%>% 
+  #filter(CanWorkFromHome != "Some WFH")%>%
+  arrange(CanWorkFromHome,-n) %>%
+  mutate(Prop =round(n/sum(n), digits=3))
+table
+
+table %>% 
+  ggplot(aes(x=fct_rev(fct_inorder(occ_2dig_labels_d)), y=n, fill = CanWorkFromHome, group = YEAR)) + 
+  geom_col(stat = "identity", position = "stack") +
+  facet_wrap(~YEAR)+
+  geom_text(aes(label = scales::percent(as.numeric(ifelse(Prop>0.01,Prop, "")), accuracy = .1), accuracy= 0.1L ),position = position_stack(vjust=.5), size=3) +
+theme_classic() + theme(legend.position = "bottom", legend.title = element_blank())+
+  labs(title ="Percent of Workers that Could Work From Home by Occupation, 2019 & 2021", subtitle = "OCCSOC codes and Teleworkable scores from occupation characteristics",
+       x = "", y = "# of People",
+      caption = "ACS 1 year samples for 2019 and 2021 used for weighted population estimates,") + scale_y_continuous(labels = scales::comma)+
+  scale_fill_manual(values = c( "#2b8cbe","#a6bddb","gray")) +
+  coord_flip()
+
+
+table <- svytable(~YEAR+CanWorkFromHome+occ_2dig_labels_d, design = dstrata) 
+
+table <- table %>% 
+  as_tibble() %>% 
+  filter(YEAR==2021)%>% 
+  arrange(CanWorkFromHome, -n) %>%
+  mutate(Prop =round(n/sum(n), digits=3))
+
+
+table %>% #filter(YEAR == 2021) %>%
+  ggplot(aes(x=fct_rev(fct_inorder(occ_2dig_labels_d)), y=n, fill = CanWorkFromHome, group=YEAR)) + 
+  geom_col(position="stack", stat = "identity")+
+  geom_text(aes(label = scales::percent(as.numeric(ifelse(Prop>0.01,Prop, "")), accuracy = .1), accuracy= 0.1L ), position = position_stack(vjust=.5), size=3) +
+theme_classic() + theme(legend.position = "bottom", legend.title = element_blank())+
+  labs(title ="Percent of Workers that Could Work From Home in 2021", 
+       x = "", y = "# of People",
+      caption = "Occupation codes (OCCSOC)from the 2021 1-year ACS merged with work from home feasibility scores.") + scale_y_continuous(labels = scales::comma)+
+  scale_fill_manual(values = c( "#2b8cbe","#a6bddb","gray")) +
+  coord_flip()
+```
+
+### Could WFH vs. did WFH
+
+```{r}
+#| code-fold: true
+
+## Totals add up to total number of workers in a year
+table <- svytable(~CanWorkFromHome+YEAR+did_wfh_labels, design = dstrata) 
+# proportion of each respondant's sex and if they worked from home for each year in sample
+table <- table %>% 
+  as_tibble() %>% 
+  group_by(YEAR)%>% # will divide by all workers per year
+  mutate(Prop =round(n/sum(n), digits=3))
+table
+
+## percentages add up to 100 when adding all workers together for a year
+table %>% ggplot(aes(CanWorkFromHome, y=n, fill = did_wfh_labels, group = YEAR)) + 
+  geom_col(stat = "identity", position = "stack") +
+  facet_wrap(~YEAR)+
+    geom_text(aes(label = scales::percent(Prop)), position = position_stack(vjust=.5), size=3) +
+  #scale_fill_manual(values = c("#a6bddb", "#2b8cbe"))+
+  theme_classic() + theme(legend.position = "bottom", legend.title = element_blank())+
+  labs(title ="Did those who COULD work from home actually work from home:",subtitle = "2019 vs 2021",
+       x = "", y = "# of People",
+      caption = "Percentages add up to 100 when adding all workers together within a year.
+      Did work from home based on TRANWORK==80 variable from ACS surveys. 
+      Can Work from home based on teleworkable classification in Dingel & Niemen (2020).
+      ACS 1 year samples for 2019 and 2021 used for weighted population estimates.
+") + scale_y_continuous(labels = scales::comma) +
+  scale_fill_manual(values = c("#a6bddb",  "#2b8cbe"))
+
+# Matches Xiaoyan's table from meeting on May 9th
+crosstab_3way(dstrata, CanWorkFromHome, did_wfh_labels, YEAR,  weight = PERWT, pct_type = "cell")
+
+
+table <- svytable(~CanWorkFromHome+YEAR+did_wfh_labels, design = dstrata) 
+# proportion of each respondant's sex and if they worked from home for each year in sample
+table <- table %>% 
+  as_tibble() %>% 
+  group_by(YEAR, CanWorkFromHome)%>% # divides by all workers per year within each categor
+  mutate(Prop =round(n/sum(n), digits=3))
+table
+
+xtabs(~did_wfh_labels+CanWorkFromHome+YEAR, data = dstrata)
+
+## percentages add up to 100 when adding all workers together for a year
+table %>% ggplot(aes(CanWorkFromHome, y=n, fill = did_wfh_labels, group = YEAR)) + 
+  geom_col(stat = "identity", position = "stack") +
+  facet_wrap(~YEAR)+
+    geom_text(aes(label = scales::percent(Prop)), position = position_stack(vjust=.5), size=3) +
+  theme_classic() + theme(legend.position = "bottom", legend.title = element_blank())+
+  labs(title ="Did those who COULD work from home actually work from home:", subtitle = "2019 vs 2021",
+       x = "", y = "# of People",
+      caption = "Comparison graph that might feel more correct.
+      Percentages add up to 100 when adding all workers within each CanWorkFromHome category for each a year.
+      Did work from home based on TRANWORK==80 variable from ACS surveys. Can Work from home based on teleworkable classification in Dingel & Niemen (2020).
+            ACS 1 year samples for 2019 and 2021 used for weighted population estimates.") + scale_y_continuous(labels = scales::comma)
+
+
+table <- svytable(~CanWorkFromHome+YEAR+did_wfh_labels, design = dstrata) 
+# proportion of each respondant's sex and if they worked from home for each year in sample
+table <- table %>% 
+  as_tibble() %>% 
+  group_by(YEAR, did_wfh_labels)%>% # divides by all workers per year within each categor
+  mutate(Prop =round(n/sum(n), digits=3))
+
+
+## percentages add up to 100 when adding all workers together for a year
+table %>% ggplot(aes(did_wfh_labels, y=n, fill = CanWorkFromHome, group = YEAR)) + 
+  geom_col(stat = "identity", position = "stack") +
+  facet_wrap(~YEAR)+
+    geom_text(aes(label = scales::percent(Prop)), position = position_stack(vjust=.5), size=3) +
+  theme_classic() + theme(legend.position = "bottom", legend.title = element_blank())+
+  labs(title ="Did those who COULD work from home actually work from home:", subtitle = "2019 vs 2021",
+       x = "", y = "# of People",
+      caption = "Comparison graph that might feel more correct.
+      Percentages add up to 100 when adding all workers within each did_wfh category for each a year.
+      Did work from home based on TRANWORK==80 variable from ACS surveys. Can Work from home based on teleworkable classification in Dingel & Niemen (2020).
+            ACS 1 year samples for 2019 and 2021 used for weighted population estimates.") + scale_y_continuous(labels = scales::comma)
+```
+
+> Ideally switch order of categories so that Did WFH is on the bottom of stack. Allows easier visual comparison.
 
 ### Creating Income Deciles
 
@@ -363,6 +644,7 @@ table %>%
        y = "Percent of workers working from home") + 
  theme(legend.position = "bottom", legend.title = element_blank())+
   theme_classic()+
+    scale_fill_manual(values = c("#a6bddb", "#2b8cbe")) +
   scale_y_continuous(labels = scales::percent)
 
 
@@ -464,44 +746,32 @@ table25up %>%
 # equal number of people should be in each decile after weights. 
 
 
-svyby(~did_wfh, by = ~RACE, design = dstrata2021, FUN = svymean, na.rm=TRUE)
-svyby(~INCEARN, by = ~RACE, design = dstrata2021, FUN = svymean, na.rm=TRUE)
 
 
-incomebysex<- dstrata2021 %>% 
-  mutate(INCEARN = as.numeric(INCEARN) )%>%
-  svyby(formula = ~ INCEARN, by = ~SEX, 
-      FUN = svyquantile, 
-      na.rm=TRUE,
-        quantiles  = c(0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9) )
-
-incomebysex %>% 
-  pivot_longer(cols = c(-SEX),names_to = "columns", values_to = "values") %>% 
-  mutate(values = round(values, digits =2))
 
 
-incomebywfh <- dstrata2021 %>% 
-  mutate(INCEARN = as.numeric(INCEARN) )%>%
-  svyby(formula = ~INCEARN, by = ~did_wfh_labels,# design = dstrata2021,
-      FUN = svyquantile, 
-      na.rm=TRUE,
-     keep.names = FALSE,
-        quantiles  = c(0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9) )
-
-incomebywfh
-## ^ Income deciles by wfh status
+# incomebywfh <- dstrata2021 %>% 
+#   mutate(INCEARN = as.numeric(INCEARN) )%>%
+#   svyby(formula = ~INCEARN, by = ~did_wfh_labels,# design = dstrata2021,
+#       FUN = svyquantile, 
+#       na.rm=TRUE,
+#      keep.names = FALSE,
+#         quantiles  = c(0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9) )
+# 
+# incomebywfh
+## ^ Income deciles by wfh status.
+# The poorest 10% of WFH workers are earning almost more than the the bottom 20% of earners who did not WFH
 
 ```
 
 ### Gender and Working from home
 
-20.5% of those in the labor force worked from home in 2021.
+19.2% of those in the labor force worked from home in 2021.
 
 -   10.7% were women, 9.8% were men.
+-   In 2021, 17.6% of male workers did WFH and 21% of female workers did WFH.
 
-52.6% of those in the labor force were Men, 47.4% were Women.
-
-> Is this when t-tests are supposed to be used? Comparing two groups but are they actually statistically significantly different?
+52.5% of those in the labor force that have occupation codes were Men, 47.5% were Women.
 
 ```{r}
 
@@ -513,7 +783,7 @@ round(prop.table(svytable(~did_wfh_labels, design=dstrata2021))*100,digits=2)
 table <- data %>% 
  # filter(did_wfh==1) %>%  
   mutate(total = n())  %>%
-  group_by(YEAR, did_wfh, SEX) %>% 
+  group_by(YEAR, did_wfh_labels, SEX) %>% 
   dplyr::summarize(n_unweighted=n()) %>% 
   mutate(Prop = n_unweighted/sum(n_unweighted))
 # unweighted sex proportions each year
@@ -537,16 +807,28 @@ table
 #       caption = "ACS 1 year samples for 2019 and 2021 used for weighted population estimates,") + scale_y_continuous(labels = scales::percent)
 
 
-# attempt 2
-table %>% ggplot(aes(factor(SEX, labels = c("Male", "Female")), y=Prop, fill = did_wfh_labels, group = YEAR)) + 
+# # attempt 2
+# table %>% ggplot(aes(factor(SEX, labels = c("Male", "Female")), y=Prop, fill = did_wfh_labels, group = YEAR)) + 
+#   geom_col(stat = "identity", position = "stack") +
+#   facet_wrap(~YEAR)+
+#     geom_text(aes(label = scales::percent(Prop)), position = position_fill(vjust=.5), size=3) + 
+#   theme_classic() + theme(legend.position = "bottom", legend.title = element_blank())+
+#   scale_fill_manual(values = c("#a6bddb", "#2b8cbe"))+
+#   labs(title ="Percent working from home by Sex: 2019 vs 2021",
+#        x = "", y = "",
+#       caption = "ACS 1 year samples for 2019 and 2021 used for weighted population estimates,") + scale_y_continuous(labels = scales::percent)
+
+
+### Percentages add up to 100% for each gender for each year. 
+table %>% ggplot(aes(factor(SEX, labels = c("Male", "Female")), y=n, fill = did_wfh_labels, group = YEAR)) + 
   geom_col(stat = "identity", position = "stack") +
   facet_wrap(~YEAR)+
-    geom_text(aes(label = scales::percent(Prop)), position = position_fill(vjust=.5), size=3) + 
+    geom_text(aes(label = scales::percent(Prop)), position = position_stack(vjust=.5), size=3) +
+  scale_fill_manual(values = c("#a6bddb", "#2b8cbe"))+
   theme_classic() + theme(legend.position = "bottom", legend.title = element_blank())+
   labs(title ="Percent working from home by Sex: 2019 vs 2021",
-       x = "", y = "",
-      caption = "ACS 1 year samples for 2019 and 2021 used for weighted population estimates,") + scale_y_continuous(labels = scales::percent)
-
+       x = "", y = "# of People",
+      caption = "ACS 1 year samples for 2019 and 2021 used for weighted population estimates,") + scale_y_continuous(labels = scales::comma)
 
 #compare combined strata survey design to single year survey objects:
 # MATCHES
@@ -564,6 +846,29 @@ table %>% ggplot(aes(factor(SEX, labels = c("Male", "Female")), y=Prop, fill = d
 #   mutate(Prop = round(n/sum(n), digits=4))
 # table
 
+
+
+## Totals add up to total number of workers in a year
+table <- svytable(~SEX+YEAR+did_wfh_labels, design = dstrata) 
+# proportion of each respondant's sex and if they worked from home for each year in sample
+table <- table %>% 
+  as_tibble() %>% 
+  group_by(YEAR)%>% # grouped by Year and Sex!!
+  mutate(Prop =round(n/sum(n), digits=4))
+table
+
+## percentages add up to 100 when adding all workers together for a year
+table %>% ggplot(aes(factor(SEX, labels = c("Male", "Female")), y=n, fill = did_wfh_labels, group = YEAR)) + 
+  geom_col(stat = "identity", position = "stack") +
+  facet_wrap(~YEAR)+
+    geom_text(aes(label = scales::percent(Prop)), position = position_stack(vjust=.5), size=3) +
+  scale_fill_manual(values = c("#a6bddb", "#2b8cbe"))+
+  theme_classic() + theme(legend.position = "bottom", legend.title = element_blank())+
+  labs(title ="Percent working from home by Sex: 2019 vs 2021",
+       x = "", y = "# of People",
+      caption = "ACS 1 year samples for 2019 and 2021 used for weighted population estimates.
+      Percentages add up to 100 when adding all workers together each year.
+      Working from home based on TRANWORK==80 variable from ACS surveys.") + scale_y_continuous(labels = scales::comma)
 
 ```
 
@@ -605,6 +910,15 @@ svytotal(x = ~interaction(SEX, did_wfh_labels), design = dstrata2019, na.rm=TRUE
 svyttest(formula = INCEARN~SEX, design = dstrata2021)
 svyttest(formula = INCEARN~did_wfh_labels, design = dstrata2021)
 
+
+table <- svytable(~SEX+YEAR+did_wfh_labels, design = dstrata) 
+# proportion of each respondant's sex and if they worked from home for each year in sample
+table <- table %>% 
+  as_tibble() %>% 
+  group_by(YEAR, SEX)%>% # grouped by Year and Sex!!
+  mutate(Prop =round(n/sum(n), digits=4))
+table
+
 ```
 
 Null hypothesis: There is no difference in working from home associated with sex.
@@ -613,6 +927,20 @@ Alt. Hyp: Working from home is associated with sex.
 
 ```{r}
 svychisq(~SEX+did_wfh_labels, design = dstrata2021, statistic = "Chisq")
+```
+
+```{r}
+incomebysex<- dstrata2021 %>% 
+  mutate(INCEARN = as.numeric(INCEARN) )%>%
+  svyby(formula = ~ INCEARN, by = ~SEX, 
+      FUN = svyquantile, 
+      na.rm=TRUE,
+        quantiles  = c(0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9) )
+
+incomebysex %>% 
+  pivot_longer(cols = c(-SEX),names_to = "columns", values_to = "values") %>% 
+  mutate(values = round(values, digits =2))
+
 ```
 
 ```{r graphing-errorbars}
@@ -1238,6 +1566,62 @@ joined %>%
 Good example of [graphing survey data](https://rpubs.com/Onduma/surveydata). Make a summary table that has the WEIGHTED Freq and Prop of the variables of interest before passing it to graphing commands. Using svytable to make the weighted table.
 
 ```{r race}
+table <- svytable(~race_cat+YEAR+did_wfh_labels, design = dstrata) 
+# proportion of each respondant's sex and if they worked from home for each year in sample
+table <- table %>% 
+  as_tibble() %>% 
+  group_by(YEAR, race_cat)%>% # grouped by Year and Sex!!
+  mutate(Prop =round(n/sum(n), digits=4))
+table
+
+table %>% ggplot(aes(race_cat, y=n, fill = did_wfh_labels, group = YEAR)) + 
+  geom_col(stat = "identity", position = "stack") +
+  facet_wrap(~YEAR)+
+    geom_text(aes(label = scales::percent(Prop)), position = position_stack(vjust=.5), size=3) +
+ # scale_fill_manual(values = c("#a6bddb", "#2b8cbe"))+
+  theme_classic() + theme(legend.position = "bottom", legend.title = element_blank())+
+  labs(title ="Percent working from home by race: 2019 vs 2021",
+       x = "", y = "# of People",
+      caption = "ACS 1 year samples for 2019 and 2021 used for weighted population estimates,") + scale_y_continuous(labels = scales::comma)
+
+
+
+table <- svytable(~did_wfh_labels+YEAR+race_cat, design = dstrata) 
+# proportion of each respondant's sex and if they worked from home for each year in sample
+table <- table %>% 
+  as_tibble() %>% 
+  group_by(YEAR, did_wfh_labels)%>% # grouped by Year and Sex!!
+  mutate(Prop =round(n/sum(n), digits=4))
+table
+table %>% ggplot(aes(did_wfh_labels, y=n, fill = race_cat, group = YEAR)) + 
+  geom_col(stat = "identity", position = "stack") +
+  facet_wrap(~YEAR)+
+    geom_text(aes(label = scales::percent(Prop)), position = position_stack(vjust=.5), size=3) +
+ # scale_fill_manual(values = c("#a6bddb", "#2b8cbe"))+
+  theme_classic() + theme(legend.position = "bottom", legend.title = element_blank())+
+  labs(title ="Percent working from home by race: 2019 vs 2021",
+       x = "", y = "# of People",
+      caption = "ACS 1 year samples for 2019 and 2021 used for weighted population estimates,") + scale_y_continuous(labels = scales::comma)
+
+table <- svytable(~did_wfh_labels+YEAR+race_cat, design = dstrata) 
+# proportion of each respondant's sex and if they worked from home for each year in sample
+table <- table %>% 
+  as_tibble() %>% 
+  group_by(YEAR)%>% # grouped by Year and Sex!!
+  mutate(Prop =round(n/sum(n), digits=4))
+
+table %>% ggplot(aes(did_wfh_labels, y=n, fill = race_cat, group = YEAR)) + 
+  geom_col(stat = "identity", position = "stack") +
+  facet_wrap(~YEAR)+
+    geom_text(aes(label = scales::percent(Prop)), position = position_stack(vjust=.5), size=3) +
+ # scale_fill_manual(values = c("#a6bddb", "#2b8cbe"))+
+  theme_classic() + theme(legend.position = "bottom", legend.title = element_blank())+
+  labs(title ="Percent working from home by race: 2019 vs 2021",
+       x = "", y = "# of People",
+      caption = "ACS 1 year samples for 2019 and 2021 used for weighted population estimates,") + scale_y_continuous(labels = scales::comma)
+
+svyby(~did_wfh, by = ~RACE, design = dstrata2021, svymean, na.rm=TRUE)
+svyby(~INCEARN, by = ~RACE, design = dstrata2021, FUN = svymean, na.rm=TRUE)
 
 
 joined %>% crosstab_3way(x=YEAR, y=did_wfh, z=white, weight = PERWT)
@@ -1245,6 +1629,10 @@ joined %>% crosstab_3way(x=YEAR, y=did_wfh, z=RACE, weight = PERWT)
 
 joined %>% crosstab_3way(x=YEAR, y=did_wfh, z=white, weight = PERWT) %>% 
   ggplot(aes(x=`1`, y=YEAR, fill = white)) + 
+  geom_col(stat="identity", position = "fill")
+
+joined %>% crosstab_3way(x=YEAR, y=did_wfh, z=black, weight = PERWT) %>% 
+  ggplot(aes(x=`1`, y=YEAR, fill = black)) + 
   geom_col(stat="identity", position = "fill")
 
 
@@ -1287,39 +1675,9 @@ svytotal(x = ~interaction(RACE, did_wfh_labels), design = dstrata2021, na.rm=TRU
 
 ```
 
-**OCC2010 variable labels:**
+\
 
-From DDI on IPUMS download: https://live.usa.datadownload.ipums.org/web/extracts/usa/1985137/usa_00006.xml#OCC
-
-Management, Business, Science, and Arts = 10-430\
-Business Operations Specialists = 500-730\
-Financial Specialists = 800-950\
-Computer and Mathematical = 1000-1240\
-Architecture and Engineering = 1300-1540\
-Technicians = 1550-1560\
-Life, Physical, and Social Science = 1600-1980\
-Community and Social Services = 2000-2060\
-Legal = 2100-2150\
-Education, Training, and Library = 2200-2550\
-Arts, Design, Entertainment, Sports, and Media = 2600-2920\
-Healthcare Practitioners and Technicians = 3000-3540\
-Healthcare Support = 3600-3650\
-Protective Service = 3700-3950\
-Food Preparation and Serving = 4000-4150\
-Building and Grounds Cleaning and Maintenance = 4200-4250\
-Personal Care and Service = 4300-4650\
-Sales and Related = 4700-4965\
-Office and Administrative Support = 5000-5940\
-Farming, Fishing, and Forestry = 6005-6130\
-Construction = 6200-6765\
-Extraction = 6800-6940\
-Installation, Maintenance, and Repair = 7000-7630\
-Production = 7700-8965\
-Transportation and Material Moving = 9000-9750\
-Military Specific = 9800-9830\
-Unemployed (no occupation for 5+ years) or Never Worked = 9920\
-
-#### Age
+### Age
 
 ```{r eval = FALSE}
 table(joined$AGE,joined$LABFORCE)
@@ -1395,8 +1753,8 @@ table %>% #filter(YEAR == 2021) %>%
   theme_classic() + 
   theme(legend.position = "bottom", legend.title = element_blank())+
   labs(title ="Percent working from home & Access to Internet: 2019 vs 2021",
-       x = "", y = "",
-      caption = "ACS 1 year samples for 2019 and 2021 used for weighted population estimates,") #+ scale_y_continuous(labels = scales::percent)
+       x = "", y = "# of people",
+      caption = "ACS 1 year samples for 2019 and 2021 used for weighted population estimates,") + scale_y_continuous(labels = scales::comma)
 
 table %>% #filter(YEAR == 2021) %>%
   ggplot(aes(did_wfh_labels, y=n, fill = factor(CINETHH, labels = c("Has Own Access", "Has Other Access", "No Access")),
@@ -1408,8 +1766,8 @@ table %>% #filter(YEAR == 2021) %>%
   theme_classic() + 
   theme(legend.position = "bottom", legend.title = element_blank())+
   labs(title ="Percent working from home & Access to Internet: 2019 vs 2021",
-       x = "", y = "",
-      caption = "ACS 1 year samples for 2019 and 2021 used for weighted population estimates,") #+ scale_y_continuous(labels = scales::percent)
+       x = "", y = "# of People",
+      caption = "ACS 1 year samples for 2019 and 2021 used for weighted population estimates,") + scale_y_continuous(labels = scales::comma)
 
 
 
@@ -1434,8 +1792,6 @@ table(joined$NCHLT5)
 
 # Geographic Data
 
-## State Level
-
 ## PUMA Level
 
 PUMAs contain around 100,000 people.
@@ -1443,15 +1799,12 @@ PUMAs contain around 100,000 people.
 For the counties that can be identified in the data (populations \> 100,000 & \< 200,000. 1-Year ACS have minimum of 65,000 population), the census summary tables are close but not identical to the tables calculated with the ACS sample data. "In this way more densely populated areas, like Chicago and Cook County will contain many PUMAs within their boundaries, while multiple sparsely populated entire counties, e.g., Jackson, Perry, Franklin, and Williamson, will comprise one PUMA." - [IPUMS v other Geographies](https://iecam.illinois.edu/browse/about-public-use-microdata-areas-pumas#:~:text=What%20is%20a%20PUMA%3F,Community%20Survey%201%2Dyear%20estimates)
 
 ```{r}
-employ_bycounty<- joined %>% 
-   group_by(as_factor(EMPSTAT), COUNTYFIP, YEAR) %>% 
+obs_perPUMA<- joined %>% 
+   group_by(PUMA, YEAR) %>% 
    dplyr::summarize(weightedcount=sum(PERWT), #weighted 
-                    unweightedcount = n()) %>% 
-   mutate(pct_weight = weightedcount/sum(weightedcount), 
-          pct_noweight = unweightedcount/sum(unweightedcount)) %>%
-  arrange(YEAR)
-
-employ_bycounty
+                    unweightedcount = n()) %>%
+  arrange(unweightedcount)
+obs_perPUMA
  
 
 
@@ -1467,7 +1820,7 @@ joined %>%
    dplyr::summarize(weightedcount=sum(PERWT), #weighted 
                     unweightedcount = n()) %>% 
    mutate(pct_weight = weightedcount/sum(weightedcount), 
-          pct_noweight = unweightedcount/sum(unweightedcount))
+          pct_noweight = unweightedcount/sum(unweightedcount)) %>% arrange(unweightedcount)
 
 
 ```
@@ -1518,10 +1871,103 @@ mapPUMAboth <- mapPUMAboth %>% as_tibble() %>%
 mapPUMAboth
 
 mapPUMAboth %>%
+  
   ggplot(aes(fill = Prop)) +
-  geom_sf(aes(geometry = geometry), color = "black")+ labs(title = "Percent of PUMA area population that did work from home", subtitle = "2019 vs 2021", caption = "Using Survey weighted data object `dstrata`. Facet_wrapped by year") + 
-  facet_wrap(~YEAR)
+  geom_sf(aes(geometry = geometry), color = "black")+ 
+  labs(title = "Percent of PUMA area population that did work from home", 
+       subtitle = "2019 vs 2021", 
+       caption = 
+         "The did_WFH variable based on TRANWORK==80 from ACS 2019 & 2021 1-Year Survey 
+       individual level data. Each geographic region has between 100K and 200K people. ") +
+  theme_classic() + 
+  theme(axis.ticks = element_blank(), axis.text = element_blank())+
+   scale_fill_gradientn(colors = c("white", "darkblue"), 
+                       limits = c(0,.6),
+                       n = 6,
+                        name = "% that did WFH", label = scales::percent)+
+  facet_wrap(~YEAR) 
 
+
+
+  mapPUMAboth <- svytable(~YEAR+PUMA+did_wfh_labels, design = dstrata)
+
+mapPUMAboth %>% as_tibble() %>%
+   group_by(YEAR, PUMA) %>% 
+     mutate(Prop = round(n/sum(n), digits =3)) %>%
+     filter(did_wfh_labels == "Did WFH") %>%
+  pivot_wider(id_cols = -c(n), names_from ="YEAR", values_from = "Prop") %>%
+    mutate(pct_change= `2021`-`2019`) %>%
+       full_join(pumasIL, by = c("PUMA" = "PUMACE10")) %>%
+
+  ggplot(aes(fill = pct_change)) +
+  geom_sf(aes(geometry = geometry), color = "black")+ 
+  labs(title = "Change in Population that Did Work from Home", 
+       subtitle = "2019 vs 2021", 
+       caption = 
+         "The did_WFH variable based on TRANWORK==80 from ACS 2019 & 2021 1-Year Survey 
+       individual level data. Each geographic region has between 100K and 200K people. ") +
+  theme_classic() + 
+  theme(axis.ticks = element_blank(), axis.text = element_blank())+
+   scale_fill_gradientn(colors = c("white", "darkblue"), 
+                       limits = c(0,.6),
+                       n = 6,
+                        name = "% change in WFH", label = scales::percent) 
+
+## Cook County only## 
+
+# mapPUMAboth <- svytable(~YEAR + countyFIP+ PUMA+did_wfh_labels, design = dstrata)
+# mapPUMAboth <- mapPUMAboth %>% as_tibble() %>%
+#    group_by(YEAR, PUMA) %>% 
+#      mutate(Prop = round(n/sum(n), digits =3)) %>%
+#      filter(did_wfh_labels == "Did WFH" & countyFIP == "031") #%>%
+#   #   full_join(pumasIL, by = c("PUMA" = "PUMACE10")) %>% 
+# 
+# mapPUMAboth <- countyIL %>% filter(COUNTYFP == "031") %>%
+#   left_join(mapPUMAboth, by = c( "PUMACE10" = "PUMA"))
+# 
+#   
+#   mapPUMAboth %>% as_tibble() %>%
+#    group_by(YEAR, PUMA) %>% 
+#      mutate(Prop = round(n/sum(n), digits =3)) %>%
+#      filter(did_wfh_labels == "Did WFH") %>%
+#   filter(countyFIP=="031")
+# 
+# mapPUMAboth %>%
+#  # filter(countyFIP=="031") %>%
+#   ggplot(aes(fill = Prop)) +
+#   geom_sf(aes(geometry = geometry), color = "black")+ labs(title = "Percent of PUMA area population that did work from home", subtitle = "2019 vs 2021", caption = "Using Survey weighted data object `dstrata`. Facet_wrapped by year") +
+#    scale_fill_gradientn(colors = c("white", "darkblue"), 
+#                        limits = c(0,.6),
+#                        n = 6,
+#                         name = "% Working from home", label = scales::percent)+
+#   facet_wrap(~YEAR)
+```
+
+```{r pct-canWFH}
+mapPUMAboth <- svytable(~YEAR+PUMA+CanWorkFromHome, design = dstrata)
+mapPUMAboth <- mapPUMAboth %>% as_tibble() %>%
+   group_by(YEAR, PUMA) %>% 
+     mutate(Prop = round(n/sum(n), digits =3)) %>%
+     filter(CanWorkFromHome == "Can WFH") %>%
+     full_join(pumasIL, by = c("PUMA" = "PUMACE10"))
+ 
+mapPUMAboth
+
+mapPUMAboth %>%
+  
+  ggplot(aes(fill = Prop)) +
+  geom_sf(aes(geometry = geometry), color = "black")+ 
+  labs(title = "Percent of PUMA area population that COULD work from home", 
+       subtitle = " based on occupation characteristics: 2019 vs 2021", 
+       caption = "Teleworkability based on D&N 2020 methodology. 
+       OCCSOC codes from ACS 1 year Survey data at individual level.") +
+  theme_classic() + 
+  theme(axis.ticks = element_blank(), axis.text = element_blank())+
+   scale_fill_gradientn(colors = c("white", "darkblue"), 
+                       limits = c(0,.6),
+                       n = 5,
+                        name = "% Potentially Could WFH", label = scales::percent)+
+  facet_wrap(~YEAR)
 ```
 
 ```{r separate-maps-didWFH, include=FALSE, eval=FALSE}
@@ -1571,8 +2017,10 @@ PUMAmapdata2019 %>%
 ```
 
 ```{r internet-access}
-### Access to Hi speed internet ###
+#| code-fold: TRUE
 
+## CINETHH is for access to internet 
+# (either at home, somewhere else, or no access)
 # from joined dataframe. Not using survey objects or survey package
 mapPUMAboth <- joined %>% 
    group_by(YEAR, PUMA, CINETHH) %>% 
@@ -1583,15 +2031,22 @@ mapPUMAboth <- joined %>%
   full_join(pumasIL, by = c("PUMA" = "PUMACE10")) 
 mapPUMAboth
 
-mapPUMAboth %>%
-  filter(CINETHH ==3) %>% 
-  ggplot(aes(fill = pct_weight)) +
-  geom_sf(aes(geometry = geometry), color = "black")+ 
-  labs(title = "Percent of population that did NOT have access to Internet", 
-       subtitle = "Geography = PUMAs", 
-       ) +   theme(legend.title = element_blank())+
-  scale_fill_distiller(palette = "OrRd", direction = 1)+
-  facet_wrap(~YEAR)
+## identical to graph below made using svytable()
+# mapPUMAboth %>%
+#   filter(CINETHH ==3) %>% 
+#   ggplot(aes(fill = pct_weight)) +
+#   geom_sf(aes(geometry = geometry), color = "black")+ 
+#     scale_fill_continuous(low = "gray", high = "red", name = "% of Population", label = scales::percent)+
+#     theme_minimal()+
+#     theme(legend.title = element_blank(), axis.text.x = element_blank(), axis.text.y = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), legend.position="right")+
+#   labs(title = "Percent of population that did NOT have access to Internet", 
+#        subtitle = "Geography = PUMAs", 
+#        ) +   theme(legend.title = element_blank())+
+#  scale_fill_gradientn(colors = c("white", "red4"), 
+#                     #   limits = c(-.1,.1),
+#                        n = 7,
+#                         name = "Change in Access", label = scales::percent)+
+#   facet_wrap(~YEAR)
 
 
 
@@ -1606,29 +2061,153 @@ mapPUMAboth <- mapPUMAboth %>% as_tibble() %>%
 mapPUMAboth %>%
   filter(CINETHH == 3 ) %>% 
   ggplot(aes(fill = Prop)) +
-  geom_sf(aes(geometry = geometry), color = "black")+ 
+  geom_sf(aes(geometry = geometry), color = "black")+   
+  scale_fill_continuous(low = "white", high = "red4", name = "% of Population", label = scales::percent)+
   labs(title = "Percent of population that lacked access to Internet", 
-     #  subtitle = "Each PUMA has >100K & < 200K people", 
        caption = "Geography = PUMAs.") + 
-  facet_wrap(~YEAR) +
-    theme(legend.title = element_blank())+
-  scale_fill_distiller(palette = "OrRd", direction = 1)
-#mapPUMAboth <- mutate(pct_change = )
+  facet_wrap(~YEAR) +  theme_minimal()+
+    theme(legend.title = element_blank(), axis.text.x = element_blank(), axis.text.y = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), legend.position="right")
 
-mapPUMAboth %>% pivot_wider(id_cols = -c(n), names_from ="YEAR", values_from = "Prop") %>%
+mapPUMAboth %>%   
+  filter(CINETHH ==1) %>% 
+  pivot_wider(id_cols = -c(n), names_from ="YEAR", values_from = "Prop") %>%
   mutate(pct_change = `2021`-`2019`) %>%
   ggplot(aes(fill = pct_change)) +
   geom_sf(aes(geometry = geometry), color = "black")+ 
-    theme(legend.title = element_blank())+
-  scale_fill_distiller(palette = "RdYlGn", direction = -1)+
+  theme_minimal()+
+    theme(legend.title = element_blank(), axis.text.x = element_blank(), axis.text.y = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), legend.position="right")+
+                           scale_fill_gradientn(colors = c("red4", "white", "forest green"), 
+                       limits = c(-.15,.15),
+                       n = 7,
+                        name = "Chance in Access", label = scales::percent)+
   labs(title = "Change in population (from 2019 to 2021) 
-       that had access to Internet", 
-       subtitle = "not colorblind friendly...",
-       caption = "All areas increased their access to internet.
-       Change in Percentage points = 2021 % lacking access - 2019 % lacking access") 
+       that had access to Internet at home", 
+       caption = "Rural areas were more likely to increase their access to internet at home. 
+       Change in Percentage points = 2021 % - 2019 % ") 
+
+mapPUMAboth %>%   
+  filter(CINETHH ==3) %>% 
+  pivot_wider(id_cols = -c(n), names_from ="YEAR", values_from = "Prop") %>%
+  mutate(pct_change = `2021`-`2019`) %>%
+  ggplot(aes(fill = pct_change)) +
+  geom_sf(aes(geometry = geometry), color = "black")+ 
+  theme_minimal()+
+    theme(legend.title = element_blank(), axis.text.x = element_blank(), axis.text.y = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), legend.position="right")+
+                           scale_fill_gradientn(colors = c("green4", "white", "red4"), 
+                       limits = c(-.15,.15),
+                       n = 7,
+                        name = "Change in Access", label = scales::percent)+
+  labs(title = "Decrease in Lack of Internet Access", 
+       subtitle = "Needs to be flipped so not double negative",
+       caption = "Rural areas were more likely to increase their access to internet at home. 
+       Change in Percentage points = 2021 % - 2019 %.
+       Access to internet at home or another location is considered having Access to internet")
+```
+
+Because there are so few responses that lack internet in the first place, using CINETHH == 3 decreases the responses in each PUMA by a lot. Some PUMAS have very few responses and determining if there was any change between the years is unreliable.
+
+```{r}
+joined %>% filter(CINETHH %in% c(1,2,3)) %>% 
+
+   group_by(county_pop_type, YEAR, PUMA) %>% 
+   dplyr::summarize(weightedcount=sum(PERWT), #weighted 
+                    unweightedcount = n())%>%
+       mutate( pct_weight = weightedcount/sum(weightedcount), 
+          pct_noweight = unweightedcount/sum(unweightedcount)) %>%
+              full_join(pumasIL, by = c("PUMA" = "PUMACE10")) %>%
+  arrange(unweightedcount)
+
+joined %>% 
+   group_by(county_pop_type, YEAR, PUMA, CINETHH) %>% 
+   dplyr::summarize(weightedcount=sum(PERWT), #weighted 
+                    unweightedcount = n())%>%
+       mutate( pct_weight = weightedcount/sum(weightedcount), 
+          pct_noweight = unweightedcount/sum(unweightedcount)) %>%
+              full_join(pumasIL, by = c("PUMA" = "PUMACE10")) %>% 
+ #  filter(unweightedcount > 30) %>% 
+  arrange(unweightedcount)
+ # ungroup() %>%
+ # arrange(unweightedcount) %>% 
+ # group_by(county_pop_type, YEAR, PUMA, CINETHH, weightedcount, unweightedcount) %>% 
+ #  dplyr::summarize(#weightedcount=sum(PERWT), #weighted 
+                    #unweightedcount = n(),
+   #                 pct_weight = weightedcount/sum(weightedcount), 
+   #       pct_noweight = unweightedcount/sum(unweightedcount))%>%
+
+
+
+## Keeps only PUMAs with more than 30 observations. 
+mapPUMAboth <- joined %>% 
+  group_by(county_pop_type, YEAR, PUMA, CINETHH) %>% 
+   dplyr::summarize(weightedcount=sum(PERWT), #weighted 
+                    unweightedcount = n())%>%
+  mutate(pct_weight = weightedcount/sum(weightedcount), 
+          pct_noweight = unweightedcount/sum(unweightedcount))  %>%
+  full_join(pumasIL, by = c("PUMA" = "PUMACE10"))
+
+
+mapPUMAboth %>%
+  filter(CINETHH == 3 & unweightedcount>10) %>% 
+  ggplot(aes(fill = pct_weight)) +
+  geom_sf(aes(geometry = geometry), color = "black")+   
+  scale_fill_continuous(low = "white", high = "red4", name = "% of Population", label = scales::percent)+
+  labs(title = "Percent of population that lacked access to Internet", 
+       caption = "Geography = PUMAs. 
+       Minimum # responses per PUMA = 271, maximum # of responses > 1000 per PUMA. 
+       Some PUMAs have very few observations and are unreliable. Use other graphs.") + 
+  facet_wrap(~YEAR) +
+    theme(legend.title = element_blank())
+
+mapPUMAboth %>% pivot_wider(id_cols = -c(weightedcount,unweightedcount,pct_noweight), names_from ="YEAR", values_from = "pct_weight") %>%
+  mutate(pct_change = `2021`-`2019`) %>%
+  ggplot(aes(fill = pct_change)) +
+  geom_sf(aes(geometry = geometry), color = "black")+ 
+  theme_minimal() +theme(axis.text = element_blank(), axis.ticks = element_blank())+
+  labs(title = "Change in Percent of PUMA population without access to internet to Internet",
+       subtitle = "A decrease is a good thing here!",
+       caption = "Percentage point change = 2021 PUMA% with CINETHH=3 - 2019 PUMA% with CINETHH=3.
+       Data from 2019 and 2021 1 year ACS Surveys") +
+  scale_fill_gradientn(colors = c("forestgreen",  "white", "red4"), na.value = "grey",
+                       n = 5,
+                       limits = c(-.15,.15),
+                        name = "Change in Access", label = scales::percent)
+
+mapPUMAboth %>%
+  filter(CINETHH == 1 ) %>% 
+  ggplot(aes(fill = pct_weight)) +
+  geom_sf(aes(geometry = geometry), color = "black")+   
+  scale_fill_continuous(low = "white", high = "forestgreen", name = "% of Population", label = scales::percent)+
+  labs(title = "Percent of population that has access to Internet at home", 
+       caption = "Geography = PUMAs. Some PUMAs have very few observations and are unreliable. Use other graphs.") + 
+  facet_wrap(~YEAR) +
+    theme(legend.title = element_blank())
+
+mapPUMAboth %>% 
+    filter(CINETHH == 1 &unweightedcount>40) %>% 
+
+  pivot_wider(id_cols = -c(weightedcount,unweightedcount,pct_noweight), names_from ="YEAR", values_from = "pct_weight") %>%
+  mutate(pct_change = `2021`-`2019`) %>%
+  ggplot(aes(fill = pct_change)) +
+  geom_sf(aes(geometry = geometry), color = "black")+ 
+  theme_minimal() +theme(axis.text = element_blank(), axis.ticks = element_blank())+
+  labs(title = "Change in % of PUMA population with access to internet at home",
+       subtitle = "An increase is a good thing!",
+       caption = "Min of 40 survey responses per puma for CINETHH
+       Percentage point change = 2021 PUMA% with CINETHH=1 - 2019 PUMA% with CINETHH=1.
+       Data from 2019 and 2021 1 year ACS Surveys.
+       Using 2021 5-year Survey data would allow for splitting observations into Pre- and Post-COVID
+       and would increase sample size and reliability") +
+  scale_fill_gradientn(colors = c("red4", "white", "forestgreen"),
+                       limits = c(-.15, .15),
+                      # values = c(-.15,-.03,0,0.03,.15),  
+                       na.value = "grey",
+                       n = 9,
+                        name = "Change in Access at home", label = scales::percent)
 ```
 
 ```{r fast-internet-byPUMA}
+#| code-fold: TRUE
+#| 
 ### Access to Hi speed internet ###
 
 # from joined dataframe. Not using survey objects or survey package
@@ -1647,8 +2226,9 @@ mapPUMAboth %>%
   geom_sf(aes(geometry = geometry), color = "black")+ 
   labs(title = "Percent of population without High Speed Internet", subtitle = "Geograph = PUMAs", caption = "Each PUMA has >100K & < 200K people.") + 
   facet_wrap(~YEAR)+
-  scale_fill_distiller(palette = "OrRd", direction = 1)
-
+ scale_fill_gradientn(colors = c( "white", "red4"), 
+                       n = 7,
+                        name = "Population %", label = scales::percent)
 
 
 ## Access to Hi speed internet using survey objects
@@ -1666,7 +2246,9 @@ mapPUMAboth %>%
   labs(title = "Percent of population WITH High Speed Internet", 
        subtitle = "Geograph = PUMAs", caption = "Each PUMA has >100K & < 200K people.") + 
   facet_wrap(~YEAR)+
-  scale_fill_distiller(palette = "BlGn", direction = 1)
+ scale_fill_gradientn(colors = c("white", "forest green"), 
+                       n = 5,
+                        name = "Population %", label = scales::percent)
 
 mapPUMAboth %>% pivot_wider(id_cols = -c(n), names_from ="YEAR", values_from = "Prop") %>%
   mutate(pct_change = `2021`-`2019`) %>%
@@ -1675,19 +2257,10 @@ mapPUMAboth %>% pivot_wider(id_cols = -c(n), names_from ="YEAR", values_from = "
   labs(title = "Change in Access to High Speed Internet",
        subcaption = "2019 to 2021",
        caption = "Percentage point change = 2021 PUMA% with CIHISPEED=10 - 2019 PUMA% with CIHISPEED=10") +
-  scale_fill_distiller(palette = "OrRd", direction = 1)
+  scale_fill_gradientn(colors = c("red4",  "white", "forest green"), 
+                       n = 5,
+                        name = "Change in Access", label = scales::percent)
 
-mapPUMAboth %>% pivot_wider(id_cols = -c(n), names_from ="YEAR", values_from = "Prop") %>%
-  mutate(pct_change = `2021`-`2019`) %>%
-  ggplot(aes(fill = pct_change)) +
-  geom_sf(aes(geometry = geometry), color = "black")+ 
-    theme(legend.title = element_blank())+
-  scale_fill_distiller(palette = "RdYlGn", direction = -1)+
-  labs(title = "Change in population (from 2019 to 2021) 
-       that had access to High Speed Internet", 
-       subtitle = "not colorblind friendly...",
-       caption = "Most areas improved their access to high speed internet. 
-       Areas in orange or red experienced a decrease in access internet.")
   
 
 ```
@@ -1714,7 +2287,10 @@ mapPUMAboth %>%
   labs(title = "Percent of population that did NOT have access to Internet", 
        subtitle = "Geography = County", 
        ) +   theme(legend.title = element_blank())+
-  scale_fill_distiller(palette = "OrRd", direction = 1)+
+  scale_fill_gradientn(colors = c( "white", "red4"), 
+                       n = 5,
+                        name = "Population %", label = scales::percent)
+  # scale_fill_distiller(palette = "OrRd", direction = 1)+
   facet_wrap(~YEAR)
 
 
@@ -1736,20 +2312,21 @@ mapPUMAboth %>%
        caption = "Geography = Counties with populations > ~60K") + 
   facet_wrap(~YEAR) +
     theme(legend.title = element_blank())+
-  scale_fill_distiller(palette = "OrRd", direction = 1)
-#mapPUMAboth <- mutate(pct_change = )
+ scale_fill_gradientn(colors = c( "white", "red4"), 
+                       n = 5,
+                        name = "Population %", label = scales::percent)#mapPUMAboth <- mutate(pct_change = )
 
 mapPUMAboth %>% pivot_wider(id_cols = -c(n), names_from ="YEAR", values_from = "Prop") %>%
   mutate(pct_change = `2021`-`2019`) %>%
   ggplot(aes(fill = pct_change)) +
   geom_sf(aes(geometry = geometry), color = "black")+ 
     theme(legend.title = element_blank())+
-  scale_fill_distiller(palette = "RdYlGn", direction = -1)+
-  labs(title = "Change in population (from 2019 to 2021) 
-       that had access to High Speed Internet", 
-       subtitle = "not colorblind friendly...",
-       caption = "Change in Percentage points = 2021 % lacking access - 2019 % lacking access") 
-
+ # scale_fill_distiller(palette = "RdYlGn", direction = -1)+
+  labs(title = "Change in access to High Speed Internet", 
+       caption = "Change in Percentage points = 2021 % lacking access - 2019 % lacking access") +
+  scale_fill_gradientn(colors = c("green4", "white", "red4"), 
+                       n = 7,
+                        name = "Population %", label = scales::percent)
 
 
 ## Access to Hi speed internet using survey objects
@@ -1768,28 +2345,21 @@ mapPUMAboth %>%
        subtitle = "Geograph = County"#, #caption = "Each PUMA has >100K & < 200K people."
        ) + 
   facet_wrap(~YEAR)+
-  scale_fill_distiller(palette = "BlGn", direction = 1)
+ scale_fill_gradientn(colors = c( "white", "green4"), 
+                       n = 5,
+                        name = "Population %", label = scales::percent)
 
-mapPUMAboth %>% pivot_wider(id_cols = -c(n), names_from ="YEAR", values_from = "Prop") %>%
-  mutate(pct_change = `2021`-`2019`) %>%
-  ggplot(aes(fill = pct_change)) +
-  geom_sf(aes(geometry = geometry), color = "black")+ 
-  labs(title = "Change in Access to High Speed Internet",
-       subcaption = "2019 to 2021",
-       caption = "Percentage point change = 2021 PUMA% with CIHISPEED=10 - 2019 PUMA% with CIHISPEED=10") +
-  scale_fill_distiller(palette = "OrRd", direction = 1)
 
 mapPUMAboth %>% pivot_wider(id_cols = -c(n), names_from ="YEAR", values_from = "Prop") %>%
   mutate(pct_change = `2021`-`2019`) %>%
   ggplot(aes(fill = pct_change)) +
   geom_sf(aes(geometry = geometry), color = "black")+ 
     theme(legend.title = element_blank())+
-  scale_fill_distiller(palette = "RdYlGn", direction = -1)+
-  labs(title = "Change in population (from 2019 to 2021) 
-       that had access to High Speed Internet", 
-       subtitle = "not colorblind friendly...",
-       caption = "Most areas improved their access to high speed internet. 
-       Areas in orange or red experienced a decrease in access internet.")
+ # scale_fill_distiller(palette = "RdYlGn", direction = -1)+
+   scale_fill_gradientn(colors = c("red4", "white", "green4"), 
+                       n = 7,
+                        name = "Population %", label = scales::percent)+
+  labs(title = "Change in access to High Speed Internet")
 ```
 
 ##### Did work from home
@@ -1812,8 +2382,14 @@ mapdataboth
 mapdataboth %>%
   filter(did_wfh_labels != "Did not WFH") %>%
   ggplot(aes(fill = pct_weight)) +
-  geom_sf(aes(geometry = geometry), color = "black")+ labs(title = "Percent of county population that did work from home in 2021", subtitle = "Countyfips != 000", caption = "Note: Shows all counties with populations large enough to have their own values.
-                                                           Rural counties went from 4.5% WFH to 9.2% WFH") + facet_wrap(~YEAR)
+  geom_sf(aes(geometry = geometry), color = "black")+ 
+    theme_classic()+
+
+  labs(title = "Percent of county population that did work from home in 2021", 
+  subtitle = "Countyfips != 000", 
+  caption = "Note: Shows all counties with populations large enough to have their own values.
+  Rural counties went from 4.5% WFH to 9.2% WFH") + 
+  facet_wrap(~YEAR)
 
 mapdata2019 <- joined %>% 
   filter(YEAR == 2019 & did_wfh_labels != "NA" )%>% # create percentages withing missing values included. aka valid percent.
@@ -1841,12 +2417,15 @@ mapdata2021 <- joined %>%
 mapdata2021 %>%
   filter(did_wfh_labels == "Did WFH") %>%
   ggplot(aes(fill = pct_weight)) +
+    theme_classic()+
   geom_sf(aes(geometry = geometry), color = "black")+ labs(title = "Percent of county population that did work from home in 2021", subtitle = "Countyfips != 000", caption = "Note: Shows all counties with populations large enough to have their own values")
 
 mapdata2021 %>%
   filter(did_wfh_labels != "Did not WFH") %>%
   ggplot(aes(fill = pct_weight)) +
   geom_sf(aes(geometry = geometry))+ 
+    theme_classic()+
+
   labs(title = "Percent of population that did WFH in 2021",
        caption = "Note: All counties with populations < 50,000 people were 
        aggregated together in ACS data extracts (COUNTYFIP == 000)") 
@@ -1855,6 +2434,7 @@ mapdata2019 %>%
   filter(did_wfh_labels != "Did not WFH") %>%
   ggplot(aes(fill = pct_weight)) +
   geom_sf(aes(geometry = geometry))+ 
+  theme_classic()+
   labs(title = "Percent of population that did WFH in 2019",
        caption = "Note: All counties with populations < 50,000 people were 
        aggregated together in ACS data extracts (COUNTYFIP == 000)") 
@@ -2027,6 +2607,12 @@ joined %>%
  dplyr:: group_by(YEAR,PWSTATE2_clean)%>%
   mutate(pct = n()/workers)%>% 
   arrange(desc(pct))
+```
+
+# Regression attempt
+
+```{r}
+svyglm(did_wfh~race_cat+SEX+CIHISPEED*CINETHH + occ_2dig_labels*CanWorkFromHome+county_pop_type, design = dstrata) %>% summary()
 ```
 
 ### Other Sources and Papers
