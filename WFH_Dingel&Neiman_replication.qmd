@@ -2,10 +2,10 @@
 title: "Dingel & Neiman Replication"
 
 format:
-  html:
-    toc: true
-    toc_float: true
-    df-print: paged
+ html:
+  toc: true
+  toc_float: true
+  df-print: paged
 ---
 
 # Getting Data
@@ -68,13 +68,11 @@ Alea_theme <- function(){
       
       #since the legend often requires manual tweaking 
       #based on plot content, don't define it here
-    
-  )
+    )
 }
 ```
 
 ```{r message=FALSE, warning = FALSE}
-
 # old version with less variables:
 #ddi <- read_ipums_ddi("usa_00009.xml") # 45 variables
 #data <- read_ipums_micro(ddi) # 126623 observations before any filtering
@@ -128,6 +126,7 @@ data <-  data %>% mutate(white = if_else(RACE ==1, 1, 0),
     RACE ==2 ~ "Black", 
     RACE %in% c(4,5,6)~"Asian",
     RACE %in% c(3,7,8,9)~"Other"))
+table(data$race_cat)
 ## numbers used for income breaks are calculated in Income Deciles section. 
 # created now so that the variable exists in the joined dataset before creating the survey design object
 
@@ -189,9 +188,7 @@ occ_2digits == 55 ~ "Military",
 TRUE~"Other") )
 
 data <- data %>% 
-  mutate(did_wfh = if_else(TRANWORK==80, 1, 0)) %>% # 1 = wfh, 0 = did not wfh 
-  mutate(SEX_labels = if_else(SEX==1, "Male", "Female")) # 1 = wfh, 0 = did not wfh
-
+  mutate(did_wfh = if_else(TRANWORK==80, 1, 0)) # 1 = wfh, 0 = did not wfh
 
 data <- data %>% 
   mutate(
@@ -214,35 +211,26 @@ Running code with this as a trial run with only Can and Cannot work from homes.
 ```{r}
 
 telework <- haven::read_dta("DNSixuni.dta")
-joined <- left_join(data, telework, by = c("OCCSOC" = "occsoc"))
+joined <- inner_join(data, telework, by = c("OCCSOC" = "occsoc"))
 # only 64,235 observations matched occsoc codes.
 # 39,573 no WFH, 24662 Can WFH. Uses the 764 occupation codes used by D&N methodology
 
-joined %>% filter(is.na(teleworkable)) %>% group_by(OCCSOC) %>% arrange() %>%
-  summarize(observations = n(), weighted_n = sum(PERWT))
 
 
 table(joined$teleworkable)
 #table(joined$teleworkable)
 # mostly 0's and 1's.
-#hist(joined$teleworkable)
+hist(joined$teleworkable)
 
 
-#valid percent
-data %>% filter(YEAR == 2019) %>%
-topline(did_wfh_labels, weight = PERWT)
-
-data %>% filter(YEAR == 2021) %>%
-topline(did_wfh_labels, weight = PERWT)
 
 ```
 
-219 unique occsoc codes did NOT match to teleworkable scores after merging original file from D&N. Number of observations and weighted population that is represented is calculated above for each unmatched OCCSOC code.
+With 764 occupation codes from D&N
 
-With 764 occupation codes from D&N file of 6 digit sococc codes that have teleworkable codes.
+With Alea's File in graphs before 5/13: Can WFH No WFH Some WFH
 
-39,573 are 0's (Cannot work from home)\
-24,662 are 1's. (Feasible work from home).
+40278 67339 16136
 
 # Descriptive Statistics
 
@@ -265,6 +253,12 @@ table(data$did_wfh, data$YEAR)
 #   mutate(pct_weighted = round(weightedcount/sum(weightedcount), digits = 3),
 #          pct_noweight = round(unweightedcount/sum(unweightedcount), digits = 3))
 
+#valid percent
+data %>% filter(YEAR == 2019) %>%
+topline(did_wfh_labels, weight = PERWT)
+
+data %>% filter(YEAR == 2021) %>%
+topline(did_wfh_labels, weight = PERWT)
 
 ```
 
@@ -272,8 +266,8 @@ table(data$did_wfh, data$YEAR)
 
 ```{r could-wfh}
 # bring in the teleworkable scores based on D&N's work.
-#telework <- read_csv("teleworkable_AWM.csv")
-#joined <- left_join(data, telework, by = c("OCCSOC" = "occ_codes"))
+telework <- read_csv("teleworkable_AWM.csv")
+joined <- left_join(data, telework, by = c("OCCSOC" = "occ_codes"))
 
 #table(joined$teleworkable)
 # mostly 0's and 1's.
@@ -291,22 +285,13 @@ joined <- joined %>%
 
 table(joined$CanWorkFromHome)
 
-joined %>% filter(CanWorkFromHome == "Check Me") %>% distinct(OCCSOC)
-joined %>% filter(CanWorkFromHome == "Check Me") %>% 
-  group_by(occ_2dig_labels,  OCCSOC) %>%
-  summarize(count = n())
-
-
-
-joined <- joined %>% filter( CanWorkFromHome != "Check Me")
-
 ```
 
-For 2019 and 2021 combined:
+\_\_\_\_ observations have occupations that indicate that they could Work from home
 
--   24,662 observations have occupations that indicate that they could Work from home
--   39,573 responses have occupations indicating that they can not work from home
--   [59,518 observations have occupation codes that didn't match to Dingel & Neiman's teleworkable codes]{.underline}
+\_\_\_\_ responses have occupations indicating that they can not work from home
+
+\_\_\_\_\_ might be able to work from home.
 
 ### Survey Design
 
@@ -379,7 +364,8 @@ table %>% filter(occ_2dig_labels != "Military") %>% ggplot(aes(x=fct_rev(fct_ino
     title ="Proportion of Occupation Types in  Illinois",
        x = "", y = "# of People",
       caption = "ACS 1 year samples for 2019 and 2021 used for weighted population estimates. 
-      Using B&N occupations instead of Alea's expanded occupation list.
+      Military occupations make up less than 0.5% of the labor force and 
+      were removed from the  graph.
       Categories used are based on BLS Major Group Categories.") + scale_y_continuous(labels = scales::comma)+
   coord_flip()
 
@@ -455,19 +441,6 @@ table %>% filter(occ_2dig_labels != "Military") %>%
   scale_fill_manual(values = c("#a6bddb", "#2b8cbe")) +
   coord_flip()
 
-table %>% filter(occ_2dig_labels != "Military") %>%
-  ggplot(aes(x=fct_rev(fct_inorder(occ_2dig_labels)), y=n, fill = did_wfh_labels, group = YEAR)) + 
-  geom_col(stat = "identity", position = "stack") +
-  facet_wrap(~YEAR)+
-      geom_text(aes(label = scales::percent(as.numeric(ifelse(Prop>0.02,Prop, "")), accuracy = .1),accuracy  = .1L ),position = position_stack(vjust=.5), size=3) +
-  theme_classic() + theme(legend.position = "bottom", legend.title = element_blank())+
-  labs(title ="Same codes as D&N's teleworkable scoes.
-       Proportion of All Workers by Broad Occupation type & WFH Status",
-       subtitle = "All workers in labor force with occsoc codes in a year add to 100%",
-       x = "", y = "# of People",
-      caption = "ACS 1 year samples for 2019 and 2021 used for weighted population estimates,") + scale_y_continuous(labels = scales::comma)+
-  scale_fill_manual(values = c("#a6bddb", "#2b8cbe")) +
-  coord_flip()
 
 ### Detailed Occuation Types ## 
 table <- svytable(~YEAR+did_wfh_labels+occ_2dig_labels_d, design = dstrata) 
@@ -523,7 +496,6 @@ table <- svytable(~YEAR+CanWorkFromHome+occ_2dig_labels_d, design = dstrata)
 table <- table %>% 
   as_tibble() %>% 
   filter(YEAR==2021)%>% 
-    filter(CanWorkFromHome != "Check Me") %>%
   arrange(CanWorkFromHome, -n) %>%
   mutate(Prop =round(n/sum(n), digits=3))
 
@@ -533,12 +505,12 @@ table %>%
   geom_col(position="stack", stat = "identity")+
   geom_text(aes(label = scales::percent(as.numeric(ifelse(Prop>0.01,Prop, "")), accuracy = .1), accuracy= 0.1L ), position = position_stack(vjust=.5), size=3) +
 theme_classic() + theme(legend.position = "bottom", legend.title = element_blank())+
-  labs(title ="Same Codes as D&N:
-       Percent of Workers that Could Feasibily Work From Home in 2021", 
+  labs(title ="Percent of Workers that Could Feasibily Work From Home in 2021", 
        x = "", y = "# of People",
       caption = "Occupation codes (OCCSOC)from the 2021 1-year ACS merged with work from home feasibility scores.") + scale_y_continuous(labels = scales::comma)+
   scale_fill_manual(values = c( "#2b8cbe","#a6bddb","gray")) +
   coord_flip()
+
 
 
 ## Proportion of all workers in each occupation cateogory.## 
@@ -558,29 +530,6 @@ table %>% filter(occ_2dig_labels != "Military") %>%
       geom_text(aes(label = scales::percent(as.numeric(ifelse(Prop>0.02,Prop, "")), accuracy = .1),accuracy  = .1L ),position = position_stack(vjust=.5), size=3) +
   theme_classic() + theme(legend.position = "bottom", legend.title = element_blank())+
   labs(title ="Proportion of All Workers by Broad Occupation type & WFH Status",
-       subtitle = "All workers in labor force with occsoc codes in a year add to 100%",
-       x = "", y = "# of People",
-      caption = "ACS 1 year samples for 2019 and 2021 used for weighted population estimates,") + scale_y_continuous(labels = scales::comma)+
-  scale_fill_manual(values = c( "#2b8cbe","#a6bddb", "gray")) +
-  coord_flip()
-
-
-table <- table %>% 
-  as_tibble() %>% 
-  filter(CanWorkFromHome != "Check Me") %>%
-  group_by(YEAR)%>% 
-  mutate(Prop =round(n/sum(n), digits=3)) %>%
-  arrange(CanWorkFromHome, -n)
-table
-
-table %>% filter(occ_2dig_labels != "Military") %>%
-  ggplot(aes(x=fct_rev(fct_inorder(occ_2dig_labels)), y=n, fill = CanWorkFromHome, group = YEAR)) + 
-  geom_col(stat = "identity", position = "stack") +
-  facet_wrap(~YEAR)+
-      geom_text(aes(label = scales::percent(as.numeric(ifelse(Prop>0.02,Prop, "")), accuracy = .1),accuracy  = .1L ),position = position_stack(vjust=.5), size=3) +
-  theme_classic() + theme(legend.position = "bottom", legend.title = element_blank())+
-  labs(title ="Same as D&N
-       Proportion of All Workers by Broad Occupation type & WFH Status",
        subtitle = "All workers in labor force with occsoc codes in a year add to 100%",
        x = "", y = "# of People",
       caption = "ACS 1 year samples for 2019 and 2021 used for weighted population estimates,") + scale_y_continuous(labels = scales::comma)+
@@ -857,12 +806,12 @@ table25up %>%
 
 ### Gender and Working from home
 
-17.9% of those in the labor force worked from home in 2021.
+19.2% of those in the labor force worked from home in 2021.
 
 -   10.7% were women, 9.8% were men.
--   In 2021, 15.74% of male workers did WFH and 20% of female workers did WFH.
+-   In 2021, 17.6% of male workers did WFH and 21% of female workers did WFH.
 
-49.9% of those in the labor force that have occupation codes were Men, 50.1% were Women.
+52.5% of those in the labor force that have occupation codes were Men, 47.5% were Women.
 
 ```{r}
 
@@ -916,16 +865,16 @@ table
 #       caption = "ACS 1 year samples for 2019 and 2021 used for weighted population estimates,") + scale_y_continuous(labels = scales::percent)
 
 
-# ### Percentages add up to 100% for each gender for each year. 
-# table %>% ggplot(aes(factor(SEX, labels = c("Male", "Female")), y=n, fill = did_wfh_labels, group = YEAR)) + 
-#   geom_col(stat = "identity", position = "stack") +
-#   facet_wrap(~YEAR)+
-#     geom_text(aes(label = scales::percent(Prop)), position = position_stack(vjust=.5), size=3) +
-#   scale_fill_manual(values = c("#a6bddb", "#2b8cbe"))+
-#   theme_classic() + theme(legend.position = "bottom", legend.title = element_blank())+
-#   labs(title ="Percent working from home by Sex: 2019 vs 2021",
-#        x = "", y = "# of People",
-#       caption = "ACS 1 year samples for 2019 and 2021 used for weighted population estimates,") + scale_y_continuous(labels = scales::comma)
+### Percentages add up to 100% for each gender for each year. 
+table %>% ggplot(aes(factor(SEX, labels = c("Male", "Female")), y=n, fill = did_wfh_labels, group = YEAR)) + 
+  geom_col(stat = "identity", position = "stack") +
+  facet_wrap(~YEAR)+
+    geom_text(aes(label = scales::percent(Prop)), position = position_stack(vjust=.5), size=3) +
+  scale_fill_manual(values = c("#a6bddb", "#2b8cbe"))+
+  theme_classic() + theme(legend.position = "bottom", legend.title = element_blank())+
+  labs(title ="Percent working from home by Sex: 2019 vs 2021",
+       x = "", y = "# of People",
+      caption = "ACS 1 year samples for 2019 and 2021 used for weighted population estimates,") + scale_y_continuous(labels = scales::comma)
 
 #compare combined strata survey design to single year survey objects:
 # MATCHES
@@ -971,27 +920,23 @@ table %>% ggplot(aes(factor(SEX, labels = c("Male", "Female")), y=n, fill = did_
 
 ```{r}
 
-round(prop.table(svytable(~has_occsoc+SEX_labels, design=dstrata2019))*100,digits=2)
+round(prop.table(svytable(~has_occsoc+SEX, design=dstrata2019))*100,digits=2)
 # slight drop in women in the workforce (technically women with occupations). 
-round(prop.table(svytable(~has_occsoc+SEX_labels, design=dstrata2021))*100,digits=2)
+round(prop.table(svytable(~has_occsoc+SEX, design=dstrata2021))*100,digits=2)
 
 
 CrossTable(data$SEX, data$YEAR)
-#CrossTable(dstrata$SEX_label, dstrata$YEAR)
-
-xtabs(~SEX+YEAR, data = dstrata) %>% summary()
-
 xtabs(~SEX+YEAR, data = data) %>% summary()
 
-xtabs(~did_wfh+SEX_labels+YEAR, data = data) %>% summary()
+xtabs(~did_wfh+SEX+YEAR, data = data) %>% summary()
 
 
 
 
 ## Most interesting change: 
-round(prop.table(svytable(~SEX_labels+did_wfh_labels, design=dstrata2019))*100,digits=2) 
+round(prop.table(svytable(~SEX+did_wfh_labels, design=dstrata2019))*100,digits=2) 
 # 1 is Male, 2 is female
-round(prop.table(svytable(~SEX_labels+did_wfh_labels, design=dstrata2021))*100,digits=2) 
+round(prop.table(svytable(~SEX+did_wfh_labels, design=dstrata2021))*100,digits=2) 
 
 
 # Chi square goodness of fit
@@ -999,8 +944,6 @@ round(prop.table(svytable(~SEX_labels+did_wfh_labels, design=dstrata2021))*100,d
 # practice test to see if sex is 52% male and 48% female. For both years. 
 chisq.test(table(joined$SEX), p = c(52, 48)/100)
 # can't reject the null, so the sample represents the population if the known population is 52% male and 48% female.
-chisq.test(table(joined$SEX_labels), p = c(50, 50)/100)
-# joined dataframe is not weighted though?
 
 svytotal(x = ~interaction(SEX, did_wfh_labels), design = dstrata2021, na.rm=TRUE)
 svytotal(x = ~interaction(SEX, did_wfh_labels), design = dstrata2019, na.rm=TRUE)
@@ -1014,11 +957,11 @@ svyttest(formula = INCEARN~SEX, design = dstrata2021)
 svyttest(formula = INCEARN~did_wfh_labels, design = dstrata2021)
 
 
-table <- svytable(~SEX_labels+YEAR+did_wfh_labels, design = dstrata) 
+table <- svytable(~SEX+YEAR+did_wfh_labels, design = dstrata) 
 # proportion of each respondant's sex and if they worked from home for each year in sample
 table <- table %>% 
   as_tibble() %>% 
-  group_by(YEAR, SEX_labels)%>% # grouped by Year and Sex!!
+  group_by(YEAR, SEX)%>% # grouped by Year and Sex!!
   mutate(Prop =round(n/sum(n), digits=4))
 table
 

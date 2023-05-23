@@ -104,14 +104,14 @@ Survey questions for INCEARN:
 # larger version with 147 variables. uses same file as Box file named "IL_2021_1yr_ACS.dat.gz and IL_2021_1yr_ACS_datDDI.xml
 ddi <- read_ipums_ddi("usa_00011.xml") # downloaded April 10 2023
 data2021 <- read_ipums_micro(ddi) # 126623 observations before any filtering
-data2021 <- data2021 %>% select(YEAR, INCEARN, INCWAGE, INCTOT, TRANWORK, OCCSOC, CLASSWKR, EMPSTAT, LABFORCE, PERWT, COUNTYFIP, PUMA, PWSTATE2, AGE, STRATA, CLUSTER, RACE, HISPAN, SEX, CIHISPEED, CINETHH, MULTGEN, NCHILD, NCHLT5, MARST, FERTYR, EDUC, DEGFIELD, OCC, IND, OCC2010, METRO, CITY, HHINCOME )
+data2021 <- data2021 %>% select(YEAR, INCEARN, INCWAGE, INCTOT, TRANWORK, OCCSOC, CLASSWKR, EMPSTAT, LABFORCE, PERWT, COUNTYFIP, PUMA, PWSTATE2, AGE, STRATA, CLUSTER, RACE, HISPAN, SEX, CIHISPEED, CINETHH, MULTGEN, NCHILD, NCHLT5, MARST, FERTYR, EDUC, DEGFIELD, OCC, IND, OCC2010, METRO, CITY, HHINCOME, SERIAL,HHWT, NUMPREC, SUBSAMP,HHTYPE )
 
 # same sample but with 150+ variables. 
 # NEED TO CHANGE XML file that referneces the data file. currently says usa_00011.dat.gz so these two lines of code do not work. 
 
 ddi <- read_ipums_ddi("C:/Users/aleaw/Box/Fiscal Futures/FY22_Working/WFH/Data/IL_2019_1yearACS_datDDI.xml") # downloaded April 10 2023
 data2019 <- read_ipums_micro(ddi) # 126623 observations before any filtering
-data2019 <- data2019 %>% select(YEAR, INCEARN, INCWAGE, INCTOT, TRANWORK, OCCSOC, CLASSWKR, EMPSTAT, LABFORCE, PERWT, COUNTYFIP, PUMA, PWSTATE2, AGE, STRATA, CLUSTER, RACE, HISPAN, SEX, CIHISPEED, CINETHH, MULTGEN, NCHILD, NCHLT5, MARST, FERTYR, EDUC, DEGFIELD, OCC, IND, OCC2010, METRO, CITY, HHINCOME  )
+data2019 <- data2019 %>% select(YEAR, INCEARN, INCWAGE, INCTOT, TRANWORK, OCCSOC, CLASSWKR, EMPSTAT, LABFORCE, PERWT, COUNTYFIP, PUMA, PWSTATE2, AGE, STRATA, CLUSTER, RACE, HISPAN, SEX, CIHISPEED, CINETHH, MULTGEN, NCHILD, NCHLT5, MARST, FERTYR, EDUC, DEGFIELD, OCC, IND, OCC2010, METRO, CITY, HHINCOME, SERIAL,HHWT, NUMPREC, SUBSAMP,HHTYPE   )
 
 data <- rbind(data2019, data2021) #125,007 observations before any filtering. 
 
@@ -236,6 +236,8 @@ Running code with this as a trial run with only Can and Cannot work from homes.
 
 telework <- haven::read_dta("DNSixuni.dta")
 joined <- inner_join(data, telework, by = c("OCCSOC" = "occsoc"))
+
+
 # only 64,235 observations matched occsoc codes.
 # 39,573 no WFH, 24662 Can WFH. Uses the 764 occupation codes used by D&N methodology
 
@@ -267,8 +269,6 @@ Note: Dropping groups of people using filter() from the sample will change the s
 :::
 
 ```{r examine-didwfh}
-table(joined$did_wfh, data$YEAR)
-
 
 # data %>% 
 #   group_by(YEAR, did_wfh) %>%
@@ -294,6 +294,9 @@ topline(did_wfh_labels, weight = PERWT)
 # bring in the teleworkable scores based on D&N's work.
 telework <- read_csv("teleworkable_AWM.csv")
 joined <- left_join(data, telework, by = c("OCCSOC" = "occ_codes"))
+
+#May 22 2023, Changed 399011 occupation to 0. Was coding Nannies and Child care as teleworkable.
+joined <- joined %>% mutate(teleworkable = ifelse(OCCSOC == "399011" | OCCSOC == "399010", 0, teleworkable))
 
 #table(joined$teleworkable)
 # mostly 0's and 1's.
@@ -425,37 +428,37 @@ hhbreaks2021 = (34000, 51900, 68000, 83600, 1e+05 120,000 142,400 175,000 235,00
 joined <- joined %>% filter(HHINCOME > 0 & HHINCOME!= 9999999 & HHINCOME != 9999998)  # 105 observations 
 
 joined %>%
-  ggplot() + geom_histogram(aes(x=HHINCOME, weight = PERWT))
+  ggplot() + geom_histogram(aes(x=HHINCOME, weight = HHWT))
 
 joined %>% # 122000 observations 
 ggplot() + geom_histogram(aes(x=HHINCOME))
 
+HHdesign <- survey::svydesign(id = ~CLUSTER, strata = ~STRATA, weights = ~HHWT, data = joined)
 
-
-inc_quantiles <-survey::svyquantile(~HHINCOME, design=dstrata2019, 
+inc_quantiles <-survey::svyquantile(~HHINCOME, design=HHdesign, 
                     quantiles = c(0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1) ,
                     na.rm=TRUE, ci = FALSE  )
 inc_quantiles
 
-
-# (34000, 51900, 68000, 83600, 1e+05 120,000 142,400 175,000 235,000
+# With  HH Weights:  4 32900 50000 66600 82000 99000 117000 140000 171000 230000 1797000
+# With WRONG weights:  (34000, 51900, 68000, 83600, 1e+05 120,000 142,400 175,000 235,000
 #Code done above when creating variables in beginning chunks.
 joined <- joined %>%
   mutate(HHincdecile_w = case_when(
-    INCEARN < 34000 ~ 1,
-    INCEARN >= 34000 & INCEARN < 51900 ~ 2,
-    INCEARN >= 51900 & INCEARN < 68000 ~ 3,
-    INCEARN >= 68000 & INCEARN < 83600 ~ 4,
-    INCEARN >= 83699 & INCEARN < 100000 ~ 5,
-    INCEARN >= 100000 & INCEARN < 120000 ~ 6,
-    INCEARN >= 120000 & INCEARN < 142400 ~ 7,
-    INCEARN >= 142400 & INCEARN < 175000 ~ 8,
-    INCEARN >= 175000 & INCEARN < 235000 ~ 9,
-    INCEARN >= 235000 ~ 10)
+    INCEARN < 32900 ~ 1,
+    INCEARN >= 32900 & INCEARN < 50000 ~ 2,
+    INCEARN >= 50000 & INCEARN < 66600 ~ 3,
+    INCEARN >= 66600 & INCEARN < 82000 ~ 4,
+    INCEARN >= 82000 & INCEARN < 99000 ~ 5,
+    INCEARN >= 99000 & INCEARN < 117000 ~ 6,
+    INCEARN >= 117000 & INCEARN < 140000 ~ 7,
+    INCEARN >= 140000 & INCEARN < 171000 ~ 8,
+    INCEARN >= 171000 & INCEARN < 230000 ~ 9,
+    INCEARN >= 230000 ~ 10)
   )
 
-
-table <- svytable(~YEAR+HHincdecile_w+did_wfh_labels,  design = dstrata) 
+HHdesign <- survey::svydesign(id = ~CLUSTER, strata = ~STRATA, weights = ~HHWT, data = joined)
+table <- svytable(~YEAR+HHincdecile_w+did_wfh_labels,  design = HHdesign) 
 
 table <- table %>% 
   as_tibble() %>% 
@@ -1013,6 +1016,20 @@ table25up %>%
 
 ```
 
+> who did work from home in lower income brackets???
+
+-   399011 in Service Occupations had 148 observations, 311122 had 86.
+
+-   Vast Majority of those that did work form home in the bottom 10% of earners had management, business, sales, or office jobs. (specifically 399011, 253041,436014)
+
+-   **outliers**: occupation 537062, 533030, 537065 in production and transportation, 399011 in service occupations which usually need to be in person.
+
+-   399011 (2nd and 3rd decile), 311122 (2nd and 3rd decile)
+
+```{r}
+data %>% filter(did_wfh==1 & incdecile_w < 4) %>% group_by(incdecile_w, occ_2digits, occ_2dig_labels, OCCSOC) %>% summarize(obs = n()) %>% arrange(incdecile_w,-obs)
+```
+
 ### Gender and Working from home
 
 19.2% of those in the labor force worked from home in 2021.
@@ -1125,6 +1142,13 @@ table %>% ggplot(aes(factor(SEX, labels = c("Male", "Female")), y=n, fill = did_
       Percentages add up to 100 when adding all workers together each year.
       Working from home based on TRANWORK==80 variable from ACS surveys.") + scale_y_continuous(labels = scales::comma)
 
+svyttest(formula = SEX~did_wfh_labels, design = dstrata2021)
+svychisq(~did_wfh_labels+SEX, dstrata2021, statistic = "Chisq")
+
+round(prop.table(svytable(~SEX+did_wfh_labels, design=dstrata2021))*100,digits=2)
+
+
+
 ```
 
 ```{r}
@@ -1209,6 +1233,17 @@ out_col <- mutate(output,
 ggplot(out_col, aes(SEX, INCEARN, ymin=lower, ymax=upper)) + geom_col() +geom_errorbar(width = 0.7) + labs( y = "Average Earned Income", x = "Sex")+ scale_x_discrete(limits = c("Male", "Female") )
 
 
+```
+
+```{r}
+table <- svytable(~SEX+NCHLT5+YEAR+did_wfh_labels, design = dstrata) 
+# proportion of each sex that did or did not work from home 
+table <- table %>% 
+  as_tibble() %>% 
+  group_by(YEAR, did_wfh_labels)%>% 
+  mutate(Prop =round(n/sum(n), digits=4))
+# 5.4% of women worked at home in 2019 and 21% of women worked at home in 2021.
+table
 ```
 
 ### Graphing Income Deciles
@@ -2091,6 +2126,8 @@ Economic Characteristics summary table: [link](https://data.census.gov/table?t=E
 
 # PUMA shapefiles
 pumasIL <- pumas("IL", cb=T, year=2019)
+
+#pumasIL %>% select(PUMACE10, GEOID10, NAME10) %>% write_csv("PUMAsIL.csv")
 #county shapefiles
 countyIL <- counties("IL", cb=T, year=2019)
 
@@ -2133,8 +2170,8 @@ mapPUMAboth %>% select(YEAR, PUMA, Prop, n, NAME10)
 mapPUMAboth %>% 
   ggplot(aes(fill = Prop)) +
   geom_sf(aes(geometry = geometry), color = "black")+ 
-  labs(title = "Where did Did People Work from Home?", 
-       subtitle = "Percent of PUMA population in 2019 & 2021", 
+  labs(title = "Where Did People Work from Home?", 
+       subtitle = "Percent of PUMA population in 2019 & 2021 that did WFH", 
        caption = 
          "The did_WFH variable based on TRANWORK==80 from 
          ACS 2019 & 2021 1-Year Survey individual level data. 
@@ -2149,7 +2186,7 @@ mapPUMAboth %>%
 
 
 
-  mapPUMAboth <- svytable(~YEAR+PUMA+did_wfh_labels, design = dstrata)
+mapPUMAboth <- svytable(~YEAR+PUMA+did_wfh_labels, design = dstrata)
 
 mapPUMAboth %>% as_tibble() %>%
    group_by(YEAR, PUMA) %>% 
@@ -2174,34 +2211,52 @@ mapPUMAboth %>% as_tibble() %>%
                        n = 6,
                         name = "% change in WFH", label = scales::percent) 
 
-## Cook County only## 
 
-# mapPUMAboth <- svytable(~YEAR + countyFIP+ PUMA+did_wfh_labels, design = dstrata)
-# mapPUMAboth <- mapPUMAboth %>% as_tibble() %>%
-#    group_by(YEAR, PUMA) %>% 
-#      mutate(Prop = round(n/sum(n), digits =3)) %>%
-#      filter(did_wfh_labels == "Did WFH" & countyFIP == "031") #%>%
-#   #   full_join(pumasIL, by = c("PUMA" = "PUMACE10")) %>% 
-# 
-# mapPUMAboth <- countyIL %>% filter(COUNTYFP == "031") %>%
-#   left_join(mapPUMAboth, by = c( "PUMACE10" = "PUMA"))
-# 
-#   
-#   mapPUMAboth %>% as_tibble() %>%
-#    group_by(YEAR, PUMA) %>% 
-#      mutate(Prop = round(n/sum(n), digits =3)) %>%
-#      filter(did_wfh_labels == "Did WFH") %>%
-#   filter(countyFIP=="031")
-# 
-# mapPUMAboth %>%
-#  # filter(countyFIP=="031") %>%
-#   ggplot(aes(fill = Prop)) +
-#   geom_sf(aes(geometry = geometry), color = "black")+ labs(title = "Percent of PUMA area population that did work from home", subtitle = "2019 vs 2021", caption = "Using Survey weighted data object `dstrata`. Facet_wrapped by year") +
-#    scale_fill_gradientn(colors = c("white", "darkblue"), 
-#                        limits = c(0,.6),
-#                        n = 6,
-#                         name = "% Working from home", label = scales::percent)+
-#   facet_wrap(~YEAR)
+# as a dot graph ## 
+mapPUMAboth <- svytable(~YEAR+PUMA+did_wfh_labels, design = dstrata)
+
+mapPUMAboth <- mapPUMAboth %>% as_tibble() %>%
+   group_by(YEAR, PUMA) %>% 
+     mutate(Prop = round(n/sum(n), digits =3)) %>%
+     filter(did_wfh_labels == "Did WFH") %>%
+     full_join(pumasIL, by = c("PUMA" = "PUMACE10"))
+
+order <- mapPUMAboth %>% as_tibble() %>%
+ filter(YEAR == 2021  & did_wfh_labels == "Did WFH") %>% 
+    filter(Prop > 0.25 | Prop < 0.1) %>%
+  select(NAME10, Prop_2021 = Prop)
+
+mapPUMAboth <- inner_join(mapPUMAboth, order) %>% filter()
+
+
+mapPUMAboth %>%
+  filter(did_wfh_labels == "Did WFH" & NAME10 != "NA" & YEAR != "NA")%>% 
+  filter(Prop > 0.25 | Prop < 0.1) %>%
+  ggplot(aes(x = Prop*100, y= reorder(PUMA, Prop_2021*100)))+
+  geom_line(aes(group = PUMA))+
+  theme_classic()+
+   geom_point(aes(color=YEAR), size = 3) +
+      scale_color_brewer(palette="Paired", labels = c("% WFH in 2019", "% WFH in 2021"), direction = 1)+
+  labs(title = "Change in County Labor Force that did WFH",
+       subtitle = "Percent of County Population that Did Work from Home", 
+  caption = "Graph includes PUMAs with Proportions of WFH Workers greater 
+  than 25% or less than 10%. Filtered PUMAs to increase legibility. 
+  DuPage had around 8% of the labor force working from home in 2019 and 
+  around 27% of its labor force working from home in 2021. 
+       There was ~20 percentage point increase between 2019 and 2021 for DuPage County. 
+  Working from home is based on TRANWORK variable from ACS 1-year surveys.", x = "Percentage Points", y = "" )
+
+
+mapPUMAboth %>% 
+  ungroup() %>%
+  filter(did_wfh_labels == "Did WFH" & NAME10 != "NA" & YEAR != "NA")%>% 
+  filter(YEAR == 2021 & (Prop > 0.25 | Prop < 0.1) ) %>%
+  select(NAME10, PUMA, Prop) %>% 
+  distinct() %>% arrange(desc(Prop))
+
+
+
+
 ```
 
 #### WFH Feasibility
@@ -2298,6 +2353,12 @@ PUMAmapdata2019 %>%
 
 #### Internet Access
 
+Make a subset of dstrata that only includes people who answered the TRANWORK/ did_WFH questions.
+
+```{r}
+#transub<- subset(dstrata,TRANWORK(x=80))
+```
+
 ```{r internet-access}
 #| code-fold: TRUE
 
@@ -2333,12 +2394,11 @@ mapPUMAboth
 
 
 ## Access internet using survey objects
-mapPUMAboth <- svytable(~YEAR+PUMA+CINETHH, design = dstrata)
+mapPUMAboth <- svytable(~YEAR+PUMA+CINETHH, design = HHdesign)
 
 mapPUMAboth <- mapPUMAboth %>% as_tibble() %>%
    group_by(YEAR, PUMA) %>% 
      mutate(Prop = round(n/sum(n), digits =3)) %>%   
-  #filter(CINETHH == 3 ) %>% 
      full_join(pumasIL, by = c("PUMA" = "PUMACE10"))
 
 mapPUMAboth %>%
@@ -2347,9 +2407,30 @@ mapPUMAboth %>%
   geom_sf(aes(geometry = geometry), color = "black")+   
   scale_fill_continuous(low = "white", high = "red4", name = "% of Population", label = scales::percent)+
   labs(title = "Percent of population that lacked access to Internet", 
-       caption = "Geography = PUMAs.") + 
+       caption = "Geography = PUMAs. Includes all dstrata responses for CINETHH.
+       Does not subset for people who answered the commuting or occsoc questions.") + 
   facet_wrap(~YEAR) +  theme_minimal()+
     theme(legend.title = element_blank(), axis.text.x = element_blank(), axis.text.y = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), legend.position="right")
+
+
+mapPUMAboth %>%   
+  select(YEAR,Prop,CINETHH,geometry) %>%
+  filter(CINETHH ==3) %>% 
+  pivot_wider( names_from ="YEAR", values_from = "Prop") %>%
+  mutate(pct_change = `2021`-`2019`) %>%
+  ggplot(aes(fill = pct_change)) +
+  geom_sf(aes(geometry = geometry), color = "black")+ 
+  theme_minimal()+
+    theme(legend.title = element_blank(), axis.text.x = element_blank(), axis.text.y = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), legend.position="right")+
+                           scale_fill_gradientn(colors = c("green4", "white", "red4"), 
+                       limits = c(-.15,.15),
+                       n = 7,
+                        name = "Change in Access", label = scales::percent)+
+  labs(title = "Decrease in Lack of Internet Access", 
+       subtitle = "Needs to be flipped so not double negative",
+       caption = "Rural areas were more likely to increase their access to internet at home. 
+       Change in Percentage points = 2021 % - 2019 %.
+       Access to internet at home or another location is considered having Access to internet")
 
 mapPUMAboth %>%   
   filter(CINETHH ==1) %>% 
@@ -2368,30 +2449,14 @@ mapPUMAboth %>%
        caption = "Rural areas were more likely to increase their access to internet at home. 
        Change in Percentage points = 2021 % - 2019 % ") 
 
-mapPUMAboth %>%   
-  filter(CINETHH ==3) %>% 
-  pivot_wider(id_cols = -c(n), names_from ="YEAR", values_from = "Prop") %>%
-  mutate(pct_change = `2021`-`2019`) %>%
-  ggplot(aes(fill = pct_change)) +
-  geom_sf(aes(geometry = geometry), color = "black")+ 
-  theme_minimal()+
-    theme(legend.title = element_blank(), axis.text.x = element_blank(), axis.text.y = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), legend.position="right")+
-                           scale_fill_gradientn(colors = c("green4", "white", "red4"), 
-                       limits = c(-.15,.15),
-                       n = 7,
-                        name = "Change in Access", label = scales::percent)+
-  labs(title = "Decrease in Lack of Internet Access", 
-       subtitle = "Needs to be flipped so not double negative",
-       caption = "Rural areas were more likely to increase their access to internet at home. 
-       Change in Percentage points = 2021 % - 2019 %.
-       Access to internet at home or another location is considered having Access to internet")
+
 ```
 
 ```{r}
 joined %>% filter(CINETHH %in% c(1,2,3)) %>% 
 
    group_by(county_pop_type, YEAR, PUMA) %>% 
-   dplyr::summarize(weightedcount=sum(PERWT), #weighted 
+   dplyr::summarize(weightedcount=sum(HHWT), #weighted 
                     unweightedcount = n())%>%
        mutate( pct_weight = weightedcount/sum(weightedcount), 
           pct_noweight = unweightedcount/sum(unweightedcount)) %>%
@@ -2400,7 +2465,7 @@ joined %>% filter(CINETHH %in% c(1,2,3)) %>%
 
 joined %>% 
    group_by(county_pop_type, YEAR, PUMA, CINETHH) %>% 
-   dplyr::summarize(weightedcount=sum(PERWT), #weighted 
+   dplyr::summarize(weightedcount=sum(HHWT), #weighted 
                     unweightedcount = n())%>%
        mutate( pct_weight = weightedcount/sum(weightedcount), 
           pct_noweight = unweightedcount/sum(unweightedcount)) %>%
@@ -2420,7 +2485,7 @@ joined %>%
 ## Keeps only PUMAs with more than 30 observations. 
 mapPUMAboth <- joined %>% 
   group_by(county_pop_type, YEAR, PUMA, CINETHH) %>% 
-   dplyr::summarize(weightedcount=sum(PERWT), #weighted 
+   dplyr::summarize(weightedcount=sum(HHWT), #weighted 
                     unweightedcount = n())%>%
   mutate(pct_weight = weightedcount/sum(weightedcount), 
           pct_noweight = unweightedcount/sum(unweightedcount))  %>%
@@ -2451,7 +2516,7 @@ mapPUMAboth %>% pivot_wider(id_cols = -c(weightedcount,unweightedcount,pct_nowei
        Data from 2019 and 2021 1 year ACS Surveys") +
   scale_fill_gradientn(colors = c("forestgreen",  "white", "red4"), na.value = "grey",
                        n = 5,
-                       limits = c(-.15,.15),
+                       limits = c(-.20,.20),
                         name = "Change in Access", label = scales::percent) + Alea_theme()
 
 mapPUMAboth %>%
@@ -2480,10 +2545,10 @@ mapPUMAboth %>%
        Using 2021 5-year Survey data would allow for splitting observations into Pre- and Post-COVID
        and would increase sample size and reliability") +
   scale_fill_gradientn(colors = c("red4", "white", "forestgreen"),
-                       limits = c(-.15, .15),
+                       limits = c(-.20, .20),
                       # values = c(-.15,-.03,0,0.03,.15),  
                        na.value = "grey",
-                       n = 9,
+                       n = 5,
                         name = "Change in Access at home", label = scales::percent) +Alea_theme()
 ```
 
@@ -2586,7 +2651,7 @@ mapPUMAboth %>% pivot_wider(id_cols = -c(n), names_from ="YEAR", values_from = "
 
 
 ## Access internet using survey objects
-mapPUMAboth <- svytable(~CINETHH+YEAR+countyFIP, design = dstrata)
+mapPUMAboth <- svytable(~CINETHH+YEAR+countyFIP, design = HHdesign)
 
 mapPUMAboth <- mapPUMAboth %>% as_tibble() %>%
    group_by(YEAR, countyFIP) %>% 
@@ -2652,9 +2717,85 @@ mapPUMAboth %>% pivot_wider(id_cols = -c(n), names_from ="YEAR", values_from = "
                        limits = c(-.2,.2),
                         name = "Population %", label = scales::percent)+
   labs(title = "Change in access to High Speed Internet")
+
+
+# as a bar graph ## 
+mapPUMAboth %>%
+  filter(YEAR==2021) %>%
+ggplot(aes(group = countyFIP)) +
+  geom_bar(aes(y = Prop, x= reorder(NAME, Prop)), stat = "identity") +
+  #Alea_theme() + 
+  labs(title = "Proportion with High Speed Internet", subtitle = "Subtitle", caption = "Caption", x = "", y = "" )+
+  coord_flip()
+
+
+# as a dot graph ## 
+mapPUMAboth %>%
+  filter(NAME != "NA" & YEAR != "NA")%>%
+  ggplot(aes(x = Prop, y= reorder(NAME, Prop)))+
+  geom_line(aes(group = NAME))+
+   geom_point(aes(color=YEAR), size = 2) +
+  #Alea_theme() + 
+  labs(title = "Proportion with High Speed Internet", subtitle = "Subtitle", caption = "Caption", x = "", y = "" )
 ```
 
 #### Did work from home
+
+```{r}
+mapPUMAboth <- svytable(~did_wfh_labels+YEAR+countyFIP, design = dstrata)
+
+mapPUMAboth <- mapPUMAboth %>% as_tibble() %>%
+   group_by(YEAR, countyFIP) %>% 
+     mutate(Prop = round(n/sum(n), digits =3)) %>%
+  full_join(countyIL, by = c("countyFIP" = "COUNTYFP"))
+
+mapPUMAboth %>%
+      filter(did_wfh_labels == "Did WFH") %>%
+
+  ggplot(aes(fill = Prop)) +
+  geom_sf(aes(geometry = geometry), color = "black")+ 
+  labs(title = "Percent of population that Worked from Home", 
+       caption = "Geography = Counties with populations > ~60K") + 
+  facet_wrap(~YEAR)  +
+ scale_fill_gradientn(colors = c( "white", "darkblue"), na.value = "gray",
+                       n = 5,
+                        name = "Population %", label = scales::percent) + Alea_theme()
+
+mapPUMAboth %>% pivot_wider(id_cols = -c(n), names_from ="YEAR", values_from = "Prop") %>%
+  mutate(pct_change = `2021`-`2019`) %>%
+  ggplot(aes(fill = pct_change)) +
+  geom_sf(aes(geometry = geometry), color = "black")+ Alea_theme()+ 
+   scale_fill_gradientn(colors = c("red4", "white", "forestgreen"), 
+                       n = 5,
+                       limits = c(-.20,.20),
+                        name = "Population %", label = scales::percent)+
+  labs(title = "Change in % Pop that Did Work from Home")
+
+
+
+# as a dot graph ## 
+
+order <- mapPUMAboth %>% as_tibble() %>%
+ filter(YEAR == 2021 & NAME != "NA" & did_wfh_labels == "Did WFH") %>% 
+  select(NAME, Prop_2021 = Prop)
+
+mapPUMAboth <- left_join(mapPUMAboth, order)
+
+
+mapPUMAboth %>%
+  filter(did_wfh_labels == "Did WFH" & NAME != "NA" & YEAR != "NA")%>%
+  ggplot(aes(x = Prop*100, y= reorder(NAME, Prop_2021*100)))+
+  geom_line(aes(group = NAME))+
+  theme_classic()+
+   geom_point(aes(color=YEAR), size = 3) +
+      scale_color_brewer(palette="Paired", labels = c("% WFH in 2019", "% WFH in 2021"), direction = 1)+
+  labs(title = "Change in County Labor Force that did WFH",
+       subtitle = "Percent of County Population that Did Work from Home", 
+  caption = "DuPage had around 8% of the labor force working from home in 2019 and 
+  around 27% of its labor force working from home in 2021. 
+       There was ~20 percentage point increase between 2019 and 2021 for DuPage County. 
+  Working from home is based on TRANWORK variable from ACS 1-year surveys.", x = "Percentage Points", y = "" )#+  scale_x_continuous(label = scales::percent)
+```
 
 ```{r wfh-bycounty}
 #| code-fold: TRUE
@@ -2951,6 +3092,17 @@ svyglm(did_wfh~race_cat+ SEX+ CIHISPEED+CINETHH + occ_2dig_labels+CanWorkFromHom
 svyglm(did_wfh~occ_2dig_labels*CanWorkFromHome+race_cat+ SEX+ age_cat +CIHISPEED*CINETHH + county_pop_type+NCHILD*NCHLT5+ MARST, 
        design = dstrata2021) %>% summary()
 ```
+
+```{r}
+svyglm(did_wfh~NCHLT5+factor(SEX) +factor(MARST)+factor(CINETHH) + occ_2dig_labels+county_pop_type, 
+       design = dstrata2021,   ) %>% summary()
+```
+
+Very simple interpretation: Compared to Business and Finance occupations who Can Work From Home in Rural Counties without any children under 5
+
+Increases likelihood of working from home: Number of Children under 5 increases odds of working from home, living in an "Urban" County (higher pop. density),
+
+Decreases liklihood of woring from home: Lacking access to internet, WFH not feasible & occupation labels within Production and Transportation,
 
 ### Other Sources and Papers
 
