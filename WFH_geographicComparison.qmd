@@ -150,7 +150,8 @@ data <-  data %>% mutate(white = if_else(RACE ==1, 1, 0),
     RACE ==2 ~ "Black", 
     RACE %in% c(4,5,6)~"Asian",
     RACE %in% c(3,7,8,9)~"Other"))
-table(data$race_cat)
+
+
 ## numbers used for income breaks are calculated in Income Deciles section. 
 # created now so that the variable exists in the joined dataset before creating the survey design object
 
@@ -180,7 +181,7 @@ data <- data %>%
  occ_2digits %in% c(11,13,19,15,17,19,21,23,25,27,29) ~ "Mgt, Business, Sci & Arts",
  occ_2digits %in% c(31,32,33,34,35,36,37,38,39) ~ "Service Occupations",
  occ_2digits %in% c(41,42,43) ~ "Sales & Office Jobs",
-occ_2digits %in% c(45,46,47,48,49 ) ~"Nat. Resources, Construction",
+occ_2digits %in% c(45,46,47,48,49 ) ~"Natural Resources, Construction",
 occ_2digits %in% c(51, 52, 53) ~ "Production, Transportation",
 occ_2digits == 55 ~ "Military")) 
 
@@ -194,20 +195,20 @@ data <- data %>%
   occ_2digits %in% c(19) ~ "Life/Social Sciences",
  occ_2digits == 21 ~ "Community & Social Services",
 occ_2digits == 23 ~ "Legal",
-occ_2digits == 25 ~ "Educational Instruc.",
-occ_2digits == 27 ~ "Arts, Design, Entertain.",
+occ_2digits == 25 ~ "Educational Instruction",
+occ_2digits == 27 ~ "Arts, Design, Entertainainment",
 occ_2digits == 29 ~ "Health Practictioners",
 occ_2digits == 31 ~ "Healthcare Support",
 occ_2digits == 33 ~ "Protective services",
 occ_2digits == 35 ~ "Food Services",
-occ_2digits == 37 ~ "Building Clean. & Main.",
+occ_2digits == 37 ~ "Building Cleaning & Maintenance",
 occ_2digits == 41 ~ "Sales",
-occ_2digits == 43 ~"Office & Admin",
+occ_2digits == 43 ~"Office & Administration",
 occ_2digits == 45 ~ "Farm, Fish, Forest.",
-occ_2digits == 47 ~ "Construct. & Extract.",
+occ_2digits == 47 ~ "Construction & Extractraction",
 occ_2digits == 49 ~"Installation, Maintenance",
 occ_2digits == 51 ~"Production",
-occ_2digits == 53 ~ "Transpo & Material Moving",
+occ_2digits == 53 ~ "Transportation & Material Moving",
 occ_2digits == 55 ~ "Military",
 TRUE~"Other") )
 
@@ -227,36 +228,6 @@ rm(ddi)
 rm(data2019)
 rm(data2021)
 ```
-
-Merging with old BLS and DNJ scores. How many match and how many don't?
-
-Running code with this as a trial run with only Can and Cannot work from homes.
-
-```{r eval=FALSE}
-
-telework <- haven::read_dta("DNSixuni.dta")
-joined <- inner_join(data, telework, by = c("OCCSOC" = "occsoc"))
-
-
-# only 64,235 observations matched occsoc codes.
-# 39,573 no WFH, 24662 Can WFH. Uses the 764 occupation codes used by D&N methodology
-
-
-
-table(joined$teleworkable)
-#table(joined$teleworkable)
-# mostly 0's and 1's.
-#hist(joined$teleworkable)
-
-
-
-```
-
-With 764 occupation codes from D&N
-
-With Alea's File in graphs before 5/13: Can WFH No WFH Some WFH
-
-40278 67339 16136
 
 # Descriptive Statistics
 
@@ -333,11 +304,9 @@ joined %>% filter(YEAR == 2021) %>%
 topline(did_wfh_labels, weight = PERWT)
 ```
 
-40,278 observations have occupations that indicate that they could Work from home
+**Pre 5.23.2023**: 40,278 observations have occupations that indicate that they could Work from home, 67,339 responses have occupations indicating that they can not work from home, 16,136 might be able to work from home.
 
-67,339 responses have occupations indicating that they can not work from home
-
-16,136 might be able to work from home.
+**5.23.2023**: 41,643 can wfh; 66111 no wfh possible, 15,999 some wfh
 
 ### Survey Design
 
@@ -527,6 +496,7 @@ table %>% filter(occ_2dig_labels != "Military") %>% ggplot(aes(x=fct_rev(fct_ino
   theme_classic() + theme(legend.position = "bottom", legend.title = element_blank())+
   labs(
     title ="Proportion of Occupation Types in  Illinois",
+    subtitle = "By Most Aggregated Occupation Groups used by BLS & ACS",
        x = "", y = "# of People",
       caption = "ACS 1 year samples for 2019 and 2021 used for weighted population estimates. 
       Military occupations make up less than 0.5% of the labor force and 
@@ -550,7 +520,7 @@ table %>% ggplot(aes(x=fct_rev(fct_inorder(occ_2dig_labels_d)), y=n, group = YEA
   facet_wrap(~YEAR)+
         geom_text(aes(label = scales::percent(as.numeric(ifelse(Prop>0.02,Prop, "")), accuracy = .1),accuracy  = .1L ),position = position_stack(vjust=.5), size=3) +
   theme_classic() + theme(legend.position = "bottom", legend.title = element_blank())+
-  labs(title ="Proportion of All Workers in each Occupation Type",
+  labs(title ="Proportion of Illinois Workerforce in Each Occupation Type",
        subtitle = "Little change between 2019 and 2021 Occurred",
        x = "", y = "# of People",
       caption = "ACS 1 year samples for 2019 and 2021 used for weighted population estimates.
@@ -567,7 +537,7 @@ table <- table %>%
   as_tibble() %>% 
   group_by(YEAR, occ_2dig_labels)%>% 
   mutate(Prop =round(n/sum(n), digits=3)) %>%
-  arrange(-n)
+  arrange(did_wfh_labels, -n)
 table
 
 table %>% filter(occ_2dig_labels != "Military" ) %>%
@@ -575,8 +545,8 @@ table %>% filter(occ_2dig_labels != "Military" ) %>%
   geom_col(stat = "identity", position = "stack") +facet_wrap(~YEAR)+
         geom_text(aes(label = scales::percent(as.numeric(ifelse(Prop>0.05,Prop, "")), accuracy = .1),accuracy  = .1L ),position = position_stack(vjust=.5), size=3) +
   theme_classic() + theme(legend.position = "bottom", legend.title = element_blank())+
-  labs(title ="Percent of Workers working from home within each Broad Occupation type",
-       subtitle = "Percentages add to 100 within each occ. category.",
+  labs(title ="Proportion of Workers in each Occupation Who Did WFH",
+       subtitle = "Percentages add to 100% within each occupation",
        x = "", y = "# of People",
       caption = "ACS 1 year samples for 2019 and 2021 used for weighted population estimates. Military occupations were excluded from graph due to low occurance of observations.") + scale_y_continuous(labels = scales::comma)+
   scale_fill_manual(values = c("#a6bddb", "#2b8cbe")) +
@@ -599,11 +569,11 @@ table %>% filter(occ_2dig_labels != "Military") %>%
   facet_wrap(~YEAR)+
       geom_text(aes(label = scales::percent(as.numeric(ifelse(Prop>0.02,Prop, "")), accuracy = .1),accuracy  = .1L ),position = position_stack(vjust=.5), size=3) +
   theme_classic() + theme(legend.position = "bottom", legend.title = element_blank())+
-  labs(title ="Proportion of All Workers by Broad Occupation type & WFH Status",
+  labs(title ="Proportion of Illinois Workforce Who did WFH",
        subtitle = "All workers in labor force with occsoc codes in a year add to 100%",
        x = "", y = "# of People",
       caption = "ACS 1 year samples for 2019 and 2021 used for weighted population estimates,") + scale_y_continuous(labels = scales::comma)+
-  scale_fill_manual(values = c("#a6bddb", "#2b8cbe")) +
+  scale_fill_manual(values = c("#88CCEE", "#332288")) +
   coord_flip()
 
 
@@ -622,7 +592,7 @@ table %>%ggplot(aes(x=fct_rev(fct_inorder(occ_2dig_labels_d)), y=n, fill = did_w
   facet_wrap(~YEAR)+
     geom_text(aes(label = scales::percent(as.numeric(ifelse(Prop>0.01,Prop, "")), accuracy = .1),accuracy  = .1L ),position = position_stack(vjust=.5), size=3) +
   theme_classic() + theme(legend.position = "bottom", legend.title = element_blank())+
-  labs(title ="Percent working from home by Broad Occupation type: 2019 vs 2021",
+  labs(title ="Percent working from home by 2-digit Occupation type",
        x = "", y = "# of People",
       caption = "ACS 1 year samples for 2019 and 2021 used for weighted population estimates,") + scale_y_continuous(labels = scales::comma)+
   scale_fill_manual(values = c("#a6bddb", "#2b8cbe")) +
@@ -652,7 +622,7 @@ theme_classic() + theme(legend.position = "bottom", legend.title = element_blank
       Graph interpretation: 3.6% of all worker in the labor force in 2021 were in Management occupations and worked from home. 
       8.3% of all workers were in management and did not work from home. Workers in Management occupations make up 11.9% of the entire workforce.") + 
   scale_y_continuous(labels = scales::comma)+
-  scale_fill_manual(values = c( "#2b8cbe","#a6bddb","gray")) +
+  scale_fill_manual(values = c( "#117733","#44AA99","#D8D5C5")) +
   coord_flip()
 
 
@@ -694,7 +664,7 @@ table %>% filter(occ_2dig_labels != "Military") %>%
   facet_wrap(~YEAR)+
       geom_text(aes(label = scales::percent(as.numeric(ifelse(Prop>0.02,Prop, "")), accuracy = .1),accuracy  = .1L ),position = position_stack(vjust=.5), size=3) +
   theme_classic() + theme(legend.position = "bottom", legend.title = element_blank())+
-  labs(title ="Proportion of All Workers by Broad Occupation type & WFH Status",
+  labs(title ="Proportion of All WFH Workers by Broad Occupation ",
        subtitle = "All workers in labor force with occsoc codes in a year add to 100%",
        x = "", y = "# of People",
       caption = "ACS 1 year samples for 2019 and 2021 used for weighted population estimates,") + scale_y_continuous(labels = scales::comma)+
@@ -2099,7 +2069,7 @@ table(joined$NCHLT5)
 
 PUMAs contain around 100,000 people.
 
-For the counties that can be identified in the data (populations \> 100,000 & \< 200,000. 1-Year ACS have minimum of 65,000 population), the census summary tables are close but not identical to the tables calculated with the ACS sample data. "In this way more densely populated areas, like Chicago and Cook County will contain many PUMAs within their boundaries, while multiple sparsely populated entire counties, e.g., Jackson, Perry, Franklin, and Williamson, will comprise one PUMA." - [IPUMS v other Geographies](https://iecam.illinois.edu/browse/about-public-use-microdata-areas-pumas#:~:text=What%20is%20a%20PUMA%3F,Community%20Survey%201%2Dyear%20estimates)
+For the counties that can be identified in the data (populations \> 100,000 & \< 200,000. 1-Year ACS have minimum of 65,000 population), the census summary tables are close but not identical to the tables calculated with the ACS sample data. "In this way more densely populated areas, like Chicago and Cook County will contain many PUMAs within their boundaries, while multiple sparsely populated entire counties, e.g., Jackson, Perry, Franklin, and Williamson, will comprise one PUMA." - [IPUMS v other Geographies](https://iecam.illinois.edu/browse/about-public-use-microdata-areas-pumas#:~:text=What%20is%20a%20PUMA%3F,Community%20Survey%201%2Dyear%20estimates)\
 
 ```{r}
 obs_perPUMA<- joined %>% 
@@ -2261,6 +2231,8 @@ mapPUMAboth %>%
 
 #### WFH Feasibility
 
+We compute these shares using our O\*NET-derived classification of occupations that can be done at home and the occupational composition using ACS responses in each PUMA by 6-digit SOC in the BLS's 2018 Occupational Employment Statistics.
+
 ```{r pct-canWFH}
 mapPUMAboth <- svytable(~YEAR+PUMA+CanWorkFromHome, design = dstrata)
 mapPUMAboth <- mapPUMAboth %>% as_tibble() %>%
@@ -2413,24 +2385,24 @@ mapPUMAboth %>%
     theme(legend.title = element_blank(), axis.text.x = element_blank(), axis.text.y = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), legend.position="right")
 
 
-mapPUMAboth %>%   
-  select(YEAR,Prop,CINETHH,geometry) %>%
-  filter(CINETHH ==3) %>% 
-  pivot_wider( names_from ="YEAR", values_from = "Prop") %>%
-  mutate(pct_change = `2021`-`2019`) %>%
-  ggplot(aes(fill = pct_change)) +
-  geom_sf(aes(geometry = geometry), color = "black")+ 
-  theme_minimal()+
-    theme(legend.title = element_blank(), axis.text.x = element_blank(), axis.text.y = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), legend.position="right")+
-                           scale_fill_gradientn(colors = c("green4", "white", "red4"), 
-                       limits = c(-.15,.15),
-                       n = 7,
-                        name = "Change in Access", label = scales::percent)+
-  labs(title = "Decrease in Lack of Internet Access", 
-       subtitle = "Needs to be flipped so not double negative",
-       caption = "Rural areas were more likely to increase their access to internet at home. 
-       Change in Percentage points = 2021 % - 2019 %.
-       Access to internet at home or another location is considered having Access to internet")
+# mapPUMAboth %>%   
+#   select(YEAR,Prop,CINETHH,geometry) %>%
+#   filter(CINETHH ==3) %>% 
+#   pivot_wider( names_from ="YEAR", values_from = "Prop") %>%
+#   mutate(pct_change = `2021`-`2019`) %>%
+#   ggplot(aes(fill = pct_change)) +
+#   geom_sf(aes(geometry = geometry), color = "black")+ 
+#   theme_minimal()+
+#     theme(legend.title = element_blank(), axis.text.x = element_blank(), axis.text.y = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), legend.position="right")+
+#                            scale_fill_gradientn(colors = c("green4", "white", "red4"), 
+#                        limits = c(-.15,.15),
+#                        n = 7,
+#                         name = "Change in Access", label = scales::percent)+
+#   labs(title = "Decrease in Lack of Internet Access", 
+#        subtitle = "Needs to be flipped so not double negative",
+#        caption = "Rural areas were more likely to increase their access to internet at home. 
+#        Change in Percentage points = 2021 % - 2019 %.
+#        Access to internet at home or another location is considered having Access to internet")
 
 mapPUMAboth %>%   
   filter(CINETHH ==1) %>% 
@@ -2440,14 +2412,12 @@ mapPUMAboth %>%
   geom_sf(aes(geometry = geometry), color = "black")+ 
   theme_minimal()+
     theme(legend.title = element_blank(), axis.text.x = element_blank(), axis.text.y = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), legend.position="right")+
-                           scale_fill_gradientn(colors = c("red4", "white", "forest green"), 
+                           scale_fill_gradientn(colors = c("red4", "white", "forestgreen"), 
                        limits = c(-.15,.15),
                        n = 7,
                         name = "Chance in Access", label = scales::percent)+
-  labs(title = "Change in population (from 2019 to 2021) 
-       that had access to Internet at home", 
-       caption = "Rural areas were more likely to increase their access to internet at home. 
-       Change in Percentage points = 2021 % - 2019 % ") 
+  labs(title = "Change in Labor Force with Internet at home",
+       subtitle = "2019 to 2021") 
 
 
 ```
@@ -2492,67 +2462,29 @@ mapPUMAboth <- joined %>%
   full_join(pumasIL, by = c("PUMA" = "PUMACE10"))
 
 
-mapPUMAboth %>%
-  filter(CINETHH == 3 & unweightedcount>10) %>% 
-  ggplot(aes(fill = pct_weight)) +
-  geom_sf(aes(geometry = geometry), color = "black")+   
-  scale_fill_continuous(low = "white", high = "red4", name = "% of Population", label = scales::percent)+
-  labs(title = "Percent of population that lacked access to Internet", 
-       caption = "Geography = PUMAs. 
-       Minimum # responses per PUMA = 271, maximum # of responses > 1000 per PUMA. 
-       Some PUMAs have very few observations and are unreliable. Use other graphs.") + 
-  facet_wrap(~YEAR) +
-Alea_theme()
 
 
-mapPUMAboth %>% pivot_wider(id_cols = -c(weightedcount,unweightedcount,pct_noweight), names_from ="YEAR", values_from = "pct_weight") %>%
-  mutate(pct_change = `2021`-`2019`) %>%
-  ggplot(aes(fill = pct_change)) +
-  geom_sf(aes(geometry = geometry), color = "black")+ 
-  theme_minimal() +theme(axis.text = element_blank(), axis.ticks = element_blank())+
-  labs(title = "Change in Percent of PUMA population without access to internet to Internet",
-       subtitle = "A decrease is a good thing here!",
-       caption = "Percentage point change = 2021 PUMA% with CINETHH=3 - 2019 PUMA% with CINETHH=3.
-       Data from 2019 and 2021 1 year ACS Surveys") +
-  scale_fill_gradientn(colors = c("forestgreen",  "white", "red4"), na.value = "grey",
-                       n = 5,
-                       limits = c(-.20,.20),
-                        name = "Change in Access", label = scales::percent) + Alea_theme()
-
-mapPUMAboth %>%
-  filter(CINETHH == 1 ) %>% 
-  ggplot(aes(fill = pct_weight)) +
-  geom_sf(aes(geometry = geometry), color = "black")+   
-  scale_fill_continuous(low = "white", high = "forestgreen", name = "% of Population", label = scales::percent)+
-  labs(title = "Percent of population that has access to Internet at home", 
-       caption = "Geography = PUMAs. Some PUMAs have very few observations and are unreliable. Use other graphs.") + 
-  facet_wrap(~YEAR) +
-  Alea_theme()+
-    theme(legend.title = element_blank())
-
-mapPUMAboth %>% 
-    filter(CINETHH == 1 &unweightedcount>40) %>% 
-  pivot_wider(id_cols = -c(weightedcount,unweightedcount,pct_noweight), names_from ="YEAR", values_from = "pct_weight") %>%
-  mutate(pct_change = `2021`-`2019`) %>%
-  ggplot(aes(fill = pct_change)) +
-  geom_sf(aes(geometry = geometry), color = "black")+ 
-  theme_minimal() +theme(axis.text = element_blank(), axis.ticks = element_blank())+
-  labs(title = "Change in % of PUMA population with access to internet at home",
-       subtitle = "An increase is a good thing!",
-       caption = "Min of 40 survey responses per puma for CINETHH
-       Percentage point change = 2021 PUMA% with CINETHH=1 - 2019 PUMA% with CINETHH=1.
-       Data from 2019 and 2021 1 year ACS Surveys.
-       Using 2021 5-year Survey data would allow for splitting observations into Pre- and Post-COVID
-       and would increase sample size and reliability") +
-  scale_fill_gradientn(colors = c("red4", "white", "forestgreen"),
-                       limits = c(-.20, .20),
-                      # values = c(-.15,-.03,0,0.03,.15),  
-                       na.value = "grey",
-                       n = 5,
-                        name = "Change in Access at home", label = scales::percent) +Alea_theme()
 ```
 
 ##### High Speed Internet
+
+High speed internet is not the best measurement of due to them including DSL in their definition of "high speed."
+
+FCC standards say minimum 25Mbps for download and 3Mbps for upload. "traditionally, the way to determine if a connection is high speed is to test its ability to connect multiple devices that allow streaming and access to modern applications at the same time.
+
+High speed internet allows teleworkers the ability to live and work in locations of their choosing without commuting to work. Also important for education, especially during COVID and online classes. Many families did not have the bandwidth necessary to support someone working from home and having children in online classes at the same time (let alone multiple children in online classes).
+
+The Infrastructure Investment and Jobs Act (IIJA) defines "underserved" broadband as an Internet speed \< 100 Mbps downstream and 20Mbps upstream.
+
+Zoom needs between 2 and 3 Mbps for group video calls that look good.
+
+1.0 Mbps to 1.5 Mbps for lower quality video calls that should still work.
+
+[Source](https://broadbandusa.ntia.doc.gov/sites/default/files/2022-12/Introduction_to_Broadband_and_High_Speed_Internet_FINAL_0.pdf)
+
+> ::: {.callout-note appearance="minimal"}
+> For areas that had a decrease in access to high speed internet: Is it possible that they realized that their internet sucked when multiple people tried to use it? Most people didn't know internet speeds before the pandemic. They thought they had high speed internet precovid and then when multiple people were at home, they realized they didn't have enough bandwith for their internet demand?
+> :::
 
 ```{r fast-internet-byPUMA}
 #| code-fold: TRUE
@@ -2569,15 +2501,7 @@ mapPUMAboth <- joined %>%
   full_join(pumasIL, by = c("PUMA" = "PUMACE10")) 
 mapPUMAboth
 
-mapPUMAboth %>%
-  filter(CIHISPEED == 20 ) %>% 
-  ggplot(aes(fill = pct_weight)) +
-  geom_sf(aes(geometry = geometry), color = "black")+ 
-  labs(title = "Percent of population without High Speed Internet", subtitle = "Geograph = PUMAs", caption = "Each PUMA has >100K & < 200K people.") + 
-  facet_wrap(~YEAR)+
- scale_fill_gradientn(colors = c( "white", "red4"), 
-                       n = 7,
-                        name = "Population %", label = scales::percent)+Alea_theme()
+
 
 
 ## Access to Hi speed internet using survey objects
@@ -2593,7 +2517,7 @@ mapPUMAboth %>%
   ggplot(aes(fill = Prop)) +
   geom_sf(aes(geometry = geometry), color = "black")+ 
   labs(title = "Percent of population WITH High Speed Internet", 
-       subtitle = "Geograph = PUMAs", caption = "Each PUMA has >100K & < 200K people.") + 
+       subtitle = "", caption = "Each PUMA has >100K & < 200K people.") + 
   facet_wrap(~YEAR)+
  scale_fill_gradientn(colors = c("white", "forestgreen"), 
                        n = 5,
@@ -2607,7 +2531,9 @@ mapPUMAboth %>% pivot_wider(id_cols = -c(n), names_from ="YEAR", values_from = "
   geom_sf(aes(geometry = geometry), color = "black")+ 
   labs(title = "Change in Access to High Speed Internet",
        subcaption = "2019 to 2021",
-       caption = "Percentage point change = 2021 PUMA% with CIHISPEED=10 - 2019 PUMA% with CIHISPEED=10") +
+       caption = "Percentage point change:
+       2021 PUMA% with CIHISPEED=10 - 2019 PUMA% 
+       for ACS variable CIHISPEED=10.") +
   scale_fill_gradientn(colors = c("forestgreen",  "white", "red4"), 
                        n = 5,
                         name = "Change in Access", label = scales::percent) + Alea_theme()
@@ -2623,33 +2549,7 @@ mapPUMAboth %>% pivot_wider(id_cols = -c(n), names_from ="YEAR", values_from = "
 
 #### Internet Access
 
-```{r}
-### Access to Hi speed internet ###
-
-# from joined dataframe. Not using survey objects or survey package
-# mapPUMAboth <- joined %>% 
-#    group_by(YEAR, countyFIP, CINETHH) %>% 
-#    dplyr::summarize(weightedcount=sum(PERWT), #weighted 
-#                     unweightedcount = n()) %>% 
-#    mutate(pct_weight = weightedcount/sum(weightedcount), 
-#           pct_noweight = unweightedcount/sum(unweightedcount))%>%   
-#   filter(CINETHH ==3) %>% 
-#   full_join(countyIL, by = c("countyFIP" = "COUNTYFP")) 
-# mapPUMAboth
-# 
-# mapPUMAboth %>%
-#   ggplot(aes(fill = pct_weight)) +
-#   geom_sf(aes(geometry = geometry), color = "black")+ 
-#   labs(title = "Percent of population that did NOT have access to Internet", 
-#        subtitle = "Geography = County", 
-#        ) +  
-#   Alea_theme() +theme(legend.title = element_blank())+
-#   scale_fill_gradientn(colors = c( "white", "red4"), 
-#                        n = 5,
-#                         name = "Population %", label = scales::percent)+facet_wrap(~YEAR)
-
-
-
+```{r include = FALSE}
 ## Access internet using survey objects
 mapPUMAboth <- svytable(~CINETHH+YEAR+countyFIP, design = HHdesign)
 
@@ -2685,6 +2585,36 @@ mapPUMAboth %>%
                        limits = c(-.15,.15),
                         name = "Population %", label = scales::percent) + Alea_theme() 
 
+```
+
+```{r}
+### Access to Hi speed internet ###
+
+# from joined dataframe. Not using survey objects or survey package
+# mapPUMAboth <- joined %>% 
+#    group_by(YEAR, countyFIP, CINETHH) %>% 
+#    dplyr::summarize(weightedcount=sum(PERWT), #weighted 
+#                     unweightedcount = n()) %>% 
+#    mutate(pct_weight = weightedcount/sum(weightedcount), 
+#           pct_noweight = unweightedcount/sum(unweightedcount))%>%   
+#   filter(CINETHH ==3) %>% 
+#   full_join(countyIL, by = c("countyFIP" = "COUNTYFP")) 
+# mapPUMAboth
+# 
+# mapPUMAboth %>%
+#   ggplot(aes(fill = pct_weight)) +
+#   geom_sf(aes(geometry = geometry), color = "black")+ 
+#   labs(title = "Percent of population that did NOT have access to Internet", 
+#        subtitle = "Geography = County", 
+#        ) +  
+#   Alea_theme() +theme(legend.title = element_blank())+
+#   scale_fill_gradientn(colors = c( "white", "red4"), 
+#                        n = 5,
+#                         name = "Population %", label = scales::percent)+facet_wrap(~YEAR)
+
+
+
+
 
 ## Access to High speed internet using survey objects
 mapPUMAboth <- svytable(~YEAR+countyFIP+CIHISPEED, design = dstrata)
@@ -2693,14 +2623,14 @@ mapPUMAboth <- mapPUMAboth %>% as_tibble() %>%
    group_by(YEAR, countyFIP) %>% 
      mutate(Prop = round(n/sum(n), digits =3)) %>%
     filter(CIHISPEED != 20 ) %>% 
-
      full_join(countyIL, by = c("countyFIP" = "COUNTYFP"))
 
 mapPUMAboth %>%
+  filter(CIHISPEED == 10) %>%
   ggplot(aes(fill = Prop)) +
   geom_sf(aes(geometry = geometry), color = "black")+ 
   labs(title = "Percent of population WITH High Speed Internet", 
-       subtitle = "Geograph = County"
+       subtitle = "Geograph = Counties with More than 60,000 People"
        ) + 
   facet_wrap(~YEAR)+
  scale_fill_gradientn(colors = c( "white", "green4"), 
@@ -2725,7 +2655,7 @@ mapPUMAboth %>%
 ggplot(aes(group = countyFIP)) +
   geom_bar(aes(y = Prop, x= reorder(NAME, Prop)), stat = "identity") +
   #Alea_theme() + 
-  labs(title = "Proportion with High Speed Internet", subtitle = "Subtitle", caption = "Caption", x = "", y = "" )+
+  labs(title = "Proportion with High Speed Internet", subtitle = "In 2021", x = "", y = "" )+
   coord_flip()
 
 
@@ -2735,8 +2665,8 @@ mapPUMAboth %>%
   ggplot(aes(x = Prop, y= reorder(NAME, Prop)))+
   geom_line(aes(group = NAME))+
    geom_point(aes(color=YEAR), size = 2) +
-  #Alea_theme() + 
-  labs(title = "Proportion with High Speed Internet", subtitle = "Subtitle", caption = "Caption", x = "", y = "" )
+  theme_minimal() + 
+  labs(title = "Change in Access to High Speed Internet", x = "", y = "" )+scale_x_continuous(label = scales::percent)
 ```
 
 #### Did work from home
@@ -2754,7 +2684,7 @@ mapPUMAboth %>%
 
   ggplot(aes(fill = Prop)) +
   geom_sf(aes(geometry = geometry), color = "black")+ 
-  labs(title = "Percent of population that Worked from Home", 
+  labs(title = "Percent of Labor  Force that Worked from Home", 
        caption = "Geography = Counties with populations > ~60K") + 
   facet_wrap(~YEAR)  +
  scale_fill_gradientn(colors = c( "white", "darkblue"), na.value = "gray",
@@ -2765,11 +2695,11 @@ mapPUMAboth %>% pivot_wider(id_cols = -c(n), names_from ="YEAR", values_from = "
   mutate(pct_change = `2021`-`2019`) %>%
   ggplot(aes(fill = pct_change)) +
   geom_sf(aes(geometry = geometry), color = "black")+ Alea_theme()+ 
-   scale_fill_gradientn(colors = c("red4", "white", "forestgreen"), 
+   scale_fill_gradientn(colors = c( "white", "darkblue"), 
                        n = 5,
-                       limits = c(-.20,.20),
+                       limits = c(0,.20),
                         name = "Population %", label = scales::percent)+
-  labs(title = "Change in % Pop that Did Work from Home")
+  labs(title = "Change in % of Labor Force that Did WFH")
 
 
 
@@ -2790,16 +2720,19 @@ mapPUMAboth %>%
    geom_point(aes(color=YEAR), size = 3) +
       scale_color_brewer(palette="Paired", labels = c("% WFH in 2019", "% WFH in 2021"), direction = 1)+
   labs(title = "Change in County Labor Force that did WFH",
-       subtitle = "Percent of County Population that Did Work from Home", 
+       subtitle = "Percent of County Labor Force that Did Work from Home", 
   caption = "DuPage had around 8% of the labor force working from home in 2019 and 
   around 27% of its labor force working from home in 2021. 
        There was ~20 percentage point increase between 2019 and 2021 for DuPage County. 
   Working from home is based on TRANWORK variable from ACS 1-year surveys.", x = "Percentage Points", y = "" )#+  scale_x_continuous(label = scales::percent)
 ```
 
-```{r wfh-bycounty}
+```{r wfh-bycounty, include=FALSE}
 #| code-fold: TRUE
 
+# calculates a value for rural counties to add contrast to counties that do have data. 
+# would need to recalculate the "rural" average that 
+# is hard coded into the code below.
 mapdataboth <- joined %>% 
   filter(did_wfh_labels != "NA" )%>% # create percentages withing missing values included. aka valid percent.
    group_by(county_pop_type, YEAR, countyFIP, did_wfh_labels) %>% 
@@ -2914,13 +2847,16 @@ mapdataboth %>%
   geom_sf(aes(geometry = geometry), color = "black")+ 
   labs(title = "Percent of county population that COULD work from home", subtitle = "Countyfips != 000", caption = "Note: Shows all counties with populations large enough to have their own values.
                                                            Rural counties went from ...
-                                                           Counties had very small changes in occupations that COULD be done at work.") + facet_wrap(~YEAR)+Alea_theme()+ 
+                                                           Counties had very small changes in occupations that COULD be done at work.") + 
+  facet_wrap(~YEAR)+
+  Alea_theme()+ 
    scale_fill_gradientn(colors = c("white", "darkblue"), na.value = "gray",
+                        limits = c(0,.45),
       label = scales::percent)
 
 
 mapdataboth %>%
-filter(YEAR == 2021)%>%  
+filter(YEAR == 2021& CanWorkFromHome == "Can WFH")%>%  
   ggplot(aes(fill = Prop)) +
   geom_sf(aes(geometry = geometry), color = "black")+ 
   labs(title = "Work from Home Feasibility Rate", 
@@ -2931,8 +2867,7 @@ filter(YEAR == 2021)%>%
   theme(axis.ticks = element_blank(), axis.text = element_blank(),   
         plot.title = element_text(hjust = 0.5), plot.caption = element_text(hjust=.5),  plot.subtitle = element_text(hjust = 0.5))+
    scale_fill_gradientn(colors = c("white", "darkblue"), na.value = "gray",
-                       limits = c(0,.6),
-                       n = 5,
+                       limits = c(0,.45),
                         name = "% with WFH Feasibility", label = scales::percent)
 ```
 
@@ -2955,10 +2890,10 @@ mapdataboth
 mapdataboth %>%
   filter(YEAR != "NA") %>%
   ggplot(aes(fill = mean_telework)) +
-  geom_sf(aes(geometry = geometry), color = "black")+ labs(title = "Percent of county population that COULD work from home", subtitle = "Countyfips != 000", caption = "Note: Shows all counties with populations large enough to have their own values.
+  geom_sf(aes(geometry = geometry), color = "black")+ labs(title = "Average teleworkable score for each County", subtitle = "Countyfips != 000", caption = "Note: Shows all counties with populations large enough to have their own values.
                                                            Uses teleworkable, a continuous variable, instead of CanWorkFromHome.
                                                            Counties had very small changes in occupations that COULD be done at work.") + 
-  facet_wrap(~YEAR)+ Alea_theme()+scale_fill_continuous(label = scales::percent)
+  facet_wrap(~YEAR)+ Alea_theme()+scale_fill_continuous(label = scales::percent, low = "white", high = "darkblue")
 ```
 
 ### Mixed Geography
