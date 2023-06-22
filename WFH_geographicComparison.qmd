@@ -2542,7 +2542,10 @@ mapPUMAboth %>%
                        limits = c(0,.6),
                        n = 6,
                         name = "Percent of Workers", label = scales::percent)+
+  
+   # geom_sf(data = countyIL, fill=NA, color="dark gray") +
   facet_wrap(~YEAR) 
+
 
 #ggsave("Figure5a.eps", limitsize = FALSE,width = 8, height = 5, units = "in")
 #ggsave("Figure5a.pdf", limitsize = FALSE,width = 8, height = 5, units = "in")
@@ -2626,6 +2629,7 @@ x = "Percentage Points", y = ""
 )
 
 
+
 mapPUMAboth %>% 
   ungroup() %>%
   filter(#did_wfh_labels == "Did WFH" #& NAME10 != "NA" & YEAR != "NA"
@@ -2645,7 +2649,9 @@ mapPUMAboth %>%
 Closeup of counties around Cook:
 
 ```{r figure5b}
-closeupFIPs<- c("097", "111", "089","043", "197", "031","093","007")
+closeupFIPs<- c("097", "111", "089","043", "197", "031"#,"093"
+             #   ,"007"
+                )
 
 
 
@@ -2663,25 +2669,33 @@ mapPUMAboth <- mapPUMAboth %>%
  
 mapPUMAboth %>% select(YEAR, countyFIP, PUMA, Prop, n, NAME10)
 
-#mapPUMAboth %>% 
-ggplot(mapPUMAboth, aes(fill = Prop, label=NAME10)) +
+#mapPUMAboth %>%   
+countyborders<- countyIL %>% 
+  filter(COUNTYFP %in% closeupFIPs)
+countyborders
+
+
+figure5b <- ggplot(mapPUMAboth, aes(fill = Prop)) +
   geom_sf(aes(geometry = geometry), color = "black")+ 
-  labs(title = "Where Did People Work from Home?: Close up View", 
-       subtitle = "Percent of PUMA population in 2019 & 2021 that did WFH", 
-     #  caption = 
-     #    "The did_WFH variable based on TRANWORK==80 from 
-     #    ACS 2019 & 2021 1-Year Survey individual level data. 
-     #  Each geographic region has between 100K and 200K people. "
-     ) +
+ # labs(title = "Where Did People Work from Home?: Close up View", 
+  #     subtitle = "Percent of PUMA population in 2019 & 2021 that did WFH") +
   theme_classic() + 
   theme(axis.ticks = element_blank(), axis.text = element_blank())+
    scale_fill_gradientn(colors = c("white", "darkblue"), 
                        limits = c(0,.6),
                        n = 6,
                         name = "% that did WFH", label = scales::percent)+
-  #geom_sf_text(data = aes(#fun.geometry = sf::st_centroid , 
-   #                label = NAME10))+
-  facet_wrap(~YEAR)
+  facet_wrap(~YEAR) 
+
+figure5b
+
+figure5b <- ggplot(mapPUMAboth, aes(fill = Prop)) +
+  geom_sf(aes(geometry = geometry), color = "black")
+
+figure5b +
+  geom_sf(data = countyborders, fill=NA, color="black", lwd = 1) + theme_classic()+  
+  theme(axis.ticks = element_blank(), axis.text = element_blank())+ facet_wrap(~YEAR)
+
 
 
 #ggsave("Figure5b.eps", limitsize = FALSE,width = 8, height = 5, units = "in")
@@ -2760,12 +2774,11 @@ mapPUMAboth <- mapPUMAboth %>% as_tibble() %>%
      filter(CanWorkFromHome == "Can WFH") %>%
      full_join(pumasIL, by = c("PUMA" = "PUMACE10"))
  
-mapPUMAboth
-
 mapPUMAboth %>%
-  
-  ggplot(aes(fill = Prop)) +
-  geom_sf(aes(geometry = geometry), color = "black")+ 
+ggplot(aes(fill = Prop)) +
+  geom_sf(aes(geometry=geometry), color = "black")+ 
+
+
   labs(title = "Percent of PUMA area population that COULD work from home", 
        subtitle = " based on occupation characteristics: 2019 vs 2021", 
        caption = "Teleworkability based on D&N 2020 methodology. 
@@ -2775,7 +2788,9 @@ mapPUMAboth %>%
    scale_fill_gradientn(colors = c("white", "darkblue"), 
                        limits = c(0,.6),
                        n = 5,
-                        name = "% Potentially Could WFH", label = scales::percent)+
+                        name = "% Potentially Could WFH", label = scales::percent) +
+  geom_sf(data = countyIL, fill=NA, color = "gray")+ 
+
   facet_wrap(~YEAR)
 
 
@@ -2803,7 +2818,7 @@ Figure2b
 ```{r separate-maps-didWFH, include=FALSE, eval=FALSE}
 
 ## Graph of both  together is better because it is automatically sharing a legend scale
-####  filtering from joined dataframe for comparison: ######## 
+#### filtering from joined dataframe for comparison: ###
   ## Prepping data for the graphs:
 PUMAmapdata2019 <- joined %>% 
   as_data_frame() %>%
