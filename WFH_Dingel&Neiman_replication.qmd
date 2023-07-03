@@ -216,6 +216,17 @@ joined <- inner_join(data, telework, by = c("OCCSOC" = "occsoc"))
 # 39,573 no WFH, 24662 Can WFH. Uses the 764 occupation codes used by D&N methodology
 
 
+joined <- joined %>% 
+  mutate(CanWorkFromHome = case_when(
+  teleworkable == 0 ~ "No WFH",
+  teleworkable < 1 ~ "Some WFH",
+  teleworkable == 1 ~ "Can WFH",
+  TRUE ~ "Check Me")) %>% 
+  # keeps observations that have earned income values and are in the labor force.
+  filter(has_incearn == 1 & LABFORCE == 2) 
+
+
+table(joined$CanWorkFromHome)
 
 table(joined$teleworkable)
 #table(joined$teleworkable)
@@ -264,7 +275,7 @@ topline(did_wfh_labels, weight = PERWT)
 
 -   **Valid percent:** \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_ **This is the statistic we would use**
 
-```{r could-wfh}
+```{r could-wfh, eval=FALSE}
 # bring in the teleworkable scores based on D&N's work.
 telework <- read_csv("teleworkable_AWM.csv")
 joined <- left_join(data, telework, by = c("OCCSOC" = "occ_codes"))
@@ -328,6 +339,49 @@ dstrata2021 <- survey::svydesign(id = ~CLUSTER, strata = ~STRATA, weights = ~PER
 
 
 
+```
+
+```{r}
+
+all_occs <- joined %>% 
+  filter(YEAR == 2021)%>%
+  group_by(OCCSOC) %>% 
+  summarize(count_matched = n(),
+            weighted_estimate = sum(PERWT)) %>%
+  mutate(perc_responses = scales::percent(count_matched/sum(count_matched)),
+            perc_workforce =scales::percent(weighted_estimate/sum(weighted_estimate)))
+
+occs_23cat <-joined %>% 
+  filter(YEAR == 2021)%>%
+  dplyr::group_by(occ_2digits,occ_2dig_labels_d) %>% 
+  dplyr::summarize(
+    count_matched = n(),
+            weighted_estimate = sum(PERWT),
+    avg_teleworkable = mean(teleworkable)) %>%
+  ungroup() %>%
+  mutate(perc_responses = count_matched/sum(count_matched),
+        perc_workforce = weighted_estimate/sum(weighted_estimate)) %>% arrange(-count_matched)
+
+occ_5cat <- joined %>% 
+  filter(YEAR == 2021)%>%
+  dplyr::group_by(occ_2dig_labels) %>% 
+  dplyr::summarize(
+    count_matched = n(),
+            weighted_estimate = sum(PERWT),
+    avg_teleworkable = mean(teleworkable)) %>%
+  ungroup() %>%
+  mutate(perc_responses = count_matched/sum(count_matched),
+        perc_workforce = weighted_estimate/sum(weighted_estimate)) %>% arrange(-count_matched)
+
+#install.packages("openxlsx")
+library(openxlsx)
+
+dataset_names <- list('DN_All Matched OCC Codes' = all_occs,
+                      'DN_5 Broadest OCC Groups' = occ_5cat, 
+                      'DN_OCC 2-digit Groups'= occs_23cat
+                      )
+
+write.xlsx(dataset_names, file = 'WFH_feasibility_comparison_D&Ncodesonly.xlsx')
 ```
 
 ### Occupations
