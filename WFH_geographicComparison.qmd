@@ -1,13 +1,9 @@
 ---
 title: "Work From Home: Who Can and Who Does?"
-
 format:
-#  docx: 
-#    toc: true
- html:
-  toc: true
-  toc_float: true
-  df-print: paged
+  html:
+    df-print: paged
+    toc: true
 ---
 
 # Getting Data
@@ -29,9 +25,14 @@ library(tidyverse)
 library(naniar)
 library(gmodels)
 library(gtsummary)
+#install.packages("quarto")
+library(quarto)
 
 knitr::opts_chunk$set(warning=FALSE, message=FALSE)
 
+```
+
+```{r include=FALSE}
 Alea_theme <- function(){ 
     theme_classic() %+replace%    #replace elements we want to change
     
@@ -696,7 +697,6 @@ glm(did_wfh~under5, data = childttest2021) %>% summary()
 
 ```
 
-
 ## Household data
 
 hhbreaks2019 = (32100, 50000, 65600, 80500, 97300, 115700, 137500, 168000, 225010) and max is 1671000
@@ -814,7 +814,8 @@ scale_x_discrete(labels = function(x) str_wrap(x, width=25))+ # makes labels bet
 
   coord_flip()
 ```
-ACS 1 year samples for 2019 and 2021 used for weighted population estimates. Military occupations make up less than 0.5% of the labor force and were removed from the  graph. Occupation categories are based on broadest aggregated BLS categories used by the BLS.
+
+ACS 1 year samples for 2019 and 2021 used for weighted population estimates. Military occupations make up less than 0.5% of the labor force and were removed from the graph. Occupation categories are based on broadest aggregated BLS categories used by the BLS.
 
 ```{r A2-Figure2, fig.cap="ACS 1 year samples for 2019 and 2021 used for weighted population estimates. Occupation categories based on first 2 digits of OCCSOC occupation codes. Labels for occupations that make up less than 2% of the workers were not labeled for legibility reasons."}
 ### Proportion of All Workers in each Occupation Type ###
@@ -862,7 +863,6 @@ table %>% filter(occ_2dig_labels != "Military" ) %>%
   coord_flip()
 ```
 
-
 ```{r Figure3}
 ## Proportion of all workers in each occupation cateogory.## 
 table <- svytable(~YEAR+did_wfh_labels+occ_2dig_labels, design = dstrata) 
@@ -901,7 +901,6 @@ scale_y_continuous(labels = scales::comma) +
 #ggsave("Figure3.pdf", limitsize = FALSE,width = 8, height = 4, units = "in")
 ggsave("Figure3.png", limitsize = FALSE, width = 8, height = 4, units = "in")
 ```
-
 
 ```{r A2-Figure4}
 ### Detailed Occuation Types ## 
@@ -976,7 +975,6 @@ theme_classic() + theme(legend.position = "bottom", legend.title = element_blank
   coord_flip()
 ```
 
-
 ```{r Figure1}
 ## Proportion of all workers in each occupation cateogory.## 
 table <- svytable(~YEAR+CanWorkFromHome+occ_2dig_labels, design = dstrata) 
@@ -1048,7 +1046,6 @@ table %>% ggplot(aes(CanWorkFromHome, y=n, fill = did_wfh_labels, group = YEAR))
 #ggsave("Figure1.pdf", limitsize = FALSE,width = 8, height = 4, units = "in")
 ggsave("Figure8.png", limitsize = FALSE, width = 7, height = 5, units = "in")
 ```
-
 
 ```{r}
 table <- svytable(~CanWorkFromHome+YEAR+did_wfh_labels, design = dstrata) 
@@ -2589,7 +2586,6 @@ mapPUMAboth %>% as_tibble() %>%
                         name = "% change in WFH", label = scales::percent)
 ```
 
-
 ```{r fig.cap="Graph includes PUMAs with Proportions of WFH Workers greater than 25% or less than 10%. Filtered PUMAs to increase legibility. DuPage had around 8% of the labor force working from home in 2019 and around 27% of its labor force working from home in 2021. There was ~20 percentage point increase between 2019 and 2021 for DuPage County. Working from home is based on TRANWORK variable from ACS 1-year surveys."}
 # as a dot graph ## 
 mapPUMAboth <- svytable(~YEAR+PUMA+did_wfh_labels, design = dstrata)
@@ -2643,8 +2639,6 @@ mapPUMAboth %>%
 
 
 ```
-
-
 
 Closeup of counties around Cook:
 
@@ -2702,7 +2696,6 @@ figure5b +
 #ggsave("Figure5b.pdf", limitsize = FALSE,width = 8, height = 5, units = "in")
 ggsave("Figure5b.png", limitsize = FALSE, width = 8, height = 5, units = "in")
 ```
-
 
 ```{r }
 mapPUMAboth <- svytable(~YEAR+PUMA+countyFIP+did_wfh_labels, design = dstrata)
@@ -3617,6 +3610,7 @@ joined %>%
 Regression for 2019 using survey object `dstrata2019`.
 
 ```{r}
+
 svyglm(did_wfh~race_cat+ SEX+ AGE +CIHISPEED*CINETHH + CanWorkFromHome+county_pop_type+NCHILD+MARST + NCHLT5, 
        design = dstrata2019) %>% summary()
 ```
