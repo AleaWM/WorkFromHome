@@ -179,39 +179,39 @@ data <- data %>%
 data <- data %>%
   mutate(occ_2digits = substr(OCCSOC,1,2)) %>% 
   mutate(occ_2dig_labels = case_when(
- occ_2digits %in% c(11,13,19,15,17,19,21,23,25,27,29) ~ "Management, Business, Science, Arts",
- occ_2digits %in% c(31,32,33,34,35,36,37,38,39) ~ "Service Occupations",
- occ_2digits %in% c(41,42,43) ~ "Sales & Office Jobs",
-occ_2digits %in% c(45,46,47,48,49 ) ~"Natural Resources, Construction",
-occ_2digits %in% c(51, 52, 53) ~ "Production, Transportation",
-occ_2digits == 55 ~ "Military")) 
+    occ_2digits %in% c(11,13,19,15,17,19,21,23,25,27,29) ~ "Management, Business, Science, Arts",
+    occ_2digits %in% c(31,32,33,34,35,36,37,38,39) ~ "Service Occupations",
+    occ_2digits %in% c(41,42,43) ~ "Sales & Office Jobs",
+    occ_2digits %in% c(45,46,47,48,49 ) ~"Natural Resources, Construction",
+    occ_2digits %in% c(51, 52, 53) ~ "Production, Transportation",
+    occ_2digits == 55 ~ "Military")) 
 
 data <- data %>%
   mutate(occ_2digits = substr(OCCSOC,1,2)) %>% 
   mutate(occ_2dig_labels_d = case_when(
- occ_2digits %in% c(11) ~ "Management",
-  occ_2digits %in% c(13) ~ "Business & Finance",
-  occ_2digits %in% c(15) ~ "Computer, Engineering & Science",
-  occ_2digits %in% c(17) ~ "Architecture & Engineering",
-  occ_2digits %in% c(19) ~ "Life/Social Sciences",
- occ_2digits == 21 ~ "Community & Social Services",
-occ_2digits == 23 ~ "Legal",
-occ_2digits == 25 ~ "Educational Instruction",
-occ_2digits == 27 ~ "Arts, Design, Entertainainment",
-occ_2digits == 29 ~ "Health Practictioners",
-occ_2digits == 31 ~ "Healthcare Support",
-occ_2digits == 33 ~ "Protective services",
-occ_2digits == 35 ~ "Food Services",
-occ_2digits == 37 ~ "Building Cleaning & Maintenance",
-occ_2digits == 41 ~ "Sales",
-occ_2digits == 43 ~"Office & Administration",
-occ_2digits == 45 ~ "Farm, Fish, Forest",
-occ_2digits == 47 ~ "Construction & Extractraction",
-occ_2digits == 49 ~"Installation, Maintenance",
-occ_2digits == 51 ~"Production",
-occ_2digits == 53 ~ "Transportation & Material Moving",
-occ_2digits == 55 ~ "Military",
-TRUE~"Other") )
+    occ_2digits %in% c(11) ~ "Management",
+    occ_2digits %in% c(13) ~ "Business & Finance",
+    occ_2digits %in% c(15) ~ "Computer, Engineering & Science",
+    occ_2digits %in% c(17) ~ "Architecture & Engineering",
+    occ_2digits %in% c(19) ~ "Life/Social Sciences",
+    occ_2digits == 21 ~ "Community & Social Services",
+    occ_2digits == 23 ~ "Legal",
+    occ_2digits == 25 ~ "Educational Instruction",
+    occ_2digits == 27 ~ "Arts, Design, Entertainainment",
+    occ_2digits == 29 ~ "Health Practictioners",
+    occ_2digits == 31 ~ "Healthcare Support",
+    occ_2digits == 33 ~ "Protective services",
+    occ_2digits == 35 ~ "Food Services",
+    occ_2digits == 37 ~ "Building Cleaning & Maintenance",
+    occ_2digits == 41 ~ "Sales",
+    occ_2digits == 43 ~"Office & Administration",
+    occ_2digits == 45 ~ "Farm, Fish, Forest",
+    occ_2digits == 47 ~ "Construction & Extractraction",
+    occ_2digits == 49 ~"Installation, Maintenance",
+    occ_2digits == 51 ~"Production",
+    occ_2digits == 53 ~ "Transportation & Material Moving",
+    occ_2digits == 55 ~ "Military",
+    TRUE~"Other") )
 
 data <- data %>% 
   mutate(did_wfh = if_else(TRANWORK==80, 1, 0)) # 1 = wfh, 0 = did not wfh
@@ -2698,10 +2698,17 @@ figure5b <- ggplot(mapPUMAboth, aes(fill = Prop)) +
   #     subtitle = "Percent of PUMA population in 2019 & 2021 that did WFH") +
   theme_classic() + 
   theme(axis.ticks = element_blank(), axis.text = element_blank())+
-   scale_fill_gradientn(colors = c("white", "darkblue"), 
+
+     scale_fill_steps2(#colors = c("white", "darkblue"), 
+                         high = "darkblue", low = "black", 
+
                        limits = c(0,.6),
-                       n = 6,
-                        name = "% that did WFH", label = scales::percent)+
+                       n.breaks =4,
+                       show.limits=TRUE,
+                       nice.breaks=FALSE,
+
+                        name = "% that did WFH",
+                       label = scales::percent)+
   facet_wrap(~YEAR) 
 
 figure5b
@@ -2717,7 +2724,7 @@ figure5b +
 
 #ggsave("Figure5b.eps", limitsize = FALSE,width = 8, height = 5, units = "in")
 #ggsave("Figure5b.pdf", limitsize = FALSE,width = 8, height = 5, units = "in")
-ggsave("Figure5b.png", limitsize = FALSE, width = 8, height = 5, units = "in")
+ggsave("Figure5bV2.png", limitsize = FALSE, width = 8, height = 5, units = "in")
 ```
 
 ```{r }
@@ -2737,12 +2744,15 @@ mapPUMAboth %>% as_tibble() %>%
   labs(title = "Change in Population that Did Work from Home", 
        subtitle = "2019 vs 2021") +
   theme_classic() + 
-  theme(axis.ticks = element_blank(), axis.text = element_blank())+
-   scale_fill_gradientn(colors = c("white", "darkblue"), 
+  theme(axis.ticks = element_blank(), axis.text = element_blank()) +
+    scale_fill_steps2( high = "darkblue", low = "black", 
                        limits = c(0,.6),
-                       n = 6,
-                        name = "% change in WFH", label = scales::percent) 
+                       n.breaks =4,
+                       show.limits=TRUE,
+                       nice.breaks=FALSE,
 
+                        name =" Pct Pt change  that did WFH",
+                       label = scales::percent)
 ```
 
 ```{r puma-dotgraph}
@@ -2801,10 +2811,15 @@ ggplot(aes(fill = Prop)) +
        OCCSOC codes from ACS 1 year Survey data at individual level.") +
   theme_classic() + 
   theme(axis.ticks = element_blank(), axis.text = element_blank())+
-   scale_fill_gradientn(colors = c("white", "darkblue"), 
+  scale_fill_steps2(#colors = c("white", "darkblue"), 
+                         high = "darkblue", low = "black", 
+
                        limits = c(0,.6),
-                       n = 5,
-                        name = "% Potentially Could WFH", label = scales::percent) +
+                       n.breaks =4,
+                       show.limits=TRUE,
+                       nice.breaks=FALSE,
+                        name = "% Potentially Could WFH", 
+                       label = scales::percent) +
   geom_sf(data = countyIL, fill=NA, color = "gray")+ 
 
   facet_wrap(~YEAR)
@@ -2822,13 +2837,17 @@ filter(YEAR == 2021)%>%
   theme_void() + 
   theme(axis.ticks = element_blank(), axis.text = element_blank(),   
         plot.title = element_text(hjust = 0.5), plot.caption = element_text(hjust=.5),  plot.subtitle = element_text(hjust = 0.5)) +
-   scale_fill_gradientn(colors = c("white", "darkblue"), 
+                           scale_fill_steps2(#colors = c("white", "darkblue"), 
+                         high = "darkblue", low = "black", 
+
                        limits = c(0,.6),
-                       n = 5,
+                       n.breaks =4,
+                       show.limits=TRUE,
+                       nice.breaks=FALSE,
                         name = "Labor force with\nWFH Feasibility", label = scales::percent)
 Figure2b
 
-#ggsave(Figure2b, "Figure2b.png", width=3, height=3, units = "in")
+#ggsave(Figure2b, "Figure2bV2.png", width=3, height=3, units = "in")
 ```
 
 ```{r separate-maps-didWFH, include=FALSE, eval=FALSE}
@@ -2931,7 +2950,8 @@ mapPUMAboth %>%
   filter(CINETHH == 3 ) %>% 
   ggplot(aes(fill = Prop)) +
   geom_sf(aes(geometry = geometry), color = "black")+   
-  scale_fill_continuous(low = "white", high = "red4", name = "% of Population", label = scales::percent)+
+  scale_fill_binned(low = "white", high = "red4", name = "% of Population", label = scales::percent,
+                    n.breaks=4,nice.breaks=FALSE,show.limits=TRUE)+
   labs(title = "Percent of population that lacked access to Internet", 
        caption = "Geography = PUMAs. Includes all dstrata responses for CINETHH.
        Does not subset for people who answered the commuting or occsoc questions.") + 
@@ -2965,11 +2985,13 @@ mapPUMAboth %>%
   ggplot(aes(fill = pct_change)) +
   geom_sf(aes(geometry = geometry), color = "black")+ 
   theme_minimal()+
-    theme(legend.title = element_blank(), axis.text.x = element_blank(), axis.text.y = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), legend.position="right")+
-                           scale_fill_gradientn(colors = c("red4", "white", "forestgreen"), 
-                       limits = c(-.15,.15),
-                       n = 7,
-                        name = "Chance in Access", label = scales::percent)+
+  theme(legend.title = element_blank(), axis.text.x = element_blank(), axis.text.y = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), legend.position="right")+
+  scale_fill_steps2(low="red4", mid= "white", high= "forestgreen", 
+                 #   limits = c(-.15,.15),
+                    n.breaks=4,
+                    show.limits=TRUE,
+                    nice.breaks=FALSE,
+                    name = "Chance in Access", label = scales::percent)+
   labs(title = "Change in Labor Force with Internet at home",
        subtitle = "2019 to 2021") 
 
@@ -3073,8 +3095,10 @@ mapPUMAboth %>%
   labs(title = "Percent of population WITH High Speed Internet", 
        subtitle = "", caption = "Each PUMA has >100K & < 200K people.") + 
   facet_wrap(~YEAR)+
- scale_fill_gradientn(colors = c("white", "forestgreen"), 
-                       n = 5,
+ scale_fill_binned(low ="white", high ="forestgreen", 
+                       n.breaks = 4,
+                   show.limits = TRUE,
+                  # nice.breaks =FALSE,
                         name = "Population %", label = scales::percent)+Alea_theme()
 
 
@@ -3088,8 +3112,10 @@ mapPUMAboth %>% pivot_wider(id_cols = -c(n), names_from ="YEAR", values_from = "
        caption = "Percentage point change:
        2021 PUMA% with CIHISPEED=10 - 2019 PUMA% 
        for ACS variable CIHISPEED=10.") +
-  scale_fill_gradientn(colors = c("forestgreen",  "white", "red4"), 
-                       n = 5,
+  scale_fill_steps2(high = "forestgreen", mid =  "white",  low = "red4", 
+                       n.breaks=4,
+                  nice.breaks = FALSE,
+                  show.limits = TRUE,
                         name = "Change in Access", label = scales::percent) + Alea_theme()
 
 
@@ -3179,20 +3205,21 @@ mapPUMAboth <- svytable(~YEAR+countyFIP+CIHISPEED, design = HHdesign)
 mapPUMAboth <- mapPUMAboth %>% as_tibble() %>%
    group_by(YEAR, countyFIP) %>% 
      mutate(Prop = round(n/sum(n), digits =3)) %>%
-    filter(CIHISPEED != 20 ) %>% 
-     full_join(countyIL, by = c("countyFIP" = "COUNTYFP"))
+    full_join(countyIL, by = c("countyFIP" = "COUNTYFP")) %>%
+    filter(CIHISPEED != 20 ) 
 
 mapPUMAboth %>%
   filter(CIHISPEED == 10) %>%
   ggplot(aes(fill = Prop)) +
   geom_sf(aes(geometry = geometry), color = "black")+ 
-  labs(title = "Percent of population with High-speed Internet", 
-   #    subtitle = "Geograph = Counties with More than 60,000 People"
-       ) + 
+  labs(title = "Percent of population with High-speed Internet"  ) + 
   facet_wrap(~YEAR)+
- scale_fill_gradientn(colors = c( "white", "green4"), 
-                       n = 5,
-                        name = "Percent of Population", label = scales::percent)+ Alea_theme()
+  scale_fill_binned(low  = "white", high = "green4", 
+                    na.value = NA,
+                    n.breaks = 4,
+                    show.limits=TRUE,
+                    nice.breaks = FALSE,
+                    name = "Percent of Population", label = scales::percent)+ Alea_theme()
 
 
 mapPUMAboth %>% pivot_wider(id_cols = -c(n), names_from ="YEAR", values_from = "Prop") %>%
@@ -3200,12 +3227,15 @@ mapPUMAboth %>% pivot_wider(id_cols = -c(n), names_from ="YEAR", values_from = "
   ggplot(aes(fill = pct_change)) +
   geom_sf(aes(geometry = geometry), color = "black") + 
   theme_void()+ 
-   scale_fill_gradientn(colors = c("red4", "white", "forestgreen"), 
-                       n = 7,
+   scale_fill_steps2(high ="red4", mid= "white", low = "forestgreen", 
+                       n.breaks = 5,
+                     na.value=NA,
+                     nice.breaks=FALSE,
+                     show.limits = TRUE,
                        limits = c(-.2,.2),
                         name = "Percent of Population", label = scales::percent)#+labs(title = "Change in access to High Speed Internet")
 
-ggsave("Figure7b.png", limitsize = FALSE, width = 5, height = 4, units = "in")
+ggsave("Figure7bV2.png", limitsize = FALSE, width = 5, height = 4, units = "in")
 
 #ggsave("Figure7b.eps", limitsize = FALSE,width = 8, height = 4, units = "in")
 #ggsave("Figure7b.pdf", limitsize = FALSE,width = 8, height = 4, units = "in")
@@ -3246,7 +3276,7 @@ mapPUMAboth %>%
   scale_x_continuous(label = scales::percent)
 
 
-ggsave("Figure7.png", limitsize = FALSE, width = 5, height = 4, units = "in")
+ggsave("Figure7v2.png", limitsize = FALSE, width = 5, height = 4, units = "in")
 
 #ggsave("Figure7.eps", limitsize = FALSE,width = 8, height = 4, units = "in")
 #ggsave("Figure7.pdf", limitsize = FALSE,width = 8, height = 4, units = "in")
@@ -3271,8 +3301,10 @@ mapPUMAboth %>%
   labs(title = "Percent of Labor  Force that Worked from Home", 
        caption = "Geography = Counties with populations > ~60K") + 
   facet_wrap(~YEAR)  +
- scale_fill_gradientn(colors = c( "white", "darkblue"), na.value = "gray",
-                       n = 5,
+ scale_fill_binned(low= "white", high ="darkblue", 
+                   na.value = "gray",
+                   show.limits=TRUE,
+                       n.breaks = 4,
                         name = "Population %", label = scales::percent) + Alea_theme()
 
 
@@ -3282,15 +3314,18 @@ mapPUMAboth %>% pivot_wider(id_cols = -c(n), names_from ="YEAR", values_from = "
   mutate(pct_change = `2021`-`2019`) %>%
   ggplot(aes(fill = pct_change)) +
   geom_sf(aes(geometry = geometry), color = "black")+ Alea_theme()+ 
-   scale_fill_gradientn(colors = c( "white", "darkblue"), 
-                       n = 5,
+ scale_fill_binned(low= "white", high ="darkblue", 
+                   na.value = "gray",
+                   show.limits=TRUE,
+                   nice.breaks=FALSE,
+                       n.breaks = 4,
                        limits = c(0,.20),
                         name = "Percentage Point\nIncrease", label = scales::percent)#+
  # labs(title = "Percentage Point Change in Labor Force that Did WFH")
 
-ggsave("Figure4b.eps", limitsize = FALSE, width = 8, height = 5, units = "in")
-ggsave("Figure4b.pdf", limitsize = FALSE,width = 8, height = 5, units = "in")
-ggsave("Figure4b.png", limitsize = FALSE, width = 8, height = 5, units = "in")
+ggsave("Figure4bV2.eps", limitsize = FALSE, width = 8, height = 5, units = "in")
+ggsave("Figure4bV2.pdf", limitsize = FALSE,width = 8, height = 5, units = "in")
+ggsave("Figure4bV2.png", limitsize = FALSE, width = 8, height = 5, units = "in")
 
 
 
@@ -3452,7 +3487,11 @@ mapdataboth %>%
                                                            Counties had very small changes in occupations that COULD be done at work.") + 
   facet_wrap(~YEAR)+
   Alea_theme()+ 
-   scale_fill_gradientn(colors = c("white", "darkblue"), na.value = "gray",
+ scale_fill_binned(low= "white", high ="darkblue", 
+                   na.value = "gray",
+                   show.limits=TRUE,
+                   nice.breaks=FALSE,
+                       n.breaks = 4,
                         limits = c(0,.45),
       label = scales::percent)
 
@@ -3469,7 +3508,11 @@ Figure2a <- mapdataboth %>%
   theme(axis.ticks = element_blank(), axis.text = element_blank(),   
         plot.title = element_text(hjust = 0.5), plot.caption = element_text(hjust=.5),  
         plot.subtitle = element_text(hjust = 0.5)) +
-   scale_fill_gradientn(colors = c("white", "darkblue"), na.value = "gray",
+ scale_fill_binned(low= "white", high ="darkblue", 
+                   na.value = "gray",
+                   show.limits=TRUE,
+                   nice.breaks=FALSE,
+                       n.breaks = 4,
                        limits = c(0,.6),
                         name = "Labor Force with\nWFH Feasibility", 
                        label = scales::percent)
@@ -3513,7 +3556,12 @@ mapdataboth %>%
                                                            Counties had very small changes in occupations that COULD be done at work.") + 
   facet_wrap(~YEAR)+ 
   Alea_theme()+
-  scale_fill_continuous(label = scales::percent, low = "white", high = "darkblue")
+ scale_fill_binned(low= "white", high ="darkblue", 
+                   na.value = "gray",
+                   show.limits=TRUE,
+                   nice.breaks=FALSE,
+                       n.breaks = 4, 
+                   label = scales::percent)
 ```
 
 ### Mixed Geography
@@ -3630,28 +3678,172 @@ joined %>%
 
 # Regression attempt
 
-Regression for 2019 using survey object `dstrata2019`.
+Regression for 2019 using survey object `dstrata2019` & regression for 2021 using survey object `dstrata2021`.
+
 
 ```{r}
 
-svyglm(did_wfh~race_cat+ SEX+ AGE +CIHISPEED*CINETHH + CanWorkFromHome+county_pop_type+NCHILD+MARST + NCHLT5, 
-       design = dstrata2019) %>% summary()
+
+
+#svyglm(did_wfh~ INCEARN +race_cat+ SEX+ AGE + CIHISPEED*CINETHH + CanWorkFromHome+county_pop_type+NCHILD+MARST + NCHLT5, design = dstrata2019) %>% summary()
+library(huxtable) # for summ() and regression output formatting
+# Create the DB connection with the default name expected by PTAXSIM functions
+library(jtools)
+library(modelsummary)
+
+#svyglm(did_wfh~ INCEARN + race_cat+ SEX+ CIHISPEED+CINETHH + occ_2dig_labels+CanWorkFromHome+county_pop_type, design = dstrata2021) %>% summary()
+
+
+
+### All variations of family = "" had same results 
+# m1_2019 <- svyglm(did_wfh~ INCEARN +race_cat+ SEX+ AGE + CIHISPEED*CINETHH + CanWorkFromHome+county_pop_type+NCHILD+MARST + NCHLT5, 
+#       family = "binomial", design = dstrata2019)
+# 
+# m1_2021<- svyglm(did_wfh~ INCEARN +race_cat+ SEX+ AGE + CIHISPEED*CINETHH + CanWorkFromHome+county_pop_type+NCHILD+MARST + NCHLT5, 
+#       family = "binomial", design = dstrata2021)
+#   
+# export_summs(m1_2019, m1_2021, 
+#              model.names = c("2019 Logit", "2021 Logit"), 
+#             robust = "HC3", statistics = c(N = "nobs", R2 = "r.squared", adjR2 = "adj.r.squared"))
+# 
+# 
+# m1_2019 <- svyglm(did_wfh~ INCEARN +race_cat+ SEX+ AGE + CIHISPEED*CINETHH + CanWorkFromHome+county_pop_type+NCHILD+MARST + NCHLT5, 
+#        family = quasibinomial(), design = dstrata2019)
+# 
+# m1_2021<- svyglm(did_wfh~ INCEARN +race_cat+ SEX+ AGE + CIHISPEED*CINETHH + CanWorkFromHome+county_pop_type+NCHILD+MARST + NCHLT5, 
+#     family=quasibinomial(),   design = dstrata2021)
+#   
+# 
+# export_summs(m1_2019, m1_2021, 
+#              model.names = c("2019 QuasiBi", "2021 QuasiBi"), 
+#             robust = "HC3", statistics = c(N = "nobs", R2 = "r.squared", adjR2 = "adj.r.squared"))
+
+
+m1_2019 <- svyglm(did_wfh~ INCEARN +race_cat+ SEX+ AGE + CIHISPEED*CINETHH + CanWorkFromHome+county_pop_type+NCHILD+MARST + NCHLT5, 
+        family = binomial(),design = dstrata2019)
+
+m1_2021<- svyglm(did_wfh~ INCEARN +race_cat+ SEX+ AGE + CIHISPEED*CINETHH + CanWorkFromHome+county_pop_type+NCHILD+MARST + NCHLT5, 
+      family = binomial(), design = dstrata2021)
+  
+export_summs(m1_2019, m1_2021, 
+             model.names = c("2019 Binom", "2021 Binom"), 
+            robust = "HC3", statistics = c(N = "nobs", R2 = "r.squared", adjR2 = "adj.r.squared"))
+
+
+
+
+OR.CI_2019 <- cbind("AOR" = exp(   coef(m1_2019)),
+                       exp(confint(m1_2019,
+                           df.resid=degf(m1_2019$survey.design))))[-1,]
+round(OR.CI_2019, 3)
+
+OR.CI_2021 <- cbind("AOR" = exp(   coef(m1_2021)),
+                       exp(confint(m1_2021,
+                           df.resid=degf(m1_2021$survey.design))))[-1,]
+round(OR.CI_2021, 3)
+
+library(gtsummary)
+t1 <- m1_2019 %>%
+  tbl_regression(intercept = T,
+                 # Use style_number to round to 2 digits (e.g., 1.27)
+                 estimate_fun = function(x) style_number(x, digits = 2),
+                 # Use style_sigfig to keep 2 significant digits (e.g., 1.3)
+                 # estimate_fun = function(x) style_sigfig(x, digits = 2),
+                 # label  = list('(Intercept)'  ~ "Intercept",
+                 #               alc_agefirst   ~ "Age of first alcohol use (years)",
+                 #               age_new ~ "Age (years)",
+                 #               demog_sex      ~ "Sex",
+                 #               demog_income   ~ "Income")
+                 ) %>%
+  modify_column_hide(p.value) %>%
+  modify_caption("Caption")
+
+t2 <- m1_2019
+  tbl_regression(intercept = F,     # No intercept in OR table
+                 exponentiate = T,  # OR = exp(B)
+                 # Use style_number to round to 2 digits (e.g., 1.27)
+                 estimate_fun = function(x) style_number(x, digits = 2),
+                 # Use style_sigfig to keep 2 significant digits (e.g., 1.3)
+                 pvalue_fun   = function(x) style_pvalue(x, digits = 3),
+                 # label  = list(alc_agefirst   ~ "Age of first alcohol use (years)",
+                 #               age_new ~ "Age (years)",
+                 #               demog_sex      ~ "Sex",
+                 #               demog_income   ~ "Income"
+                 #              
+                 #              )
+                 ) %>%
+  add_global_p(keep = T, test.statistic = "F"
+  # Uncomment to use design df for Type III test p-values
+  # (but then they will not match the regression term p-values for
+  #  binary predictors)
+  #             , error.df = degf(fit.ex8.1$survey.design)
+                                 )
+
+tbl_merge(
+  tbls = list(t1, t2),
+  tab_spanner = c("**Regression Coefficients**", "**Adjusted Odds Ratio**")
+)
+
+
+
+
 ```
 
-Regression for 2021 using survey object `dstrata2021`.
+```{r}
+m1_2019 <- svyglm(did_wfh~ INCEARN +race_cat+ SEX+ AGE + CIHISPEED*CINETHH + CanWorkFromHome+county_pop_type+NCHILD+MARST + NCHLT5, 
+       design = dstrata2019)
+
+m1_2021<- svyglm(did_wfh~ INCEARN +race_cat+ SEX+ AGE + CIHISPEED*CINETHH + CanWorkFromHome+county_pop_type+NCHILD+MARST + NCHLT5, 
+       design = dstrata2021)
+  
+
+export_summs(m1_2019, m1_2021, 
+             model.names = c("Linear WRONG 2019", "Linear WRONG 2021"), 
+            robust = "HC3", statistics = c(N = "nobs", R2 = "r.squared", adjR2 = "adj.r.squared"))
+
+
+
+```
+
 
 ```{r}
-svyglm(did_wfh~race_cat+ SEX+ CIHISPEED+CINETHH + occ_2dig_labels+CanWorkFromHome+county_pop_type, 
-       design = dstrata2021) %>% summary()
+
+m2_2019 <- svyglm(did_wfh~ INCEARN + race_cat+ SEX+ CIHISPEED+CINETHH + occ_2dig_labels+CanWorkFromHome+county_pop_type, design = dstrata2019)
+m2_2021 <- svyglm(did_wfh~ INCEARN + race_cat+ SEX+ CIHISPEED+CINETHH + occ_2dig_labels+CanWorkFromHome+county_pop_type, design = dstrata2021)
+
+export_summs(m2_2019, m2_2021, 
+             model.names = c("2019", "2021"), 
+            robust = "HC3", statistics = c(N = "nobs", R2 = "r.squared", adjR2 = "adj.r.squared"))
 
 
-svyglm(did_wfh~occ_2dig_labels*CanWorkFromHome+race_cat+ SEX+ age_cat +CIHISPEED*CINETHH + county_pop_type+NCHILD*NCHLT5+ MARST, 
-       design = dstrata2021) %>% summary()
 ```
 
 ```{r}
-svyglm(did_wfh~NCHLT5+factor(SEX) +factor(MARST)+factor(CINETHH) + occ_2dig_labels+county_pop_type, 
-       design = dstrata2021,   ) %>% summary()
+m3_2019 <- svyglm(did_wfh~occ_2dig_labels*CanWorkFromHome+race_cat+ SEX+ age_cat +CIHISPEED*CINETHH + county_pop_type+NCHILD*NCHLT5+ MARST, design = dstrata2019)
+m3_2021 <- svyglm(did_wfh~occ_2dig_labels*CanWorkFromHome+race_cat+ SEX+ age_cat +CIHISPEED*CINETHH + county_pop_type+NCHILD*NCHLT5+ MARST, design = dstrata2021)# %>% summary()
+
+export_summs(m3_2019, m3_2021, 
+             model.names = c("2019", "2021"), 
+            robust = "HC3", statistics = c(N = "nobs", R2 = "r.squared", adjR2 = "adj.r.squared"))
+
+
+
+m4_2019 <- svyglm(did_wfh~NCHLT5+factor(SEX) +factor(MARST)+factor(CINETHH) + occ_2dig_labels+county_pop_type, design = dstrata2019 )# %>% summary()
+
+m4_2021 <- svyglm(did_wfh~NCHLT5+factor(SEX) +factor(MARST)+factor(CINETHH) + occ_2dig_labels+county_pop_type, design = dstrata2021)# %>% summary()
+
+export_summs(m4_2019, m4_2021, 
+             model.names = c("M4 2019", "M4 2021"), 
+            robust = "HC3", statistics = c(N = "nobs", R2 = "r.squared", adjR2 = "adj.r.squared"))
+
+m4_2019 <- svyglm(did_wfh~NCHLT5+factor(SEX) +factor(MARST)+factor(CINETHH) + occ_2dig_labels+county_pop_type, family = "binomial", design = dstrata2019 )# %>% summary()
+
+m4_2021 <- svyglm(did_wfh~NCHLT5+factor(SEX) +factor(MARST)+factor(CINETHH) + occ_2dig_labels+county_pop_type, family = "binomial", design = dstrata2021)# %>% summary()
+
+export_summs(m4_2019, m4_2021, 
+             model.names = c("M4 2019 Logit", "M4 2021 Logit"), 
+            robust = "HC3", statistics = c(N = "nobs", R2 = "r.squared", adjR2 = "adj.r.squared"))
+
 ```
 
 Very simple interpretation: Compared to Business and Finance occupations who Can Work From Home in Rural Counties without any children under 5
