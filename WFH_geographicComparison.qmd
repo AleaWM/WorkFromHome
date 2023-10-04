@@ -2535,18 +2535,27 @@ mapPUMAboth %>%
       ) +
   theme_classic() + 
   theme(axis.ticks = element_blank(), axis.text = element_blank())+
-   scale_fill_gradientn(colors = c("white", "darkblue"), 
+   scale_fill_steps2(#colors = c("white", "darkblue"), 
+                         high = "darkblue", low = "black", 
+
                        limits = c(0,.6),
-                       n = 6,
-                        name = "Percent of Workers", label = scales::percent)+
-  
+                       n.breaks =4,
+                       show.limits=TRUE,
+                       nice.breaks=FALSE,
+
+                        name = "Percent of Workers", 
+                       label = scales::percent)+
+     # scale_fill_gradientn(colors = c("white", "darkblue"), 
+     #                   limits = c(0,.6),
+     #                   n = 6,
+     #                    name = "Percent of Workers", label = scales::percent
    # geom_sf(data = countyIL, fill=NA, color="dark gray") +
   facet_wrap(~YEAR) 
 
 
 #ggsave("Figure5a.eps", limitsize = FALSE,width = 8, height = 5, units = "in")
 #ggsave("Figure5a.pdf", limitsize = FALSE,width = 8, height = 5, units = "in")
-ggsave("Figure5a.png", limitsize = FALSE, width = 8, height = 5, units = "in")
+ggsave("Figure5aV2.png", limitsize = FALSE, width = 8, height = 5, units = "in")
 
 ```
 
@@ -2580,10 +2589,24 @@ mapPUMAboth %>% as_tibble() %>%
        Each geographic region has between 100K and 200K people. ") +
   theme_classic() + 
   theme(axis.ticks = element_blank(), axis.text = element_blank())+
-   scale_fill_gradientn(colors = c("white", "darkblue"), 
+  
+     scale_fill_steps2(#colors = c("white", "darkblue"), 
+                         high = "darkblue", low = "black", 
+
                        limits = c(0,.6),
-                       n = 6,
-                        name = "% change in WFH", label = scales::percent)
+                       n.breaks =4,
+                       show.limits=TRUE,
+                       nice.breaks=FALSE,
+
+                        name = "% change in WFH", 
+                       label = scales::percent)
+
+
+# 
+#    scale_fill_gradientn(colors = c("white", "darkblue"), 
+#                        limits = c(0,.6),
+#                        n = 6,
+#                         name = "% change in WFH", label = scales::percent)
 ```
 
 ```{r fig.cap="Graph includes PUMAs with Proportions of WFH Workers greater than 25% or less than 10%. Filtered PUMAs to increase legibility. DuPage had around 8% of the labor force working from home in 2019 and around 27% of its labor force working from home in 2021. There was ~20 percentage point increase between 2019 and 2021 for DuPage County. Working from home is based on TRANWORK variable from ACS 1-year surveys."}
