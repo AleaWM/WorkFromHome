@@ -2478,7 +2478,10 @@ obs_perPUMA<- joined %>%
   arrange(unweightedcount)
 ### Minimimum observations are 271 in PUMA area 03528
 obs_perPUMA
- 
+```
+
+
+```{r}
 joined %>% 
    group_by(county_pop_type, YEAR, did_wfh_labels) %>% 
    dplyr::summarize(weightedcount=sum(PERWT), #weighted 
@@ -2504,29 +2507,8 @@ countyIL <- counties("IL", cb=T, year=2019)
 ```
 
 #### Did WFH
-
-```{r Figure5a, fig.cap = "The did_WFH variable is based on TRANWORK==80 from ACS 2019 & 2021 1-Year Survey individual level data. Each geographic region has between 100K and 200K people."}
-  
-# first attempt to graph data. Does appear to match the 2nd attempt below.
-# mapPUMAboth <- joined %>% 
-#   filter(did_wfh_labels != "NA" )%>% # create percentages withing missing values included. aka valid percent.
-#    group_by(county_pop_type, YEAR, PUMA, did_wfh_labels) %>% 
-#    dplyr::summarize(weightedcount=sum(PERWT), #weighted 
-#                     unweightedcount = n()) %>% 
-#    mutate(pct_weight = weightedcount/sum(weightedcount), 
-#           pct_noweight = unweightedcount/sum(unweightedcount))%>%
-#   full_join(pumasIL, by = c("PUMA" = "PUMACE10")) 
-# mapPUMAboth
-# 
-# mapPUMAboth %>%
-#   filter(did_wfh_labels != "Did not WFH") %>%
-#   ggplot(aes(fill = pct_weight)) +
-#   geom_sf(aes(geometry = geometry), color = "black")+ 
-#   labs(title = "Percent of PUMA area population that did work from home in 2021", 
-#        subtitle = "Each PUMA has >100K & < 200K people", 
-#        caption = "Facet_wrapped by year") + 
-#   facet_wrap(~YEAR)
-
+```{r}
+#| column: page
 
 mapPUMAboth <- svytable(~YEAR+PUMA+did_wfh_labels, design = dstrata)
 mapPUMAboth <- mapPUMAboth %>% as_tibble() %>%
@@ -2534,10 +2516,9 @@ mapPUMAboth <- mapPUMAboth %>% as_tibble() %>%
      mutate(Prop = round(n/sum(n), digits =3)) %>%
      filter(did_wfh_labels == "Did WFH") %>%
      full_join(pumasIL, by = c("PUMA" = "PUMACE10"))
- 
-mapPUMAboth %>% select(YEAR, PUMA, Prop, n, NAME10)
 
-mapPUMAboth %>% 
+
+figure5a <- mapPUMAboth %>% 
   ggplot(aes(fill = Prop)) +
   geom_sf(aes(geometry = geometry), color = "black")+ 
   labs(title = "Where Did People Work from Home?", 
@@ -2545,7 +2526,7 @@ mapPUMAboth %>%
       ) +
   theme_classic() + 
   theme(axis.ticks = element_blank(), axis.text = element_blank())+
-   scale_fill_steps2(#colors = c("white", "darkblue"), 
+   scale_fill_steps2(
                          high = "darkblue", low = "black", 
 
                        limits = c(0,.6),
@@ -2555,21 +2536,26 @@ mapPUMAboth %>%
 
                         name = "Percent of Workers", 
                        label = scales::percent)+
-     # scale_fill_gradientn(colors = c("white", "darkblue"), 
-     #                   limits = c(0,.6),
-     #                   n = 6,
-     #                    name = "Percent of Workers", label = scales::percent
-   # geom_sf(data = countyIL, fill=NA, color="dark gray") +
   facet_wrap(~YEAR) 
+ 
+mapPUMAboth %>% select(YEAR, PUMA, Prop, n, NAME10)
 
+
+
+```
+
+
+```{r include = FALSE}
 
 #ggsave("Figure5a.eps", limitsize = FALSE,width = 8, height = 5, units = "in")
 #ggsave("Figure5a.pdf", limitsize = FALSE,width = 8, height = 5, units = "in")
-ggsave("Figure5aV2.png", limitsize = FALSE, width = 8, height = 5, units = "in")
+#ggsave("Figure5aV2.png", limitsize = FALSE, width = 8, height = 5, units = "in")
 
 ```
 
 ```{r}
+#| column: page
+#| layout-ncol: 2
 mapPUMAboth <- svytable(~YEAR+PUMA+did_wfh_labels, design = dstrata)
 
 mapPUMAboth %>% as_tibble() %>%
@@ -2579,7 +2565,7 @@ mapPUMAboth %>% as_tibble() %>%
   pivot_wider(id_cols = -c(n), names_from ="YEAR", values_from = "Prop") %>%
     mutate(pct_change= `2021`-`2019`) %>%
        full_join(pumasIL, by = c("PUMA" = "PUMACE10"))%>%
-  arrange(-pct_change)
+  arrange(-pct_change) %>% select(-c(STATEFP10:GEOID10)) %>% head()
 
 mapPUMAboth %>% as_tibble() %>%
    group_by(YEAR, PUMA) %>% 
@@ -2587,8 +2573,24 @@ mapPUMAboth %>% as_tibble() %>%
      filter(did_wfh_labels == "Did WFH") %>%
   pivot_wider(id_cols = -c(n), names_from ="YEAR", values_from = "Prop") %>%
     mutate(pct_change= `2021`-`2019`) %>%
-       full_join(pumasIL, by = c("PUMA" = "PUMACE10")) %>%
+       full_join(pumasIL, by = c("PUMA" = "PUMACE10"))%>%
+  arrange(pct_change) %>% select(-c(STATEFP10:GEOID10)) %>% head()
+```
 
+
+```{r}
+#| code-fold: true
+
+
+
+
+figure5b <- mapPUMAboth %>% as_tibble() %>%
+   group_by(YEAR, PUMA) %>% 
+     mutate(Prop = round(n/sum(n), digits =3)) %>%
+     filter(did_wfh_labels == "Did WFH") %>%
+  pivot_wider(id_cols = -c(n), names_from ="YEAR", values_from = "Prop") %>%
+    mutate(pct_change= `2021`-`2019`) %>%
+       full_join(pumasIL, by = c("PUMA" = "PUMACE10")) %>%
   ggplot(aes(fill = pct_change)) +
   geom_sf(aes(geometry = geometry), color = "black")+ 
   labs(title = "Change in Population that Did Work from Home", 
@@ -2612,70 +2614,6 @@ mapPUMAboth %>% as_tibble() %>%
                        label = scales::percent)
 
 
-# 
-#    scale_fill_gradientn(colors = c("white", "darkblue"), 
-#                        limits = c(0,.6),
-#                        n = 6,
-#                         name = "% change in WFH", label = scales::percent)
-```
-
-```{r fig.cap="Graph includes PUMAs with Proportions of WFH Workers greater than 25% or less than 10%. Filtered PUMAs to increase legibility. DuPage had around 8% of the labor force working from home in 2019 and around 27% of its labor force working from home in 2021. There was ~20 percentage point increase between 2019 and 2021 for DuPage County. Working from home is based on TRANWORK variable from ACS 1-year surveys."}
-# as a dot graph ## 
-mapPUMAboth <- svytable(~YEAR+PUMA+did_wfh_labels, design = dstrata)
-
-mapPUMAboth <- mapPUMAboth %>% as_tibble() %>%
-   group_by(YEAR, PUMA) %>% 
-     mutate(Prop = round(n/sum(n), digits =3)) %>%
-     filter(did_wfh_labels == "Did WFH") %>%
-     full_join(pumasIL, by = c("PUMA" = "PUMACE10"))
-
-order <- mapPUMAboth %>% as_tibble() %>%
- filter(YEAR == 2021  & did_wfh_labels == "Did WFH") %>% 
-    filter(Prop > 0.25 | Prop < 0.1) %>%
-  select(NAME10, Prop_2021 = Prop)
-
-mapPUMAboth <- inner_join(mapPUMAboth, order) %>% filter()
-
-
-mapPUMAboth %>%
-  filter(did_wfh_labels == "Did WFH" #& NAME10 != "NA" & YEAR != "NA"
-         )%>% 
-  filter(Prop > 0.25 | Prop < 0.1) %>%
-  ggplot(aes(x = Prop*100, y= reorder(PUMA, Prop_2021*100)))+
-  geom_line(aes(group = PUMA))+
-  theme_classic()+
-   geom_point(aes(color=YEAR), size = 3) +
-      scale_color_brewer(palette="Paired", labels = c("% WFH in 2019", "% WFH in 2021"), direction = 1)+
-  labs(title = "Change in County Labor Force that did WFH",
-       subtitle = "Percent of Labor Force within PUMA that Did Work from Home", 
-#  caption = "Graph includes PUMAs with Proportions of WFH Workers greater 
-#  than 25% or less than 10%. Filtered PUMAs to increase legibility. 
-#  DuPage had around 8% of the labor force working from home in 2019 and 
-#  around 27% of its labor force working from home in 2021. 
-#       There was ~20 percentage point increase between 2019 and 2021 for DuPage County. 
-#  Working from home is based on TRANWORK variable from ACS 1-year surveys.", 
-x = "Percentage Points", y = "" 
-)
-
-
-
-mapPUMAboth %>% 
-  ungroup() %>%
-  filter(#did_wfh_labels == "Did WFH" #& NAME10 != "NA" & YEAR != "NA"
-         )%>% 
- # filter(YEAR == 2021 & (Prop > 0.25 | Prop < 0.1) ) %>%
-  select(NAME10, PUMA, Prop) %>% 
-  distinct() %>% arrange(desc(Prop))
-
-
-
-
-
-```
-
-Closeup of counties around Cook:
-
-```{r figure5b}
 closeupFIPs<- c("097", "111", "089","043", "197", "031"#,"093"
              #   ,"007"
                 )
@@ -2694,15 +2632,17 @@ mapPUMAboth <- mapPUMAboth %>%
      filter(did_wfh_labels == "Did WFH" & n != "0") %>%
      inner_join(pumasIL, by = c("PUMA" = "PUMACE10"))
  
-mapPUMAboth %>% select(YEAR, countyFIP, PUMA, Prop, n, NAME10)
+#mapPUMAboth %>% select(YEAR, countyFIP, PUMA, Prop, n, NAME10)
 
-#mapPUMAboth %>%   
+
+
+
 countyborders<- countyIL %>% 
   filter(COUNTYFP %in% closeupFIPs)
-countyborders
+#countyborders
 
 
-figure5b <- ggplot(mapPUMAboth, aes(fill = Prop)) +
+figure5c <- ggplot(mapPUMAboth, aes(fill = Prop)) +
   geom_sf(aes(geometry = geometry), color = "black")+ 
  # labs(title = "Where Did People Work from Home?: Close up View", 
   #     subtitle = "Percent of PUMA population in 2019 & 2021 that did WFH") +
@@ -2721,26 +2661,60 @@ figure5b <- ggplot(mapPUMAboth, aes(fill = Prop)) +
                        label = scales::percent)+
   facet_wrap(~YEAR) 
 
-figure5b
-
-# figure5b <- ggplot(mapPUMAboth, aes(fill = Prop)) +
-#   geom_sf(aes(geometry = geometry), color = "black")
-# 
-figure5b +
+figure5c <- figure5c +
   geom_sf(data = countyborders, fill=NA, color="black", lwd = 1) + theme_classic()+
   theme(axis.ticks = element_blank(), axis.text = element_blank())+ facet_wrap(~YEAR)
 
 
 
-#ggsave("Figure5b.eps", limitsize = FALSE,width = 8, height = 5, units = "in")
-#ggsave("Figure5b.pdf", limitsize = FALSE,width = 8, height = 5, units = "in")
-ggsave("Figure5bV2.png", limitsize = FALSE, width = 8, height = 5, units = "in")
-```
+# as a dot graph ## 
+mapPUMAboth <- svytable(~YEAR+PUMA+did_wfh_labels, design = dstrata)
 
-```{r }
+mapPUMAboth <- mapPUMAboth %>% as_tibble() %>%
+   group_by(YEAR, PUMA) %>% 
+     mutate(Prop = round(n/sum(n), digits =3)) %>%
+     filter(did_wfh_labels == "Did WFH") %>%
+     full_join(pumasIL, by = c("PUMA" = "PUMACE10"))
+
+order <- mapPUMAboth %>% as_tibble() %>%
+ filter(YEAR == 2021  & did_wfh_labels == "Did WFH") %>% 
+    filter(Prop > 0.25 | Prop < 0.1) %>%
+  select(NAME10, Prop_2021 = Prop)
+
+mapPUMAboth <- inner_join(mapPUMAboth, order) %>% filter()
+
+mapPUMAboth %>% 
+  ungroup() %>%
+  filter(#did_wfh_labels == "Did WFH" #& NAME10 != "NA" & YEAR != "NA"
+         )%>% 
+ # filter(YEAR == 2021 & (Prop > 0.25 | Prop < 0.1) ) %>%
+  select(NAME10, PUMA, Prop) %>% 
+  distinct() %>% arrange(desc(Prop)) %>% head()
+
+figure5d <- mapPUMAboth %>%
+  filter(did_wfh_labels == "Did WFH" #& NAME10 != "NA" & YEAR != "NA"
+         )%>% 
+  filter(Prop > 0.25 | Prop < 0.1) %>%
+  ggplot(aes(x = Prop*100, y= reorder(PUMA, Prop_2021*100)))+
+  geom_line(aes(group = PUMA))+
+  theme_classic()+
+   geom_point(aes(color=YEAR), size = 3) +
+      scale_color_brewer(palette="Paired", labels = c("% WFH in 2019", "% WFH in 2021"), direction = 1)+
+  labs(title = "Change in PUMA Labor Force that did WFH",
+       subtitle = "Percent of Labor Force within PUMA that Did Work from Home", 
+#  caption = "Graph includes PUMAs with Proportions of WFH Workers greater 
+#  than 25% or less than 10%. Filtered PUMAs to increase legibility. 
+#  DuPage had around 8% of the labor force working from home in 2019 and 
+#  around 27% of its labor force working from home in 2021. 
+#       There was ~20 percentage point increase between 2019 and 2021 for DuPage County. 
+#  Working from home is based on TRANWORK variable from ACS 1-year surveys.", 
+x = "Percentage Points", y = "" 
+)
+
+
 mapPUMAboth <- svytable(~YEAR+PUMA+countyFIP+did_wfh_labels, design = dstrata)
 
-mapPUMAboth %>% as_tibble() %>%
+figure5e <- mapPUMAboth %>% as_tibble() %>%
     filter(countyFIP %in% closeupFIPs) %>%
    group_by(YEAR, PUMA) %>% 
      mutate(Prop = round(n/sum(n), digits =3)) %>%
@@ -2765,7 +2739,51 @@ mapPUMAboth %>% as_tibble() %>%
                        label = scales::percent)
 ```
 
-```{r puma-dotgraph}
+```{r}
+#| fig-cap: "Percent of Workers who Did Work From Home: 2019 & 2021"
+#| fig-cap-location: "top"
+#| fig-subcap: 
+#| - "The did_WFH variable is based on TRANWORK==80 from ACS 2019 & 2021 1-Year Survey individual level data. Each geographic region has between 100K and 200K people."
+#| - "Zoom in on Cook and Surrounding Counties"
+#| column: page
+#| layout-ncol: 2
+#| echo: false 
+
+plot(figure5a)
+plot(figure5c)
+
+
+
+```
+
+
+```{r}
+#| fig-cap-location: "top"
+#| column: page
+#| echo: false 
+#| layout-ncol: 2
+#| fig-cap: "Change from 2019 to 2021 in who did WFH"
+#| fig-subcap: 
+#| - "Graph includes PUMAs with Proportions of WFH Workers greater than 25% or less than 10%. Filtered PUMAs to increase legibility. DuPage had around 8% of the labor force working from home in 2019 and around 27% of its labor force working from home in 2021. There was ~20 percentage point increase between 2019 and 2021 for DuPage County. Working from home is based on TRANWORK variable from ACS 1-year surveys."
+#| - "A dot plot of change"
+
+
+plot(figure5b)
+plot(figure5d)
+```
+
+
+
+
+
+```{r include=FALSE}
+#ggsave("Figure5b.eps", limitsize = FALSE,width = 8, height = 5, units = "in")
+#ggsave("Figure5b.pdf", limitsize = FALSE,width = 8, height = 5, units = "in")
+#ggsave("Figure5bV2.png", limitsize = FALSE, width = 8, height = 5, units = "in")
+```
+
+
+```{r puma-dotgraph, include=FALSE}
 # as a dot graph ## 
 mapPUMAboth <- svytable(~YEAR+PUMA+countyFIP+did_wfh_labels, design = dstrata)
 
@@ -2798,11 +2816,14 @@ mapPUMAboth %>%
   caption = "", x = "Percentage Points", y = "" )
 ```
 
-#### WFH Feasibility
+### WFH Feasibility
 
 We compute these shares using our O\*NET-derived classification of occupations that can be done at home and the occupational composition using ACS responses in each PUMA by 6-digit SOC in the BLS's 2018 Occupational Employment Statistics.
 
 ```{r pct-canWFH}
+#| column: page
+#| layout-ncol: 2
+
 mapPUMAboth <- svytable(~YEAR+PUMA+CanWorkFromHome, design = dstrata)
 mapPUMAboth <- mapPUMAboth %>% as_tibble() %>%
    group_by(YEAR, PUMA) %>% 
@@ -2813,8 +2834,6 @@ mapPUMAboth <- mapPUMAboth %>% as_tibble() %>%
 mapPUMAboth %>%
 ggplot(aes(fill = Prop)) +
   geom_sf(aes(geometry=geometry), color = "black")+ 
-
-
   labs(title = "Percent of PUMA area population that COULD work from home", 
        subtitle = " based on occupation characteristics: 2019 vs 2021", 
        caption = "Teleworkability based on D&N 2020 methodology. 
@@ -2830,8 +2849,6 @@ ggplot(aes(fill = Prop)) +
                        nice.breaks=FALSE,
                         name = "% Potentially Could WFH", 
                        label = scales::percent) +
-  geom_sf(data = countyIL, fill=NA, color = "gray")+ 
-
   facet_wrap(~YEAR)
 
 
@@ -2906,16 +2923,19 @@ PUMAmapdata2019 %>%
        aggregated together to create PUMA boundaries")
 ```
 
-#### Internet Access
+### Internet Access
 
 Make a subset of dstrata that only includes people who answered the TRANWORK/ did_WFH questions.
 
-```{r}
+```{r include = FALSE}
 #transub<- subset(dstrata,TRANWORK(x=80))
 ```
 
 ```{r internet-access}
 #| code-fold: TRUE
+#| column: page
+#| layout-ncol: 2
+#| layout-nrow: 2
 
 ## CINETHH is for access to internet 
 # (either at home, somewhere else, or no access)
@@ -3086,8 +3106,12 @@ mapPUMAboth <- joined %>%
           pct_noweight = unweightedcount/sum(unweightedcount))%>%
   full_join(pumasIL, by = c("PUMA" = "PUMACE10")) 
 mapPUMAboth
+```
 
 
+```{r fig-hispeedinternet}
+#| column: page
+#| layout-ncol: 2
 
 
 ## Access to Hi speed internet using survey objects
@@ -3139,7 +3163,10 @@ mapPUMAboth %>% pivot_wider(id_cols = -c(n), names_from ="YEAR", values_from = "
 
 #### Internet Access
 
-```{r include = FALSE}
+```{r}
+#| column: page
+#| layout-ncol: 2
+
 ## Access internet using survey objects
 mapPUMAboth <- svytable(~CINETHH+YEAR+countyFIP, design = HHdesign)
 
@@ -3159,10 +3186,11 @@ mapPUMAboth %>%
        caption = "Geography = Counties with populations > ~60K") + 
   facet_wrap(~YEAR)  +
     theme(legend.title = element_blank())+
- scale_fill_gradientn(colors = c( "white", "red4"), na.value = "gray",
-                       n = 5,
-                        name = "Population %", label = scales::percent) + Alea_theme()
-
+  scale_fill_steps2( low =  "white",  high = "red4", 
+                       n.breaks=4,
+                  nice.breaks = FALSE,
+                  show.limits = TRUE,
+                        "Population %", label = scales::percent) + Alea_theme()
 
 ### Change in LACK OF ACCESS
 mapPUMAboth %>% 
@@ -3173,14 +3201,20 @@ mapPUMAboth %>%
   labs(title = "Change in access to Internet",
        caption = "Change in Percentage points = 2021 % lacking access - 2019 % lacking access.
        Uses CINETHH == 3 for not having internet access. A decrease is a good thing!" ) +
-  scale_fill_gradientn(colors = c("green4", "white", "red4"), 
-                       n = 7,
-                       limits = c(-.15,.15),
-                        name = "Population %", label = scales::percent) + Alea_theme() 
+  scale_fill_steps2(low = "forestgreen", mid =  "white",  high = "red4", 
+                       n.breaks=5,
+                 # nice.breaks = FALSE,
+                  show.limits = TRUE,
+                        name = "Change in Access", label = scales::percent) + Alea_theme()
 
 ```
 
 ```{r Figure7}
+#| column: page
+#| layout-ncol: 2
+#| code-fold: true
+
+
 ### Access to Hi speed internet ###
 
 # from joined dataframe. Not using survey objects or survey package
@@ -3215,8 +3249,8 @@ mapPUMAboth <- svytable(~YEAR+countyFIP+CIHISPEED, design = HHdesign)
 mapPUMAboth <- mapPUMAboth %>% as_tibble() %>%
    group_by(YEAR, countyFIP) %>% 
      mutate(Prop = round(n/sum(n), digits =3)) %>%
-    full_join(countyIL, by = c("countyFIP" = "COUNTYFP")) %>%
-    filter(CIHISPEED != 20 ) 
+    filter(CIHISPEED != 20 )  %>%   full_join(countyIL, by = c("countyFIP" = "COUNTYFP")) 
+
 
 mapPUMAboth %>%
   filter(CIHISPEED == 10) %>%
@@ -3237,18 +3271,25 @@ mapPUMAboth %>% pivot_wider(id_cols = -c(n), names_from ="YEAR", values_from = "
   ggplot(aes(fill = pct_change)) +
   geom_sf(aes(geometry = geometry), color = "black") + 
   theme_void()+ 
-   scale_fill_steps2(high ="red4", mid= "white", low = "forestgreen", 
-                       n.breaks = 5,
-                     na.value=NA,
-                     nice.breaks=FALSE,
+   scale_fill_steps2(low ="red4", mid= "white", high = "forestgreen", 
+                       n.breaks = 7,
+                     na.value="gray",
+                   #  nice.breaks=FALSE,
                      show.limits = TRUE,
-                       limits = c(-.2,.2),
+             #          limits = c(-.2,.2),
                         name = "Percent of Population", label = scales::percent)#+labs(title = "Change in access to High Speed Internet")
 
 ggsave("Figure7bV2.png", limitsize = FALSE, width = 5, height = 4, units = "in")
 
 #ggsave("Figure7b.eps", limitsize = FALSE,width = 8, height = 4, units = "in")
 #ggsave("Figure7b.pdf", limitsize = FALSE,width = 8, height = 4, units = "in")
+```
+
+
+```{r}
+#| column: page
+#| layout-ncol: 2
+#| code-fold: true
 
 
 # as a bar graph ## 
@@ -3296,6 +3337,11 @@ ggsave("Figure7v2.png", limitsize = FALSE, width = 5, height = 4, units = "in")
 #### Did work from home
 
 ```{r}
+#| column: page
+#| layout-ncol: 2
+#| code-fold: true
+
+
 mapPUMAboth <- svytable(~did_wfh_labels+YEAR+countyFIP, design = dstrata)
 
 mapPUMAboth <- mapPUMAboth %>% as_tibble() %>%
@@ -3336,8 +3382,13 @@ mapPUMAboth %>% pivot_wider(id_cols = -c(n), names_from ="YEAR", values_from = "
 ggsave("Figure4bV2.eps", limitsize = FALSE, width = 8, height = 5, units = "in")
 ggsave("Figure4bV2.pdf", limitsize = FALSE,width = 8, height = 5, units = "in")
 ggsave("Figure4bV2.png", limitsize = FALSE, width = 8, height = 5, units = "in")
+```
 
 
+```{r}
+#| column: page
+#| layout-ncol: 2
+#| code-fold: true
 
 
 # as a dot graph ## 
@@ -3458,6 +3509,11 @@ mapdata2019 %>%
 Based on Dingel & Niemen paper. A person's occupation indicates the likelihood of if they could work from home.
 
 ```{r Figure2-couldWFH-bycounty}
+#| column: page
+#| layout-ncol: 2
+#| code-fold: true
+
+
 # teleworkable is numeric
 # CanWorkFromHome is categorical variable with 3 options. 
 
@@ -3574,9 +3630,8 @@ mapdataboth %>%
                    label = scales::percent)
 ```
 
-### Mixed Geography
 
-```{r warning = FALSE, message=FALSE, eval=FALSE}
+```{r mixed-geography, warning = FALSE, message=FALSE, eval=FALSE, include=FALSE}
 # 
 pums_weighted <- joined %>%
   filter(YEAR == 2021) %>%
@@ -3636,13 +3691,11 @@ plot(FIPunweight["unweight"])
 plot(countyIL["COUNTYFP"])
 
 
-```
+# Observations using `CITY` variable: identifies observations from Chicago.
 
-Observations using `CITY` variable: identifies observations from Chicago.
+# 88 distinct PUMA areas.
 
-88 distinct PUMA areas.
 
-```{r eval=FALSE}
 #joined %>% group_by(CITY) %>% distinct(CITY)
 joined %>% group_by(PUMA) %>% summarize(observs = n())
 joined %>% filter(INCEARN > 0) %>% group_by(PUMA) %>% summarize(observs = n())
@@ -3655,6 +3708,8 @@ joined %>%
             avg_inc = mean(INCEARN),
             avg_inc_w= mean(INCEARN, weight = PERWT))
 ```
+
+
 
 #### Geography Variable Notes
 
@@ -3686,430 +3741,8 @@ joined %>%
   arrange(desc(pct))
 ```
 
-# Logistic Regression
 
-Regression for 2019 using survey object `dstrata2019` & regression for 2021 using survey object `dstrata2021`.
-
-
-A note on the p-value: the p-value is a test of significance for the null hypothesis H0 that
-
-- there is no difference in the log-odds of the outcome between the reference group (captured by the intercept) and the explanatory variable (or one of its categories), or that the difference between the two groups equals   zero: H0:b1=0 and Ha:b1≠0
-
-If p<0.5, we reject H0 as we have evidence to suggest that the difference between the two groups does not equal zero.
-
-Log-odds are not the most intuitive to interpret. Instead of discussing the change in the log-odds, we can calculate the odds ratio for a given variable by exponentiating the coefficient. Odds ratio is read “have x times the odds of the outcome of interest compared to thos in the reference group”.
-
-Reference group of the outcome variable: by default, R creates uses the lowest coded group as the reference. The reference category can ce changed by using the ‘relevel()’. Here, ‘not survived’ (coded 0) is the reference group!
-
-Relatonship between Odds and Probabilities:
-
-Odds=P/(1-P)
-P=odds/(1+odds)
-Odds=exp(log-odds)
-P=exp(log-odds)/(1+exp(log-odds))
-
-## Model 0: Both years together
-
-```{r}
-
-
-both <- svyglm(did_wfh~ INCEARN +race_cat+ factor(SEX)+ age_cat +# CIHISPEED*CINETHH +
-                    CanWorkFromHome+county_pop_type+ NCHILD + NCHLT5 + occ_2dig_labels + factor(YEAR), 
-        family = quasibinomial(), design = dstrata)
-
-
-OR.CI_Both <- cbind("AOR" = exp(   coef(both)),
-                       exp(confint(both,
-                           df.resid=degf(both$survey.design))))[-1,]
-#round(OR.CI_2019, 3)
-
-t1 <- both %>%
-  tbl_regression(intercept = T,
-                 # Use style_number to round to 2 digits (e.g., 1.27)
-                 estimate_fun = function(x) style_number(x, digits = 2),
-                 # Use style_sigfig to keep 2 significant digits (e.g., 1.3)
-                 # estimate_fun = function(x) style_sigfig(x, digits = 2),
-                 # label  = list('(Intercept)'  ~ "Intercept",
-                 #               alc_agefirst   ~ "Age of first alcohol use (years)",
-                 #               age_new ~ "Age (years)",
-                 #               demog_sex      ~ "Sex",
-                 #               demog_income   ~ "Income")
-                 ) %>%
-  modify_column_hide(p.value) %>%
-  modify_caption("2019 & 2021 ACS Data")
-
-t2 <- both %>%
-  tbl_regression(intercept = F,     # No intercept in OR table
-                 exponentiate = T,  # OR = exp(B)
-                 # Use style_number to round to 2 digits (e.g., 1.27)
-                 estimate_fun = function(x) style_number(x, digits = 2),
-                 # Use style_sigfig to keep 2 significant digits (e.g., 1.3)
-                 pvalue_fun   = function(x) style_pvalue(x, digits = 3),
-                 # label  = list(alc_agefirst   ~ "Age of first alcohol use (years)",
-                 #               age_new ~ "Age (years)",
-                 #               demog_sex      ~ "Sex",
-                 #               demog_income   ~ "Income"
-                 #              
-                 #              )
-                 ) %>%
-  add_global_p(keep = T, test.statistic = "F"
-  # Uncomment to use design df for Type III test p-values
-  # (but then they will not match the regression term p-values for
-  #  binary predictors)
-  #             , error.df = degf(fit.ex8.1$survey.design)
-                                 )
-
-tbl_merge(
-  tbls = list(t1, t2),
-  tab_spanner = c("**Regression Coefficients**", "**Adjusted Odds Ratio**")
-)
-
-```
-
-log-odds to odds-ratio: exp(log-odds)
-
-odds-ratio to %: (OR-1) * 100
-
-
-
-
-## Model 1
-```{r}
-
-
-
-#svyglm(did_wfh~ INCEARN +race_cat+ SEX+ AGE + CIHISPEED*CINETHH + CanWorkFromHome+county_pop_type+NCHILD+MARST + NCHLT5, design = dstrata2019) %>% summary()
-library(huxtable) # for summ() and regression output formatting
-# Create the DB connection with the default name expected by PTAXSIM functions
-library(jtools)
-library(modelsummary)
-
-#svyglm(did_wfh~ INCEARN + race_cat+ SEX+ CIHISPEED+CINETHH + occ_2dig_labels+CanWorkFromHome+county_pop_type, design = dstrata2021) %>% summary()
-
-
-
-### All variations of family = "" had same results 
-# m1_2019 <- svyglm(did_wfh~ INCEARN +race_cat+ SEX+ AGE + CIHISPEED*CINETHH + CanWorkFromHome+county_pop_type+NCHILD+MARST + NCHLT5, 
-#       family = "binomial", design = dstrata2019)
-# 
-# m1_2021<- svyglm(did_wfh~ INCEARN +race_cat+ SEX+ AGE + CIHISPEED*CINETHH + CanWorkFromHome+county_pop_type+NCHILD+MARST + NCHLT5, 
-#       family = "binomial", design = dstrata2021)
-#   
-# export_summs(m1_2019, m1_2021, 
-#              model.names = c("2019 Logit", "2021 Logit"), 
-#             robust = "HC3", statistics = c(N = "nobs", R2 = "r.squared", adjR2 = "adj.r.squared"))
-# 
-# 
-# m1_2019 <- svyglm(did_wfh~ INCEARN +race_cat+ SEX+ AGE + CIHISPEED*CINETHH + CanWorkFromHome+county_pop_type+NCHILD+MARST + NCHLT5, 
-#        family = quasibinomial(), design = dstrata2019)
-# 
-# m1_2021<- svyglm(did_wfh~ INCEARN +race_cat+ SEX+ AGE + CIHISPEED*CINETHH + CanWorkFromHome+county_pop_type+NCHILD+MARST + NCHLT5, 
-#     family=quasibinomial(),   design = dstrata2021)
-#   
-# 
-# export_summs(m1_2019, m1_2021, 
-#              model.names = c("2019 QuasiBi", "2021 QuasiBi"), 
-#             robust = "HC3", statistics = c(N = "nobs", R2 = "r.squared", adjR2 = "adj.r.squared"))
-
-
-m1_2019 <- svyglm(did_wfh~ INCEARN +race_cat+ factor(SEX)+ age_cat +# CIHISPEED*CINETHH +
-                    CanWorkFromHome+county_pop_type+ NCHILD + NCHLT5 + occ_2dig_labels, 
-        family = quasibinomial(),design = dstrata2019)
-
-m1_2021<- svyglm(did_wfh~ INCEARN +race_cat+ factor(SEX)+ age_cat + #CIHISPEED*CINETHH + 
-                   CanWorkFromHome + county_pop_type + NCHILD + NCHLT5+ occ_2dig_labels, 
-      family = quasibinomial(), design = dstrata2021)
-  
-export_summs(m1_2019, m1_2021, 
-             model.names = c("M12019 QuasiBi", "M12021 QuasiBi"), 
-            robust = "HC3", statistics = c(N = "nobs", R2 = "r.squared", adjR2 = "adj.r.squared"))
-
-
-
-
-OR.CI_2019 <- cbind("AOR" = exp(   coef(m1_2019)),
-                       exp(confint(m1_2019,
-                           df.resid=degf(m1_2019$survey.design))))[-1,]
-#round(OR.CI_2019, 3)
-
-OR.CI_2021 <- cbind("AOR" = exp(   coef(m1_2021)),
-                       exp(confint(m1_2021,
-                           df.resid=degf(m1_2021$survey.design))))[-1,]
-#round(OR.CI_2021, 3)
-
-library(gtsummary)
-library(car)
-
-t1 <- m1_2019 %>%
-  tbl_regression(intercept = T,
-                 # Use style_number to round to 2 digits (e.g., 1.27)
-                 estimate_fun = function(x) style_number(x, digits = 2),
-                 # Use style_sigfig to keep 2 significant digits (e.g., 1.3)
-                 # estimate_fun = function(x) style_sigfig(x, digits = 2),
-                 # label  = list('(Intercept)'  ~ "Intercept",
-                 #               alc_agefirst   ~ "Age of first alcohol use (years)",
-                 #               age_new ~ "Age (years)",
-                 #               demog_sex      ~ "Sex",
-                 #               demog_income   ~ "Income")
-                 ) %>%
-  modify_column_hide(p.value) %>%
-  modify_caption("2019 ACS Data")
-
-t2 <- m1_2019 %>%
-  tbl_regression(intercept = F,     # No intercept in OR table
-                 exponentiate = T,  # OR = exp(B)
-                 # Use style_number to round to 2 digits (e.g., 1.27)
-                 estimate_fun = function(x) style_number(x, digits = 2),
-                 # Use style_sigfig to keep 2 significant digits (e.g., 1.3)
-                 pvalue_fun   = function(x) style_pvalue(x, digits = 3),
-                 # label  = list(alc_agefirst   ~ "Age of first alcohol use (years)",
-                 #               age_new ~ "Age (years)",
-                 #               demog_sex      ~ "Sex",
-                 #               demog_income   ~ "Income"
-                 #              
-                 #              )
-                 ) %>%
-  add_global_p(keep = T, test.statistic = "F"
-  # Uncomment to use design df for Type III test p-values
-  # (but then they will not match the regression term p-values for
-  #  binary predictors)
-  #             , error.df = degf(fit.ex8.1$survey.design)
-                                 )
-
-tbl_merge(
-  tbls = list(t1, t2),
-  tab_spanner = c("**Regression Coefficients**", "**Adjusted Odds Ratio**")
-)
-
-
-t3 <- m1_2021 %>%
-  tbl_regression(intercept = T,
-                 # Use style_number to round to 2 digits (e.g., 1.27)
-                 estimate_fun = function(x) style_number(x, digits = 2),
-                 # Use style_sigfig to keep 2 significant digits (e.g., 1.3)
-                 # estimate_fun = function(x) style_sigfig(x, digits = 2),
-                 # label  = list('(Intercept)'  ~ "Intercept",
-                 #               alc_agefirst   ~ "Age of first alcohol use (years)",
-                 #               age_new ~ "Age (years)",
-                 #               demog_sex      ~ "Sex",
-                 #               demog_income   ~ "Income")
-                 ) %>%
-  modify_column_hide(p.value) %>%
-  modify_caption("2021 ACS")
-
-t4 <- m1_2021 %>%
-  tbl_regression(intercept = F,     # No intercept in OR table
-                 exponentiate = T,  # OR = exp(B)
-                 # Use style_number to round to 2 digits (e.g., 1.27)
-                 estimate_fun = function(x) style_number(x, digits = 2),
-                 # Use style_sigfig to keep 2 significant digits (e.g., 1.3)
-                 pvalue_fun   = function(x) style_pvalue(x, digits = 3),
-                 # label  = list(alc_agefirst   ~ "Age of first alcohol use (years)",
-                 #               age_new ~ "Age (years)",
-                 #               demog_sex      ~ "Sex",
-                 #               demog_income   ~ "Income"
-                 #              
-                 #              )
-                 ) %>%
-  add_global_p(keep = T, test.statistic = "F"
-  # Uncomment to use design df for Type III test p-values
-  # (but then they will not match the regression term p-values for
-  #  binary predictors)
-  #             , error.df = degf(fit.ex8.1$survey.design)
-                                 )
-
-tbl_merge(
-  tbls = list(t3, t4),
-  tab_spanner = c("**Regression Coefficients**", "**Adjusted Odds Ratio**")
-)
-
-```
-
-log-odds to odds-ratio: exp(log-odds)
-
-odds-ratio to %: (OR-1) * 100
-
-
-
-### Prediction
-
-[Interpreation examples](https://www.bookdown.org/rwnahhas/RMPH/survey-logistic.html) 
-
-What is the predicted probability (and 95% CI) that someone worked from home in 2019 and male, and between 25 and 34 years old?
-```{r}
-# Always include the intercept for prediction.
-# Specify a 1 for the intercept, a # for each continuous predictor
-# and a 1 for each non-reference level of a categorical variable.
-# If a predictor is at its reference level, specify a 0 or exclude it.
-#install.packages("faraway")
-library(faraway)
-
-ilogit(svycontrast(m1_2019, c("(Intercept)" = 1,
-                              "age_cat25to34" =1,
-                              "factor(SEX)2" = 1
-                             )))
-```
-
-```{r include = FALSE, eval=FALSE}
-m1_2019 <- svyglm(did_wfh~ INCEARN +race_cat+ SEX+ AGE + CIHISPEED*CINETHH + CanWorkFromHome+county_pop_type+NCHILD + NCHLT5, 
-       design = dstrata2019)
-
-m1_2021<- svyglm(did_wfh~ INCEARN +race_cat+ SEX+ AGE + CIHISPEED*CINETHH + CanWorkFromHome+county_pop_type+NCHILD + NCHLT5, 
-       design = dstrata2021)
-  
-
-export_summs(m1_2019, m1_2021, 
-             model.names = c("Linear WRONG 2019", "Linear WRONG 2021"), 
-            robust = "HC3", statistics = c(N = "nobs", R2 = "r.squared", adjR2 = "adj.r.squared"))
-
-
-
-```
-
-## Model 2
-
-```{r}
-# m3_2019 <- svyglm(did_wfh~occ_2dig_labels*CanWorkFromHome+race_cat+ SEX+ age_cat +CIHISPEED*CINETHH + county_pop_type+NCHILD*NCHLT5+ MARST, design = dstrata2019)
-# m3_2021 <- svyglm(did_wfh~occ_2dig_labels*CanWorkFromHome+race_cat+ SEX+ age_cat +CIHISPEED*CINETHH + county_pop_type+NCHILD*NCHLT5+ MARST, design = dstrata2021)# %>% summary()
-# 
-# export_summs(m3_2019, m3_2021, 
-#              model.names = c("2019", "2021"), 
-#             robust = "HC3", statistics = c(N = "nobs", R2 = "r.squared", adjR2 = "adj.r.squared"))
-# 
-# 
-
-# m4_2019 <- svyglm(did_wfh~NCHLT5+factor(SEX) +factor(MARST)+factor(CINETHH) + occ_2dig_labels+county_pop_type, design = dstrata2019 )# %>% summary()
-# 
-# m4_2021 <- svyglm(did_wfh~NCHLT5+factor(SEX) +factor(MARST)+factor(CINETHH) + occ_2dig_labels+county_pop_type, design = dstrata2021)# %>% summary()
-# 
-# export_summs(m4_2019, m4_2021, 
-#              model.names = c("M4 2019", "M4 2021"), 
-#             robust = "HC3", statistics = c(N = "nobs", R2 = "r.squared", adjR2 = "adj.r.squared"))
-
-m4_2019 <- svyglm(did_wfh~NCHLT5+factor(SEX) + occ_2dig_labels+county_pop_type, family = quasibinomial(), design = dstrata2019 )# %>% summary()
-
-m4_2021 <- svyglm(did_wfh~NCHLT5+factor(SEX) + occ_2dig_labels+county_pop_type, family = quasibinomial(), design = dstrata2021)# %>% summary()
-
-export_summs(m4_2019, m4_2021, 
-             model.names = c("M4 2019 QuasiBi", "M4 2021 QuasiBi"), 
-            robust = "HC3", statistics = c(N = "nobs", R2 = "r.squared"))
-
-```
-
-
-Log-odds are not the most intuitive to interpret. Instead of discussing the change in the log-odds, we can calculate the odds ratio for a given variable by exponentiating the coefficient. 
-
-Odds ratio is read “have x times the odds of the outcome of interest compared to thos in the reference group”.
-
-
-```{r}
-OR.CI_2019 <- cbind("AOR" = exp(   coef(m4_2019)),
-                       exp(confint(m4_2019,
-                           df.resid=degf(m4_2019$survey.design))))[-1,]
-round(OR.CI_2019, 3)
-
-OR.CI_2021 <- cbind("AOR" = exp(   coef(m4_2021)),
-                       exp(confint(m4_2021,
-                           df.resid=degf(m4_2021$survey.design))))[-1,]
-round(OR.CI_2021, 3)
-
-library(gtsummary)
-library(car)
-t1 <- m4_2019 %>%
-  tbl_regression(intercept = T,
-                 # Use style_number to round to 2 digits (e.g., 1.27)
-                 estimate_fun = function(x) style_number(x, digits = 2),
-                 # Use style_sigfig to keep 2 significant digits (e.g., 1.3)
-                 # estimate_fun = function(x) style_sigfig(x, digits = 2),
-                 # label  = list('(Intercept)'  ~ "Intercept",
-                 #               alc_agefirst   ~ "Age of first alcohol use (years)",
-                 #               age_new ~ "Age (years)",
-                 #               demog_sex      ~ "Sex",
-                 #               demog_income   ~ "Income")
-                 ) %>%
-  modify_column_hide(p.value) %>%
-  modify_caption("Caption")
-
-t2 <- m4_2019 %>%
-  tbl_regression(intercept = F,     # No intercept in OR table
-                 exponentiate = T,  # OR = exp(B)
-                 # Use style_number to round to 2 digits (e.g., 1.27)
-                 estimate_fun = function(x) style_number(x, digits = 2),
-                 # Use style_sigfig to keep 2 significant digits (e.g., 1.3)
-                 pvalue_fun   = function(x) style_pvalue(x, digits = 3),
-                 # label  = list(alc_agefirst   ~ "Age of first alcohol use (years)",
-                 #               age_new ~ "Age (years)",
-                 #               demog_sex      ~ "Sex",
-                 #               demog_income   ~ "Income"
-                 #              
-                 #              )
-                 ) %>%
-  add_global_p(keep = T, test.statistic = "F"
-  # Uncomment to use design df for Type III test p-values
-  # (but then they will not match the regression term p-values for
-  #  binary predictors)
-  #             , error.df = degf(fit.ex8.1$survey.design)
-                                 )
-
-tbl_merge(
-  tbls = list(t1, t2),
-  tab_spanner = c("**Regression Coefficients**", "**Adjusted Odds Ratio**")
-)
-
-
-t3 <- m4_2021 %>%
-  tbl_regression(intercept = T,
-                 # Use style_number to round to 2 digits (e.g., 1.27)
-                 estimate_fun = function(x) style_number(x, digits = 2),
-                 # Use style_sigfig to keep 2 significant digits (e.g., 1.3)
-                 # estimate_fun = function(x) style_sigfig(x, digits = 2),
-                 # label  = list('(Intercept)'  ~ "Intercept",
-                 #               alc_agefirst   ~ "Age of first alcohol use (years)",
-                 #               age_new ~ "Age (years)",
-                 #               demog_sex      ~ "Sex",
-                 #               demog_income   ~ "Income")
-                 ) %>%
-  modify_column_hide(p.value) %>%
-  modify_caption("Caption")
-
-t4 <- m4_2021 %>%
-  tbl_regression(intercept = F,     # No intercept in OR table
-                 exponentiate = T,  # OR = exp(B)
-                 # Use style_number to round to 2 digits (e.g., 1.27)
-                 estimate_fun = function(x) style_number(x, digits = 2),
-                 # Use style_sigfig to keep 2 significant digits (e.g., 1.3)
-                 pvalue_fun   = function(x) style_pvalue(x, digits = 3),
-                 # label  = list(alc_agefirst   ~ "Age of first alcohol use (years)",
-                 #               age_new ~ "Age (years)",
-                 #               demog_sex      ~ "Sex",
-                 #               demog_income   ~ "Income"
-                 #              
-                 #              )
-                 ) %>%
-  add_global_p(keep = T, test.statistic = "F"
-  # Uncomment to use design df for Type III test p-values
-  # (but then they will not match the regression term p-values for
-  #  binary predictors)
-  #             , error.df = degf(fit.ex8.1$survey.design)
-                                 )
-
-tbl_merge(
-  tbls = list(t3, t4),
-  tab_spanner = c("**Regression Coefficients**", "**Adjusted Odds Ratio**")
-)
-
-```
-
-> Recode marital status and add back into regression
-
-
-Very simple interpretation: Compared to Business and Finance occupations who Can Work From Home in Rural Counties without any children under 5
-
-Increases likelihood of working from home: Number of Children under 5 increases odds of working from home, living in an "Urban" County (higher pop. density),
-
-Decreases liklihood of working from home: Lacking access to internet, WFH not feasible & occupation labels within Production and Transportation,
-
-## Other Sources and Papers
+# Other Sources and Papers
 
 Ability to work from home: evidence from two surveys and implications for the labor market in the COVID-19 pandemic. June 2020. [BLS Monthly Labor Review](https://www.bls.gov/opub/mlr/2020/article/ability-to-work-from-home.htm)
 
