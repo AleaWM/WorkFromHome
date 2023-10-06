@@ -1,0 +1,1021 @@
+---
+title: "Models for Paper"
+subtitle: "Work From Home: Who Can and Who Does?"
+format:
+  html:
+    df-print: paged
+    toc: true
+---
+
+# Getting Data
+
+I combine the 2019 and 2021 datasets when creating new variables and then separate them by year again before creating the survey design object for each sample year.
+
+```{r setup, warning=FALSE, message=FALSE, include=FALSE}
+
+library(scales)
+library(reldist)
+library(pollster)
+library(labelled)
+library(weights)
+library(tigris)
+library(ipumsr)
+library(srvyr)
+library(survey)
+library(tidyverse)
+library(naniar)
+library(gmodels)
+library(gtsummary)
+library(quarto)
+library(huxtable) # for summ() and regression output formatting
+library(jtools)
+library(modelsummary)
+library(car)
+
+knitr::opts_chunk$set(warning=FALSE, message=FALSE)
+
+```
+
+```{r include=FALSE}
+Alea_theme <- function(){ 
+    theme_classic() %+replace%    #replace elements we want to change
+    
+    theme(
+      
+      #grid elements
+      panel.grid.major = element_blank(),    #strip major gridlines
+      panel.grid.minor = element_blank(),    #strip minor gridlines
+      axis.ticks = element_blank(),          #strip axis ticks
+      axis.text.x = element_blank(),
+     axis.text.y = element_blank(),
+
+      #since theme_minimal() already strips axis lines, 
+      #we don't need to do that again
+      
+      #text elements
+      plot.title = element_text(             #title
+                   size = 14,                #set font size
+                   face = 'bold',            #bold typeface
+                   hjust = 0,                #left align
+                   vjust = 2),               #raise slightly
+      
+      plot.subtitle = element_text(          #subtitle
+                   size = 14),               #font size
+      
+      plot.caption = element_text(           #caption
+                   size = 9,                 #font size
+                   hjust = 1),               #right align
+      
+      axis.title = element_text(             #axis titles
+                   size = 10),               #font size
+      
+      axis.text = element_text(              #axis text
+                   size = 9)                #font size
+    
+      
+      #since the legend often requires manual tweaking 
+      #based on plot content, don't define it here
+    )
+}
+```
+
+
+```{r message=FALSE, warning = FALSE}
+# old version with less variables:
+#ddi <- read_ipums_ddi("usa_00009.xml") # 45 variables
+#data <- read_ipums_micro(ddi) # 126623 observations before any filtering
+
+# larger version with 147 variables. uses same file as Box file named "IL_2021_1yr_ACS.dat.gz and IL_2021_1yr_ACS_datDDI.xml
+ddi <- read_ipums_ddi("usa_00011.xml") # downloaded April 10 2023
+data2021 <- read_ipums_micro(ddi) # 126623 observations before any filtering
+data2021 <- data2021 %>% select(YEAR, INCEARN, INCWAGE, INCTOT, TRANWORK, OCCSOC, CLASSWKR, EMPSTAT, LABFORCE, PERWT, COUNTYFIP, PUMA, PWSTATE2, AGE, STRATA, CLUSTER, RACE, HISPAN, SEX, CIHISPEED, CINETHH, MULTGEN, NCHILD, NCHLT5, MARST, FERTYR, EDUC, DEGFIELD, OCC, IND, OCC2010, METRO, CITY, HHINCOME, SERIAL,HHWT, NUMPREC, SUBSAMP,HHTYPE )
+
+# same sample but with 150+ variables. 
+# NEED TO CHANGE XML file that referneces the data file. currently says usa_00011.dat.gz so these two lines of code do not work. 
+
+ddi <- read_ipums_ddi("C:/Users/aleaw/Box/Fiscal Futures/FY22_Working/WFH/Data/IL_2019_1yearACS_datDDI.xml") # downloaded April 10 2023
+data2019 <- read_ipums_micro(ddi) # 126623 observations before any filtering
+data2019 <- data2019 %>% select(YEAR, INCEARN, INCWAGE, INCTOT, TRANWORK, OCCSOC, CLASSWKR, EMPSTAT, LABFORCE, PERWT, COUNTYFIP, PUMA, PWSTATE2, AGE, STRATA, CLUSTER, RACE, HISPAN, SEX, CIHISPEED, CINETHH, MULTGEN, NCHILD, NCHLT5, MARST, FERTYR, EDUC, DEGFIELD, OCC, IND, OCC2010, METRO, CITY, HHINCOME, SERIAL,HHWT, NUMPREC, SUBSAMP,HHTYPE   )
+
+data <- rbind(data2019, data2021) #125,007 observations before any filtering. 
+
+
+# replaces 0 with NA for variables listed. Allows topline to calculate "Valid Percent" when it recognizes missing values
+
+data <- data %>% replace_with_na(replace = list(
+  EMPSTAT= c(0), 
+  LABFORCE=c(0), 
+  CLASSWKR = c(0),
+  OCCSOC = c(0),
+  CIHISPEED = c(0),
+  CINETHH = c(0),
+  TRANWORK = c("N/A","0"))) %>% 
+  filter(LABFORCE == 2 & INCEARN > 0) # in labor force and 18 years old and up abd positive earned incomes. 
+
+
+data <- data %>% mutate(age_cat = 
+                              case_when(AGE < 24 ~ "16to24",
+                                        AGE > 24 & AGE < 35 ~ "25to34",
+                                        AGE > 34 & AGE < 45 ~ "35to44",
+                                        AGE > 44 & AGE < 55 ~ "45to54",
+                                        AGE > 54 & AGE < 65 ~ "55to64",
+                                        AGE > 64 ~ "65+"),
+                        sex_cat = case_when(SEX == 1 ~ "Male",
+                                            SEX == 2 ~ "Female"))
+
+data <-  data %>% mutate(white = if_else(RACE ==1, 1, 0),
+         black = if_else(RACE ==2, 1, 0), 
+         asian = if_else(RACE %in% c(4,5,6), 1, 0),
+         otherrace = if_else(RACE %in% c(3,7,8,9),1,0)) %>%
+  group_by(COUNTYFIP,PUMA) %>%
+  mutate(pct_white = sum(white)/n(),
+         pct_black = sum(black)/n()) %>% 
+  ungroup() %>%
+  mutate(race_cat = case_when(
+    RACE ==1~"White",
+    RACE ==2 ~ "Black", 
+    RACE %in% c(4,5,6)~"Asian",
+    RACE %in% c(3,7,8,9)~"Other"))
+
+
+## numbers used for income breaks are calculated in Income Deciles section. 
+# created now so that the variable exists in the joined dataset before creating the survey design object
+
+data <- data %>% 
+  mutate(incdecile_w = case_when(
+    INCEARN < 8000 ~ 1, 
+    INCEARN >= 8000 & INCEARN < 18000 ~ 2,
+    INCEARN >= 18000 & INCEARN < 26000 ~ 3,
+    INCEARN >= 26000 & INCEARN < 35000 ~ 4,
+    INCEARN >= 35000 & INCEARN < 43000 ~ 5,
+    INCEARN >= 43000 & INCEARN < 54000 ~ 6,
+    INCEARN >= 54000 & INCEARN < 68000 ~ 7,
+    INCEARN >= 68000 & INCEARN < 85000 ~ 8,
+    INCEARN >= 85000 & INCEARN < 120000 ~ 9,
+    INCEARN >= 120000 ~ 10)
+  ) %>%
+  ## Padding FIPS code for merging with spatial geometry later
+  mutate(county_pop_type = if_else(COUNTYFIP==0, 
+                                   "Rural Counties", "Urban Counties")) %>%
+  mutate(PUMA = str_pad(PUMA, 5, pad="0"),
+         countyFIP = str_pad(COUNTYFIP, 3, pad = "0"))
+
+
+data <- data %>%
+  mutate(occ_2digits = substr(OCCSOC,1,2)) %>% 
+  mutate(occ_2dig_labels = case_when(
+    occ_2digits %in% c(11,13,19,15,17,19,21,23,25,27,29) ~ "Management, Business, Science, Arts",
+    occ_2digits %in% c(31,32,33,34,35,36,37,38,39) ~ "Service Occupations",
+    occ_2digits %in% c(41,42,43) ~ "Sales & Office Jobs",
+    occ_2digits %in% c(45,46,47,48,49 ) ~"Natural Resources, Construction",
+    occ_2digits %in% c(51, 52, 53) ~ "Production, Transportation",
+    occ_2digits == 55 ~ "Military")) 
+
+data <- data %>%
+  mutate(occ_2digits = substr(OCCSOC,1,2)) %>% 
+  mutate(occ_2dig_labels_d = case_when(
+    occ_2digits %in% c(11) ~ "Management",
+    occ_2digits %in% c(13) ~ "Business & Finance",
+    occ_2digits %in% c(15) ~ "Computer, Engineering & Science",
+    occ_2digits %in% c(17) ~ "Architecture & Engineering",
+    occ_2digits %in% c(19) ~ "Life/Social Sciences",
+    occ_2digits == 21 ~ "Community & Social Services",
+    occ_2digits == 23 ~ "Legal",
+    occ_2digits == 25 ~ "Educational Instruction",
+    occ_2digits == 27 ~ "Arts, Design, Entertainainment",
+    occ_2digits == 29 ~ "Health Practictioners",
+    occ_2digits == 31 ~ "Healthcare Support",
+    occ_2digits == 33 ~ "Protective services",
+    occ_2digits == 35 ~ "Food Services",
+    occ_2digits == 37 ~ "Building Cleaning & Maintenance",
+    occ_2digits == 41 ~ "Sales",
+    occ_2digits == 43 ~"Office & Administration",
+    occ_2digits == 45 ~ "Farm, Fish, Forest",
+    occ_2digits == 47 ~ "Construction & Extractraction",
+    occ_2digits == 49 ~"Installation, Maintenance",
+    occ_2digits == 51 ~"Production",
+    occ_2digits == 53 ~ "Transportation & Material Moving",
+    occ_2digits == 55 ~ "Military",
+    TRUE~"Other") )
+
+data <- data %>% 
+  mutate(did_wfh = if_else(TRANWORK==80, 1, 0)) # 1 = wfh, 0 = did not wfh
+
+data <- data %>% 
+  mutate(
+    PWSTATE2 = ifelse(PWSTATE2 == 0, NA, PWSTATE2),
+    work_in_IL = ifelse(PWSTATE2 == "17", "In Illinois", "Out of IL"),
+    did_wfh_labels = ifelse(did_wfh == 1, "Did WFH", "Did not WFH"),
+    has_incearn = ifelse(INCEARN > 0, 1, 0), ## has earned income = 1
+    has_occsoc = ifelse(OCCSOC > 0, 1, 0),# has occupation = 1
+    has_incearn_labels = ifelse(INCEARN > 0, "Has EarnInc", "No IncData"), ## has earned income = 1
+    has_occsoc_labels = ifelse(OCCSOC > 0, "Has Occ", "No Occ") ## OCCSOC code greater than zero coded as 1
+    )
+
+rm(ddi)
+rm(data2019)
+rm(data2021)
+```
+
+```{r could-wfh}
+# bring in the teleworkable scores based on D&N's work.
+telework <- read_csv("teleworkable_AWM.csv")
+joined <- left_join(data, telework, by = c("OCCSOC" = "occ_codes"))
+
+#May 22 2023, Changed 399011 occupation to 0. Was coding Nannies and Child care as teleworkable.
+joined <- joined %>% mutate(teleworkable = ifelse(OCCSOC == "399011" | OCCSOC == "399010", 0, teleworkable))
+
+#table(joined$teleworkable)
+# mostly 0's and 1's.
+#hist(joined$teleworkable)
+
+joined <- joined %>% 
+  mutate(CanWorkFromHome = case_when(
+  teleworkable == 0 ~ "No WFH",
+  teleworkable < 1 ~ "Some WFH",
+  teleworkable == 1 ~ "Can WFH",
+  TRUE ~ "Check Me")) %>% 
+  # keeps observations that have earned income values and are in the labor force.
+  filter(has_incearn == 1 & LABFORCE == 2) 
+
+
+table(joined$CanWorkFromHome)
+
+
+table(joined$did_wfh, joined$YEAR)
+
+
+```
+
+```{r survey-design, message = FALSE, warning=FALSE}
+#as_survey() from srvyr package
+
+## both years together: calculations using this will have incorrect standard errors
+# might be easier sometimes to graph together. Maybe. 
+joined <- joined %>% filter(HHINCOME > 0 & HHINCOME!= 9999999 & HHINCOME != 9999998)  # 105 observations 
+joined <- joined %>%
+  mutate(HHincdecile_w = case_when(
+    INCEARN < 34000 ~ 1,
+    INCEARN >= 34000 & INCEARN < 51900 ~ 2,
+    INCEARN >= 51900 & INCEARN < 68000 ~ 3,
+    INCEARN >= 68000 & INCEARN < 83600 ~ 4,
+    INCEARN >= 83699 & INCEARN < 100000 ~ 5,
+    INCEARN >= 100000 & INCEARN < 120000 ~ 6,
+    INCEARN >= 120000 & INCEARN < 142400 ~ 7,
+    INCEARN >= 142400 & INCEARN < 175000 ~ 8,
+    INCEARN >= 175000 & INCEARN < 235000 ~ 9,
+    INCEARN >= 235000 ~ 10)
+  )
+
+dstrata <- survey::svydesign(id = ~CLUSTER, strata = ~STRATA, weights = ~PERWT, data = joined) %>% 
+  as_survey() %>%
+  mutate(decile = ntile(INCEARN, 10))
+
+
+
+# 2019 data turned into survey item
+dstrata2019 <- joined %>% filter(YEAR==2019) 
+dstrata2019 <- survey::svydesign(id = ~CLUSTER, strata = ~STRATA, 
+                                 weights = ~PERWT, data = dstrata2019) %>% 
+  as_survey() %>% 
+  mutate(decile = ntile(INCEARN, 10))
+
+
+dstrata2021 <- joined %>% filter(YEAR==2021) 
+
+dstrata2021 <- survey::svydesign(id = ~CLUSTER, strata = ~STRATA, weights = ~PERWT, data = dstrata2021) %>% as_survey() %>%
+  mutate(decile = ntile(INCEARN, 10))
+
+
+
+
+
+
+```
+
+```{r}
+#| code-fold: true
+#| output: hold
+
+joined <- joined %>% filter(HHINCOME > 0 & HHINCOME!= 9999999 & HHINCOME != 9999998)  # 105 observations 
+
+joined %>%
+  ggplot() + geom_histogram(aes(x=HHINCOME, weight = HHWT))
+
+joined %>% # 122000 observations 
+ggplot() + geom_histogram(aes(x=HHINCOME))
+
+HHdesign <- survey::svydesign(id = ~CLUSTER, strata = ~STRATA, weights = ~HHWT, data = joined)
+
+inc_quantiles <-survey::svyquantile(~HHINCOME, design=HHdesign, 
+                    quantiles = c(0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1) ,
+                    na.rm=TRUE, ci = FALSE  )
+inc_quantiles
+
+# With  HH Weights:  4 32900 50000 66600 82000 99000 117000 140000 171000 230000 1797000
+# With WRONG weights:  (34000, 51900, 68000, 83600, 1e+05 120,000 142,400 175,000 235,000
+#Code done above when creating variables in beginning chunks.
+joined <- joined %>%
+  mutate(HHincdecile_w = case_when(
+    INCEARN < 32900 ~ 1,
+    INCEARN >= 32900 & INCEARN < 50000 ~ 2,
+    INCEARN >= 50000 & INCEARN < 66600 ~ 3,
+    INCEARN >= 66600 & INCEARN < 82000 ~ 4,
+    INCEARN >= 82000 & INCEARN < 99000 ~ 5,
+    INCEARN >= 99000 & INCEARN < 117000 ~ 6,
+    INCEARN >= 117000 & INCEARN < 140000 ~ 7,
+    INCEARN >= 140000 & INCEARN < 171000 ~ 8,
+    INCEARN >= 171000 & INCEARN < 230000 ~ 9,
+    INCEARN >= 230000 ~ 10)
+  )
+
+HHdesign <- survey::svydesign(id = ~CLUSTER, strata = ~STRATA, weights = ~HHWT, data = joined)
+table <- svytable(~YEAR+HHincdecile_w+did_wfh_labels,  design = HHdesign) 
+
+table <- table %>% 
+  as_tibble() %>% 
+  group_by(YEAR,HHincdecile_w)%>%
+  mutate(Prop=round(n/sum(n), digits=3)) %>%
+  filter(did_wfh_labels == "Did WFH")
+
+table # has proportions calculated out of TOTAl for both years
+
+table %>%
+  ggplot(aes(factor(HHincdecile_w, levels = c(1,2,3,4,5,6,7,8,9,10), labels = c("Bottom 10%", "20%", "30%", "40%", "50%", "60%", "70%", "80%", "90%", "Top 10%")), 
+                     y=Prop, fill = YEAR, group = factor(YEAR, levels = "2021","2019"))) + 
+  geom_col(stat="identity", position = "dodge")+
+  #geom_col(stat = "identity", position = "stack") +   # scale_x_discrete(limits = c("Bottom 10%", "20%", "30%", "40%", "50%", "60%", "70%", "80%", "90%", "Top 10%"))+
+
+ # facet_wrap(~YEAR)+
+   coord_flip()+
+    geom_text(aes(label = scales::percent(Prop, accuracy = 0.1L)), position = position_dodge(width = 0.8), hjust = 1.1,
+              size = 4) + 
+  labs(title ="Percent of each HOUSEHOLD income decile that did WFH",
+  subtitle = "2019 vs 2021",
+       caption = "ACS 1 year samples for 2019 and 2021. Working from home based on TRANWORK question on commuting and HHINCOME variable.
+       All workers in the labor force, all ages included.
+       Income based on HHINCOME for household income of survey respondents.", 
+       x= "Income Deciles", 
+       y = "Percent of workers working from home") + 
+ theme(legend.position = "bottom", legend.title = element_blank())+
+  theme_classic()+
+    scale_fill_manual(values = c("#a6bddb", "#2b8cbe")) +
+  scale_y_continuous(labels = scales::percent)
+
+
+```
+
+# Regression Models
+
+
+Regression for 2019 using survey object `dstrata2019` & regression for 2021 using survey object `dstrata2021`.
+
+
+
+## Gender and Kids Model: Subsetting survey data
+
+### Logit Model
+
+Model created with a subset of survey data. Only uses workers who had Management type occupations, Could feasibly WFH, and were under the ages of 45.
+
+```{r}
+
+
+both <- svyglm(did_wfh~ INCEARN + race_cat + sex_cat + age_cat + factor(CIHISPEED) + county_pop_type + NCHILD + NCHLT5  + factor(YEAR), 
+               subset = AGE < 45 & CanWorkFromHome == "Can WFH" & occ_2dig_labels == "Management, Business, Science, Arts",
+        family = quasibinomial(), design = dstrata)
+
+# summary(both)
+
+
+OR.CI_Both <- cbind("AOR" = exp(   coef(both)),
+                       exp(confint(both,
+                           df.resid=degf(both$survey.design))))[-1,]
+
+t1 <- both %>%
+  tbl_regression(intercept = T,
+                 # Use style_number to round to 2 digits (e.g., 1.27)
+                 estimate_fun = function(x) style_number(x, digits = 2),
+                 # Use style_sigfig to keep 2 significant digits (e.g., 1.3)
+                 # estimate_fun = function(x) style_sigfig(x, digits = 2),
+                  label  = list('(Intercept)'  ~ "Intercept")
+ ) %>%
+  modify_column_hide(p.value) %>%
+  modify_caption("Both Survey Years Together - Logit Model")
+
+t2 <- both %>%
+  tbl_regression(intercept = F,     # No intercept in OR table
+                 exponentiate = T,  # OR = exp(B)
+                 # Use style_number to round to 2 digits (e.g., 1.27)
+                 estimate_fun = function(x) style_number(x, digits = 2),
+                 # Use style_sigfig to keep 2 significant digits (e.g., 1.3)
+                 pvalue_fun   = function(x) style_pvalue(x, digits = 3),
+                 # label  = list(
+                 #               AGE ~ "Age (years)",
+                 #              )
+                 ) %>%
+  add_global_p(keep = T, test.statistic = "F")
+
+tbl_merge(
+  tbls = list(t1, t2),
+  tab_spanner = c("**Regression Coefficients**", "**Adjusted Odds Ratio**")
+)
+
+```
+
+
+A note on the p-value: the p-value is a test of significance for the null hypothesis H0 that
+
+-   there is no difference in the log-odds of the outcome between the reference group (captured by the intercept) and the explanatory variable (or one of its categories), or that the difference between the two groups equals zero: H0:b1=0 and Ha:b1≠0
+
+If p\<0.5, we reject H0 as we have evidence to suggest that the difference between the two groups does not equal zero.
+
+Log-odds are not the most intuitive to interpret. Instead of discussing the change in the log-odds, we can calculate the odds ratio for a given variable by exponentiating the coefficient. 
+
+__Odds ratio is read "have x times the odds of the outcome of interest compared to those in the reference group".__
+
+Reference group of the outcome variable: by default, R creates uses the lowest coded group as the reference. The reference category can be changed by using the 'relevel()'.
+
+Relationship between Odds and Probabilities:
+
+Odds=P/(1-P) 
+P=odds/(1+odds) 
+Odds=exp(log-odds) 
+P=exp(log-odds)/(1+exp(log-odds))
+
+```{r}
+
+
+both <- svyglm(did_wfh~ sex_cat*factor(YEAR)+ age_cat*factor(YEAR) + NCHILD*factor(YEAR) + NCHLT5*factor(YEAR)+factor(CIHISPEED)*factor(YEAR) + county_pop_type*factor(YEAR) +race_cat*factor(YEAR), 
+               subset = AGE < 45 & CanWorkFromHome == "Can WFH" & occ_2dig_labels == "Management, Business, Science, Arts",
+        family = quasibinomial(), design = dstrata)
+
+OR.CI_Both <- cbind("AOR" = exp(   coef(both)),
+                       exp(confint(both,
+                           df.resid=degf(both$survey.design))))[-1,]
+
+
+t1 <- both %>%
+  tbl_regression(intercept = T,
+                 # Use style_number to round to 2 digits (e.g., 1.27)
+                 estimate_fun = function(x) style_number(x, digits = 2),
+                 # Use style_sigfig to keep 2 significant digits (e.g., 1.3)
+                 # estimate_fun = function(x) style_sigfig(x, digits = 2)
+                 ) %>%
+  modify_column_hide(p.value) %>%
+  modify_caption("Both years together with Interactions - Logit Model")
+
+t2 <- both %>%
+  tbl_regression(intercept = F,     # No intercept in OR table
+                 exponentiate = T,  # OR = exp(B)
+                 # Use style_number to round to 2 digits (e.g., 1.27)
+                 estimate_fun = function(x) style_number(x, digits = 2),
+                 # Use style_sigfig to keep 2 significant digits (e.g., 1.3)
+                 pvalue_fun   = function(x) style_pvalue(x, digits = 3)
+                 ) %>%
+  add_global_p(keep = T, test.statistic = "F")
+
+tbl_merge(
+  tbls = list(t1, t2),
+  tab_spanner = c("**Regression Coefficients**", "**Adjusted Odds Ratio**")
+)
+
+
+modelsummary(both, exponentiate = TRUE, # does standard and exponentiated models together 
+             statistic = c("conf.int",
+                           "s.e. = {std.error}", 
+                           "p = {p.value}"),
+             stars = TRUE, shape = term ~  statistic,
+             notes = list('Subset of ACS Survey Data for 2019 and 2021',
+                          'Odds Ratios Shown in Table'),
+             title = 'Predictions for WFH in 2019 vs 2021')
+```
+
+```{r}
+library(flextable)
+
+m <- list(
+  "2019 OR" = svyglm(did_wfh~ sex_cat + age_cat  + NCHILD + NCHLT5 + factor(CIHISPEED) + county_pop_type +race_cat,
+                    subset = AGE < 45 & CanWorkFromHome == "Can WFH" & occ_2dig_labels == "Management, Business, Science, Arts",
+                    family = quasibinomial(),
+                    design = dstrata2019),
+  
+  "2021 OR" =  svyglm(did_wfh~ sex_cat+ age_cat  + NCHILD + NCHLT5 + factor(CIHISPEED) + county_pop_type +race_cat,
+                    subset = AGE < 45 & CanWorkFromHome == "Can WFH" & occ_2dig_labels == "Management, Business, Science, Arts",
+                    family = quasibinomial(),
+                    design = dstrata2021)
+) 
+
+# 
+# modelsummary(m, exponentiate = TRUE, # does standard and exponentiated models together
+#              statistic = c("conf.int",
+#                            "s.e. = {std.error}",
+#                            "p = {p.value}"),
+#              stars = TRUE, shape = term ~ model + statistic,
+#              notes = list('Subset of ACS Survey Data for 2019 and 2021',
+#                           'Odds Ratios Shown in Table'),
+#              title = 'Predictions for WFH in 2019 vs 2021',
+#              output = "table.docx")
+
+modelsummary(m, exponentiate = TRUE, # does standard and exponentiated models together 
+             statistic = c("conf.int",
+                           "s.e. = {std.error}", 
+                           "p = {p.value}"),
+             stars = TRUE, shape = term ~ model + statistic,
+             notes = list('Subset of ACS Survey Data for 2019 and 2021',
+                          'Odds Ratios Shown in Table'),
+             title = 'Predictions for WFH in 2019 vs 2021')
+
+```
+
+
+```{r}
+#| column: page
+modelplot(m, facet=TRUE)
+```
+
+
+```{r}
+m4_2019 <- svyglm(did_wfh~ sex_cat+ age_cat  + NCHILD + NCHLT5 + factor(CIHISPEED) + county_pop_type+INCEARN +race_cat,
+                    subset = AGE < 45 & CanWorkFromHome == "Can WFH" & occ_2dig_labels == "Management, Business, Science, Arts",
+                    family = quasibinomial(),
+                    design = dstrata2019)
+  
+m4_2021 <- svyglm(did_wfh~ sex_cat+ age_cat  + NCHILD + NCHLT5 + factor(CIHISPEED) + county_pop_type+INCEARN +race_cat,
+                    subset = AGE < 45 & CanWorkFromHome == "Can WFH" & occ_2dig_labels == "Management, Business, Science, Arts",
+                    family = quasibinomial(),
+                    design = dstrata2021)
+
+
+export_summs(m4_2019, m4_2021, model.names = c("Subset 2019 Logit", " Subset 2021 Logit"))
+
+
+```
+
+
+### OLS Model
+
+
+```{r}
+#| column: page
+m <- list(
+  "2019 OLS" = svyglm(did_wfh~ sex_cat + AGE + NCHLT5 + factor(CIHISPEED) + county_pop_type +race_cat,
+                    subset = AGE < 45 & CanWorkFromHome == "Can WFH" & occ_2dig_labels == "Management, Business, Science, Arts",
+                    design = dstrata2019),
+  
+  "2021 OLS" =  svyglm(did_wfh ~ sex_cat+ AGE + NCHLT5 + factor(CIHISPEED) + county_pop_type +race_cat,
+                    subset = AGE < 45 & CanWorkFromHome == "Can WFH" & occ_2dig_labels == "Management, Business, Science, Arts",
+                    design = dstrata2021)
+) 
+
+# 
+# modelsummary(m, exponentiate = TRUE, # does standard and exponentiated models together
+#              statistic = c("conf.int",
+#                            "s.e. = {std.error}",
+#                            "p = {p.value}"),
+#              stars = TRUE, shape = term ~ model + statistic,
+#              notes = list('Subset of ACS Survey Data for 2019 and 2021',
+#                           'Odds Ratios Shown in Table'),
+#              title = 'Predictions for WFH in 2019 vs 2021',
+#              output = "table.docx")
+
+modelsummary(m,# exponentiate = TRUE, # does standard and exponentiated models together 
+             statistic = c("conf.int",
+                           "s.e. = {std.error}", 
+                           "p = {p.value}"),
+             stars = TRUE, shape = term ~ model + statistic,
+             notes = list('Subset of ACS Survey Data for 2019 and 2021'),
+             title = 'OLS - Separate Models for WFH in 2019 vs 2021')
+
+
+```
+
+
+```{r}
+#| column: page
+#| echo: false
+modelplot(m, facet=TRUE)
+```
+
+
+```{r}
+#|column: page
+m4_2019 <- svyglm(did_wfh ~ sex_cat+ AGE + NCHLT5 + factor(CIHISPEED) + county_pop_type+INCEARN +race_cat,
+                    subset = AGE < 45 & CanWorkFromHome == "Can WFH" & occ_2dig_labels == "Management, Business, Science, Arts",
+                    design = dstrata2019)
+  
+m4_2021 <- svyglm(did_wfh ~ sex_cat+ AGE + NCHLT5 + factor(CIHISPEED) + county_pop_type+INCEARN +race_cat,
+                    subset = AGE < 45 & CanWorkFromHome == "Can WFH" & occ_2dig_labels == "Management, Business, Science, Arts",
+                    design = dstrata2021)
+
+
+export_summs(m4_2019, m4_2021, model.names = c("Subset 2019 OLS", " Subset 2021 OLS"))
+
+
+t1 <- m4_2019 %>%
+  tbl_regression(intercept = T,
+                 # Use style_number to round to 2 digits (e.g., 1.27)
+                 estimate_fun = function(x) style_number(x, digits = 2),
+                 pvalue_fun   = function(x) style_pvalue(x, digits = 3)
+
+                 ) %>%
+  add_global_p(keep = T, test.statistic = "F")
+
+t2 <- m4_2021 %>%
+  tbl_regression(intercept = T,     # No intercept in OR table
+                 # Use style_number to round to 2 digits (e.g., 1.27)
+                 estimate_fun = function(x) style_number(x, digits = 2),
+                 # Use style_sigfig to keep 2 significant digits (e.g., 1.3)
+                 pvalue_fun   = function(x) style_pvalue(x, digits = 3)
+                 ) %>%
+  add_global_p(keep = T, test.statistic = "F")
+
+
+tbl_merge(
+  tbls = list(t1, t2),
+  tab_spanner = c("**OLS 2019 Subset**", "**OLS 2021 Subset**")
+)
+```
+
+
+
+## Models with both years together
+
+### OLS
+
+```{r}
+#| column: page
+
+both <- svyglm(did_wfh~ CanWorkFromHome+county_pop_type+ NCHILD + NCHLT5 +
+                 INCEARN +race_cat+ sex_cat + age_cat + CIHISPEED + 
+                 occ_2dig_labels + factor(YEAR), design = dstrata)
+
+
+ols2021 <- svyglm(did_wfh~ CanWorkFromHome+county_pop_type+ NCHILD + NCHLT5 +
+                    INCEARN +race_cat+ sex_cat + age_cat + CIHISPEED + 
+                    occ_2dig_labels, design = dstrata2021)
+
+summary(ols2021)
+
+export_summs(both, ols2021, model.names = c("Both Years OLS", " Only 2021 OLS"))
+
+t1 <- both %>%
+  tbl_regression(intercept = T,
+                 # Use style_number to round to 2 digits (e.g., 1.27)
+                 estimate_fun = function(x) style_number(x, digits = 2),
+                 pvalue_fun   = function(x) style_pvalue(x, digits = 3)
+
+                 ) %>%
+  add_global_p(keep = T, test.statistic = "F")
+
+t2 <- ols2021 %>%
+  tbl_regression(intercept = T,     # No intercept in OR table
+                 # Use style_number to round to 2 digits (e.g., 1.27)
+                 estimate_fun = function(x) style_number(x, digits = 2),
+                 # Use style_sigfig to keep 2 significant digits (e.g., 1.3)
+                 pvalue_fun   = function(x) style_pvalue(x, digits = 3)
+                 ) %>%
+  add_global_p(keep = T, test.statistic = "F")
+
+
+tbl_merge(
+  tbls = list(t2),
+  tab_spanner = c("**OLS 2021 Full Model**")
+)
+```
+
+### Logit
+
+```{r}
+
+
+both <- svyglm(did_wfh ~ CanWorkFromHome + occ_2dig_labels + factor(YEAR) + 
+                 county_pop_type+ NCHILD + NCHLT5 + INCEARN +race_cat+ sex_cat 
+               + age_cat, 
+        family = quasibinomial(), design = dstrata)
+
+
+
+OR.CI_Both <- cbind("AOR" = exp(   coef(both)),
+                       exp(confint(both,
+                           df.resid=degf(both$survey.design))))[-1,]
+#round(OR.CI_2019, 3)
+
+t1 <- both %>%
+  tbl_regression(intercept = T,
+                 # Use style_number to round to 2 digits (e.g., 1.27)
+                 estimate_fun = function(x) style_number(x, digits = 2)) %>%
+  modify_column_hide(p.value) %>%
+  modify_caption("Logit - 2019 & 2021 ACS Data Together")
+
+t2 <- both %>%
+  tbl_regression(intercept = F,     # No intercept in OR table
+                 exponentiate = T,  # OR = exp(B)
+                 # Use style_number to round to 2 digits (e.g., 1.27)
+                 estimate_fun = function(x) style_number(x, digits = 2),
+                 # Use style_sigfig to keep 2 significant digits (e.g., 1.3)
+                 pvalue_fun   = function(x) style_pvalue(x, digits = 3)) %>%
+  add_global_p(keep = T, test.statistic = "F")
+
+tbl_merge(
+  tbls = list(t1, t2),
+  tab_spanner = c("**Regression Coefficients**", "**Adjusted Odds Ratio**")
+)
+
+```
+
+log-odds to odds-ratio: exp(log-odds)
+
+odds-ratio to %: (OR-1) \* 100
+
+## Variation of Models - mostly ignore
+
+```{r}
+#| column: page
+#| code-fold: true
+
+
+library(huxtable) # for summ() and regression output formatting
+library(jtools)
+library(modelsummary)
+
+#svyglm(did_wfh~ INCEARN + race_cat+ SEX+ CIHISPEED+CINETHH + occ_2dig_labels+CanWorkFromHome+county_pop_type, design = dstrata2021) %>% summary()
+
+
+
+### All variations of family = "" had same results 
+# m1_2019 <- svyglm(did_wfh~ INCEARN +race_cat+ SEX+ AGE + CIHISPEED*CINETHH + CanWorkFromHome+county_pop_type+NCHILD+MARST + NCHLT5, 
+#       family = "binomial", design = dstrata2019)
+# 
+# m1_2021<- svyglm(did_wfh~ INCEARN +race_cat+ SEX+ AGE + CIHISPEED*CINETHH + CanWorkFromHome+county_pop_type+NCHILD+MARST + NCHLT5, 
+#       family = "binomial", design = dstrata2021)
+#   
+# export_summs(m1_2019, m1_2021, 
+#              model.names = c("2019 Logit", "2021 Logit"), 
+#             robust = "HC3", statistics = c(N = "nobs", R2 = "r.squared", adjR2 = "adj.r.squared"))
+# 
+# 
+# m1_2019 <- svyglm(did_wfh~ INCEARN +race_cat+ SEX+ AGE + CIHISPEED*CINETHH + CanWorkFromHome+county_pop_type+NCHILD+MARST + NCHLT5, 
+#        family = quasibinomial(), design = dstrata2019)
+# 
+# m1_2021<- svyglm(did_wfh~ INCEARN +race_cat+ SEX+ AGE + CIHISPEED*CINETHH + CanWorkFromHome+county_pop_type+NCHILD+MARST + NCHLT5, 
+#     family=quasibinomial(),   design = dstrata2021)
+#   
+# 
+# export_summs(m1_2019, m1_2021, 
+#              model.names = c("2019 QuasiBi", "2021 QuasiBi"), 
+#             robust = "HC3", statistics = c(N = "nobs", R2 = "r.squared", adjR2 = "adj.r.squared"))
+
+
+m1_2019 <- svyglm(did_wfh~ CanWorkFromHome + county_pop_type + NCHILD + NCHLT5 + occ_2dig_labels+ INCEARN + race_cat+ sex_cat+ age_cat, 
+        family = quasibinomial(),design = dstrata2019)
+
+m1_2021<- svyglm(did_wfh~ CanWorkFromHome + county_pop_type + NCHILD + NCHLT5 + occ_2dig_labels+ INCEARN + race_cat+ sex_cat+ age_cat, 
+      family = quasibinomial(), design = dstrata2021)
+  
+export_summs(m1_2019, m1_2021, 
+             model.names = c("2019 Logit", "2021 Logit"), 
+            robust = "HC3", statistics = c(N = "nobs", R2 = "r.squared", adjR2 = "adj.r.squared"))
+```
+
+
+```{r}
+#| column: page
+#| code-fold: true
+OR.CI_2019 <- cbind("AOR" = exp(   coef(m1_2019)),
+                       exp(confint(m1_2019,
+                           df.resid=degf(m1_2019$survey.design))))[-1,]
+
+OR.CI_2021 <- cbind("AOR" = exp(   coef(m1_2021)),
+                       exp(confint(m1_2021,
+                           df.resid=degf(m1_2021$survey.design))))[-1,]
+
+library(gtsummary)
+library(car)
+
+t1 <- m1_2019 %>%
+  tbl_regression(intercept = T,
+                 # Use style_number to round to 2 digits (e.g., 1.27)
+                 estimate_fun = function(x) style_number(x, digits = 2),
+) %>%
+  modify_column_hide(p.value) %>%
+  modify_caption("2019  vs 2021 ACS Data - Logit Models")
+
+t2 <- m1_2019 %>%
+  tbl_regression(intercept = F,     # No intercept in OR table
+                 exponentiate = T,  # OR = exp(B)
+                 # Use style_number to round to 2 digits (e.g., 1.27)
+                 estimate_fun = function(x) style_number(x, digits = 2),
+                 # Use style_sigfig to keep 2 significant digits (e.g., 1.3)
+                 pvalue_fun   = function(x) style_pvalue(x, digits = 3),
+) %>%
+  add_global_p(keep = T, test.statistic = "F")
+
+# tbl_merge(
+#   tbls = list(t1, t2),
+#   tab_spanner = c("**2019 Regression Coefficients**", "** 2019 Adjusted Odds Ratio**")
+# )
+
+
+t3 <- m1_2021 %>%
+  tbl_regression(intercept = T,
+                 # Use style_number to round to 2 digits (e.g., 1.27)
+                 estimate_fun = function(x) style_number(x, digits = 2),
+) %>%
+  modify_column_hide(p.value) %>%
+  modify_caption("2021 ACS")
+
+t4 <- m1_2021 %>%
+  tbl_regression(intercept = F,     # No intercept in OR table
+                 exponentiate = T,  # OR = exp(B)
+                 # Use style_number to round to 2 digits (e.g., 1.27)
+                 estimate_fun = function(x) style_number(x, digits = 2),
+                 # Use style_sigfig to keep 2 significant digits (e.g., 1.3)
+                 pvalue_fun   = function(x) style_pvalue(x, digits = 3) ) %>%
+  add_global_p(keep = T, test.statistic = "F")
+
+# tbl_merge(
+#   tbls = list(t3, t4),
+#   tab_spanner = c("**Regression Coefficients**", "**Adjusted Odds Ratio**")
+# )
+
+
+tbl_merge(
+  tbls = list(t1, t2, t3, t4),
+  tab_spanner = c("**2019 Regression Coefficients**", "**2019 Adjusted Odds Ratio**", "**2021 Regression Coefficients**", "**2021 Adjusted Odds Ratio**")
+)
+
+```
+
+
+
+### Prediction
+
+[Interpreation examples](https://www.bookdown.org/rwnahhas/RMPH/survey-logistic.html)
+
+What is the predicted probability (and 95% CI) that someone worked from home in 2019 and male, and between 25 and 34 years old?
+
+```{r}
+# Always include the intercept for prediction.
+# Specify a 1 for the intercept, a # for each continuous predictor
+# and a 1 for each non-reference level of a categorical variable.
+# If a predictor is at its reference level, specify a 0 or exclude it.
+#install.packages("faraway")
+library(faraway)
+
+ilogit(svycontrast(m1_2019, c("(Intercept)" = 1,
+                              "age_cat25to34" =1                             )))
+```
+
+```{r include = FALSE, eval=FALSE}
+m1_2019 <- svyglm(did_wfh~ INCEARN +race_cat+ sex_cat + age_cat + CanWorkFromHome+county_pop_type+NCHILD, 
+       design = dstrata2019)
+
+m2_2019 <- svyglm(did_wfh~ INCEARN +race_cat+ sex_cat + age_cat + factor(CIHISPEED) + CanWorkFromHome+county_pop_type+NCHILD + NCHLT5, 
+       design = dstrata2019)
+
+m1_2021<- svyglm(did_wfh~ INCEARN +race_cat+ sex_cat+ age_cat+ CanWorkFromHome+county_pop_type+NCHILD, 
+       design = dstrata2021)
+
+m2_2021<- svyglm(did_wfh~ INCEARN +race_cat+ sex_cat+ age_cat + factor(CIHISPEED) + CanWorkFromHome+county_pop_type+NCHILD + NCHLT5, 
+       design = dstrata2021)
+  
+
+export_summs(m1_2019, m2_2019, m1_2021,  m2_2021,
+             model.names = c("M1 Linear 2019", "M2 Linear 2019", "M1 Linear 2021",  "M2 Linear 2021"), 
+            robust = "HC3", statistics = c(N = "nobs", R2 = "r.squared", adjR2 = "adj.r.squared"))
+
+
+
+```
+
+## Model 2
+
+```{r}
+m3_2019 <- svyglm(did_wfh~occ_2dig_labels*CanWorkFromHome+race_cat+ SEX+ age_cat +CIHISPEED*CINETHH + county_pop_type+NCHILD*NCHLT5, design = dstrata2019)
+m3_2021 <- svyglm(did_wfh~occ_2dig_labels*CanWorkFromHome+race_cat+ SEX+ age_cat +CIHISPEED*CINETHH + county_pop_type+NCHILD*NCHLT5, design = dstrata2021)# %>% summary()
+
+export_summs(m3_2019, m3_2021,
+             model.names = c("2019", "2021"),
+            robust = "HC3", statistics = c(N = "nobs", R2 = "r.squared", adjR2 = "adj.r.squared"))
+
+
+
+m4_2019 <- svyglm(did_wfh~NCHLT5+factor(SEX) +factor(MARST)+factor(CINETHH) + occ_2dig_labels+county_pop_type, design = dstrata2019 )# %>% summary()
+
+m4_2021 <- svyglm(did_wfh~NCHLT5+factor(SEX) +factor(MARST)+factor(CINETHH) + occ_2dig_labels+county_pop_type, design = dstrata2021)# %>% summary()
+
+export_summs(m4_2019, m4_2021,
+             model.names = c("M4 2019", "M4 2021"),
+            robust = "HC3", statistics = c(N = "nobs", R2 = "r.squared", adjR2 = "adj.r.squared"))
+
+
+
+export_summs(m3_2019, m3_2021, m4_2019, m4_2021, 
+            robust = "HC3", statistics = c(N = "nobs", R2 = "r.squared"))
+
+```
+
+Log-odds are not the most intuitive to interpret. Instead of discussing the change in the log-odds, we can calculate the odds ratio for a given variable by exponentiating the coefficient.
+
+Odds ratio is read "have x times the odds of the outcome of interest compared to thos in the reference group".
+
+```{r}
+OR.CI_2019 <- cbind("AOR" = exp(   coef(m4_2019)),
+                       exp(confint(m4_2019,
+                           df.resid=degf(m4_2019$survey.design))))[-1,]
+round(OR.CI_2019, 3)
+
+OR.CI_2021 <- cbind("AOR" = exp(   coef(m4_2021)),
+                       exp(confint(m4_2021,
+                           df.resid=degf(m4_2021$survey.design))))[-1,]
+round(OR.CI_2021, 3)
+
+library(gtsummary)
+library(car)
+t1 <- m4_2019 %>%
+  tbl_regression(intercept = T,
+                 # Use style_number to round to 2 digits (e.g., 1.27)
+                 estimate_fun = function(x) style_number(x, digits = 2),
+                 # Use style_sigfig to keep 2 significant digits (e.g., 1.3)
+                 # estimate_fun = function(x) style_sigfig(x, digits = 2),
+                 # label  = list('(Intercept)'  ~ "Intercept",
+                 #               alc_agefirst   ~ "Age of first alcohol use (years)",
+                 #               age_new ~ "Age (years)",
+                 #               demog_sex      ~ "Sex",
+                 #               demog_income   ~ "Income")
+                 ) %>%
+  modify_column_hide(p.value) %>%
+  modify_caption("Caption")
+
+t2 <- m4_2019 %>%
+  tbl_regression(intercept = F,     # No intercept in OR table
+                 exponentiate = T,  # OR = exp(B)
+                 # Use style_number to round to 2 digits (e.g., 1.27)
+                 estimate_fun = function(x) style_number(x, digits = 2),
+                 # Use style_sigfig to keep 2 significant digits (e.g., 1.3)
+                 pvalue_fun   = function(x) style_pvalue(x, digits = 3),
+                 # label  = list(alc_agefirst   ~ "Age of first alcohol use (years)",
+                 #               age_new ~ "Age (years)",
+                 #               demog_sex      ~ "Sex",
+                 #               demog_income   ~ "Income"
+                 #              
+                 #              )
+                 ) %>%
+  add_global_p(keep = T, test.statistic = "F"
+  # Uncomment to use design df for Type III test p-values
+  # (but then they will not match the regression term p-values for
+  #  binary predictors)
+  #             , error.df = degf(fit.ex8.1$survey.design)
+                                 )
+
+tbl_merge(
+  tbls = list(t1, t2),
+  tab_spanner = c("**Regression Coefficients**", "**Adjusted Odds Ratio**")
+)
+
+
+t3 <- m4_2021 %>%
+  tbl_regression(intercept = T,
+                 # Use style_number to round to 2 digits (e.g., 1.27)
+                 estimate_fun = function(x) style_number(x, digits = 2),
+                 # Use style_sigfig to keep 2 significant digits (e.g., 1.3)
+                 # estimate_fun = function(x) style_sigfig(x, digits = 2),
+                 # label  = list('(Intercept)'  ~ "Intercept",
+                 #               alc_agefirst   ~ "Age of first alcohol use (years)",
+                 #               age_new ~ "Age (years)",
+                 #               demog_sex      ~ "Sex",
+                 #               demog_income   ~ "Income")
+                 ) %>%
+  modify_column_hide(p.value) %>%
+  modify_caption("Caption")
+
+t4 <- m4_2021 %>%
+  tbl_regression(intercept = F,     # No intercept in OR table
+                 exponentiate = T,  # OR = exp(B)
+                 # Use style_number to round to 2 digits (e.g., 1.27)
+                 estimate_fun = function(x) style_number(x, digits = 2),
+                 # Use style_sigfig to keep 2 significant digits (e.g., 1.3)
+                 pvalue_fun   = function(x) style_pvalue(x, digits = 3),
+                 # label  = list(alc_agefirst   ~ "Age of first alcohol use (years)",
+                 #               age_new ~ "Age (years)",
+                 #               demog_sex      ~ "Sex",
+                 #               demog_income   ~ "Income"
+                 #              
+                 #              )
+                 ) %>%
+  add_global_p(keep = T, test.statistic = "F"
+  # Uncomment to use design df for Type III test p-values
+  # (but then they will not match the regression term p-values for
+  #  binary predictors)
+  #             , error.df = degf(fit.ex8.1$survey.design)
+                                 )
+
+tbl_merge(
+  tbls = list(t3, t4),
+  tab_spanner = c("**Regression Coefficients**", "**Adjusted Odds Ratio**")
+)
+
+```
+
+> Recode marital status and add back into regression
