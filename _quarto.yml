@@ -1,5 +1,16 @@
 project:
-  title: "WorkFromHome"
+  type: website
 
-editor: visual
+website:
+  title: "Work From Home in Illinois"
+  navbar:
+    left:
+      - href: WFH_geographicComparison.qmd
+        text: "Data Prep"
+      - WFH_Models.qmd
+      
+format:
+  html:
+    theme: cosmo
+    toc: true
 

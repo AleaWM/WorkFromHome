@@ -25,20 +25,15 @@ library(tidyverse)
 library(naniar)
 library(gmodels)
 library(gtsummary)
-#install.packages("quarto")
 library(quarto)
 
-
-
-
-#svyglm(did_wfh~ INCEARN +race_cat+ SEX+ AGE + CIHISPEED*CINETHH + CanWorkFromHome+county_pop_type+NCHILD+MARST + NCHLT5, design = dstrata2019) %>% summary()
 library(huxtable) # for summ() and regression output formatting
 # Create the DB connection with the default name expected by PTAXSIM functions
 library(jtools)
 library(modelsummary)
 library(car)
 
-knitr::opts_chunk$set(warning=FALSE, message=FALSE)
+knitr::opts_chunk$set(warning=FALSE, message=FALSE, tidy = TRUE)
 
 ```
 
@@ -114,11 +109,13 @@ Survey questions for INCEARN:
 
 # larger version with 147 variables. uses same file as Box file named "IL_2021_1yr_ACS.dat.gz and IL_2021_1yr_ACS_datDDI.xml
 ddi <- read_ipums_ddi("usa_00011.xml") # downloaded April 10 2023
+
 data2021 <- read_ipums_micro(ddi) # 126623 observations before any filtering
+
 data2021 <- data2021 %>% select(YEAR, INCEARN, INCWAGE, INCTOT, TRANWORK, OCCSOC, CLASSWKR, EMPSTAT, LABFORCE, PERWT, COUNTYFIP, PUMA, PWSTATE2, AGE, STRATA, CLUSTER, RACE, HISPAN, SEX, CIHISPEED, CINETHH, MULTGEN, NCHILD, NCHLT5, MARST, FERTYR, EDUC, DEGFIELD, OCC, IND, OCC2010, METRO, CITY, HHINCOME, SERIAL,HHWT, NUMPREC, SUBSAMP,HHTYPE )
 
 # same sample but with 150+ variables. 
-# NEED TO CHANGE XML file that referneces the data file. currently says usa_00011.dat.gz so these two lines of code do not work. 
+# NEED TO CHANGE XML file that references the data file. currently says usa_00011.dat.gz so these two lines of code do not work. 
 
 ddi <- read_ipums_ddi("C:/Users/aleaw/Box/Fiscal Futures/FY22_Working/WFH/Data/IL_2019_1yearACS_datDDI.xml") # downloaded April 10 2023
 data2019 <- read_ipums_micro(ddi) # 126623 observations before any filtering
