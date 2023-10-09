@@ -847,7 +847,7 @@ table %>% ggplot(aes(x=fct_rev(fct_inorder(occ_2dig_labels_d)), y=n, group = YEA
 
 
 
-### Percent of Workersworking from home within each Broad Occupation type ###
+### Percent of Workers working from home within each Broad Occupation type ###
 table <- svytable(~YEAR+did_wfh_labels+occ_2dig_labels, design = dstrata) 
 
 table <- table %>% 
@@ -999,17 +999,21 @@ Figure1 <- table %>% filter(occ_2dig_labels != "Military") %>%
   facet_wrap(~YEAR)+
   geom_text(aes(label = scales::percent(as.numeric(ifelse(Prop>0.02,Prop, "")), accuracy = .1),accuracy  = .1L ), 
             position = position_stack(vjust=.5), size=2.5) +
-  theme_classic() +
-  theme(plot.title = element_text(hjust=0), legend.position = "bottom", legend.title = element_blank())+
-  labs(title ="Proportion of All WFH Workers by Broad Occupation",
+    theme_classic() +
+  theme(plot.title = element_text(hjust=0), legend.position = "bottom", 
+     #   legend.title = element_text(text = "WFH Feasibility")
+        # legend.title = element_blank()
+        )+
+  labs(title ="WFH Feasibility for Workers in Illinois by Broadest Occupation Categories",
      #  subtitle = "All workers in labor force with occsoc codes in a year add to 100%",
        x = "", y = "Number of Workers in Illinois",
    #   caption = "ACS 1 year samples for 2019 and 2021 used for weighted population estimates"
      ) + 
-  scale_x_discrete(labels = function(x) str_wrap(x, width=25))+ # makes labels better on axsis
+  scale_x_discrete(labels = function(x) str_wrap(x, width=25))+ # makes labels better on axis
   scale_y_continuous(labels = scales::comma) +
-  scale_fill_manual(values = c( "#2b8cbe","#a6bddb", "gray89")) +
-  coord_flip()          # = element_text(hjust = 0, vjust=2.12))
+  scale_fill_manual(name = "WFH Feasibility", values = c( "#2b8cbe","#a6bddb", "gray89")) +
+  coord_flip()       # = element_text(hjust = 0, vjust=2.12))
+
 
 Figure1
 
