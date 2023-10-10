@@ -1,0 +1,867 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.3.433">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="description" content="Replication files, appendix items, summary tables, and images used when authoring the WFH paper.">
+
+<title>Working From Home in Illinois: - 4&nbsp; Getting Data</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/quarto-nav/headroom.min.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<link href="./WFH_Models.html" rel="next">
+<link href="./DescriptiveStatistics.html" rel="prev">
+<script src="site_libs/quarto-html/quarto.js"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 20,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+
+</head>
+
+<body class="nav-sidebar floating nav-fixed">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg navbar-dark ">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container">
+    <a class="navbar-brand" href="./index.html">
+    <span class="navbar-title">Working From Home in Illinois:</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link active" href="./Maps.html" rel="" target="" aria-current="page">
+ <span class="menu-text">Geographic Data</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="./DescriptiveStatistics.html" rel="" target="">
+ <span class="menu-text">Descriptive Statistics</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="./WFH_Models.html" rel="" target="">
+ <span class="menu-text">Models for Paper</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="./DataPrep.html" rel="" target="">
+ <span class="menu-text">Getting Data</span></a>
+  </li>  
+</ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/AleaWM/WorkFromHome" rel="" target=""><i class="bi bi-github" role="img" aria-label="GitHub">
+</i> 
+ <span class="menu-text"></span></a>
+  </li>  
+</ul>
+            <div class="quarto-navbar-tools">
+</div>
+          </div> <!-- /navcollapse -->
+      </div> <!-- /container-fluid -->
+    </nav>
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+      <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./DataPrep.html"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Getting Data</span></a></li></ol></nav>
+      <a class="flex-grow-1" role="button" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+      </a>
+      <button type="button" class="btn quarto-search-button" aria-label="" onclick="window.quartoOpenSearch();">
+        <i class="bi bi-search"></i>
+      </button>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal sidebar-navigation floating overflow-auto">
+        <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="sidebar-search">
+        <div id="quarto-search" class="" title="Search"></div>
+        </div>
+        </div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Working From Home in Illinois: Who Can and Who Does?</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./Maps.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Geographic Data</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./DescriptiveStatistics.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Descriptive Statistics</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./DataPrep.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Getting Data</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./WFH_Models.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Models for Paper</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./Appendix1.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">Appendix 1. Detailed Methodology</span></span></a>
+  </div>
+</li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul>
+  <li><a href="#survey-design" id="toc-survey-design" class="nav-link active" data-scroll-target="#survey-design"><span class="header-section-number">4.0.1</span> Survey Design</a></li>
+  <li><a href="#acs-questions-used" id="toc-acs-questions-used" class="nav-link" data-scroll-target="#acs-questions-used"><span class="header-section-number">4.1</span> ACS Questions Used</a></li>
+  <li><a href="#recoding-and-labeling-variables" id="toc-recoding-and-labeling-variables" class="nav-link" data-scroll-target="#recoding-and-labeling-variables"><span class="header-section-number">4.2</span> Recoding and labeling variables</a></li>
+  <li><a href="#section" id="toc-section" class="nav-link" data-scroll-target="#section"><span class="header-section-number">4.3</span> </a></li>
+  <li><a href="#teleworkable-scores" id="toc-teleworkable-scores" class="nav-link" data-scroll-target="#teleworkable-scores"><span class="header-section-number">4.4</span> Teleworkable Scores</a></li>
+  <li><a href="#dealing-with-survey-data" id="toc-dealing-with-survey-data" class="nav-link" data-scroll-target="#dealing-with-survey-data"><span class="header-section-number">4.5</span> Dealing with Survey Data</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Getting Data</span></h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+</header>
+
+<p><strong>Pre 5.23.2023</strong>: 40,278 observations have occupations that indicate that they could Work from home, 67,339 responses have occupations indicating that they can not work from home, 16,136 might be able to work from home.</p>
+<p><strong>5.23.2023</strong>: 41,643 can wfh; 66111 no wfh possible, 15,999 some wfh</p>
+<p>251630 observations originally in ACS 2021 and 2019 1-year samples.</p>
+<p>123,753 observations after removing those not in the labor force and with earned incomes less than or equal to zero.</p>
+<div class="callout callout-style-simple callout-warning no-icon">
+<div class="callout-body d-flex">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-body-container">
+<p>Note: Dropping groups of people using filter() from the sample will change the standard errors of estimates since it changes the sample size. Use the survey() or svy() command to drop subsets of people (like if we wanted to filter age groups). Google what commands to use to drop observations without impacting standard errors.</p>
+</div>
+</div>
+</div>
+<section id="survey-design" class="level3" data-number="4.0.1">
+<h3 data-number="4.0.1" class="anchored" data-anchor-id="survey-design"><span class="header-section-number">4.0.1</span> Survey Design</h3>
+<p>There are three different versions of the data: dstrata has both 2019 and 2021 data together (combined using rbind() above.) Using this combined design object makes some graphs easier, but I think it changes any standard errors used in estimate. I also made the 2019 and 2021 design strata from the the separate survey data. They all should have the same variables.</p>
+<blockquote class="blockquote">
+<p>After comparing the 2021 5-year sample, it is possible to just use that 5-year sample download and use only the 2019 and 2021 years of observations. This automatically adjusts the dollar amounts to 2021 dollars. It is also possible to use Pre-COVID and post-COVID years to have even more observations. (pre-covid would be 2017,2018, and 2019, post-covid would be 2020, 2021)</p>
+</blockquote>
+<p>Deciles were created from the strata in different ways below. Depending on age ranges kept, deciles shift slightly.</p>
+<p>2019 Strata by itself:<br>
+4 9000 17000 25000 32000 40000 50000 63000 80000 114000 933000</p>
+<p>2019 Strata income decile breaks (using the 2021 5-year extract):<br>
+4 9538 18016 26494 33912 42390 52988 66765 84781 121873 988757.<br>
+<strong>Already adjusted for inflation??????</strong></p>
+<ul>
+<li><p>9000, 9400, 25000, 32000, 40000, 50000, 63000, 80000, 1140000, 949000</p></li>
+<li><p>8000, 18000, 26000, 35000, 43000, 54000, 68000, 85000, 120000</p>
+<p><br>
+</p></li>
+</ul>
+<div class="callout callout-style-simple callout-warning no-icon">
+<div class="callout-body d-flex">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-body-container">
+<p>survey::svyquantile() uses the survey design to calculate deciles. These deciles that are created are slightly different than the deciles assigned using ntile(). I trust survey::svyquantile more because I know it applies the weights to observations when creating the deciles for earned income.</p>
+</div>
+</div>
+</div>
+<div class="callout callout-style-simple callout-important no-icon">
+<div class="callout-body d-flex">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-body-container">
+<p>the ntile() decile variable is what is used to graph all decile images and for all income decile tables/calculations. <del>Find a way to apply the summarized version of the svyquantiles as a new variable in the dstrata datasets.</del> - Done.</p>
+<p><code>incdecile_w</code> is made using the breaks returned from the svyquantile command.</p>
+<ul>
+<li><del>now use this variable in graphs? or create the summary tables using weights and then pass that to the graph commands.</del> - done</li>
+</ul>
+</div>
+</div>
+</div>
+<p>I combine the 2019 and 2021 datasets when creating new variables and then separate them by year again before creating the survey design object for each sample year.</p>
+</section>
+<section id="acs-questions-used" class="level2" data-number="4.1">
+<h2 data-number="4.1" class="anchored" data-anchor-id="acs-questions-used"><span class="header-section-number">4.1</span> ACS Questions Used</h2>
+<p>IPUMS <a href="https://usa.ipums.org/usa/repwt.shtml">link for Survey package</a></p>
+<p>Survey questions for EMPSTAT &amp; LABFORCE:</p>
+<ol type="1">
+<li>Last week, did this person work for pay at a job or business? (Yes or no) – Yes becomes coded as EMPSTAT = 1-Employed.</li>
+<li>Last week, did this person do ANY work for pay, even as little as one hour?(Yes or no) – Yes becomes coded as LABFORCE = 2-Yes in the labor force.</li>
+</ol>
+<p>Internet access :</p>
+<ol start="3" type="1">
+<li>At this house, apartment, or mobile home - do you or any member of this household have access to the internet?
+<ul>
+<li>Yes, by paying a cell phone company or Internet service provider</li>
+<li>Yes, without paying a cell phone company of Internet service provider</li>
+<li>No access to the Internet at this house, apartment, or mobile home</li>
+</ul></li>
+</ol>
+<p>High speed internet access:</p>
+<ol start="4" type="1">
+<li>Do you or any member of this household have access to the Internet using a - b) broadband (high speed) Internet service such as cable, fiber optic, or DSL service installed in this household?<br>
+[ ]Yes [ ]No</li>
+</ol>
+<p>Did WFH:</p>
+<ol start="5" type="1">
+<li>How did this person usually get to work LAST WEEK? Mark (X) ONE box for the method of transportation used for most of the distance.
+<ul>
+<li>Responses for Car, truck, or van, Bus, Subway or elevated rail, Long-distance train or commuter rail, Light rail, streetcar, or trolley, Ferryboat, Taxicab, Motorcycle, Bicycle, or Walked were coded as did_WFH == 0</li>
+<li>Worked from home –&gt; did_WFH == 1</li>
+</ul></li>
+</ol>
+<p>Survey questions for INCEARN:</p>
+<ol start="6" type="1">
+<li>INCEARN = INCWAGE + INCBUS00
+<ul>
+<li>Total amount earned in last 12 months: Wages, salary, commissions, bonuses, tips. [Yes –&gt; ______ ] is coded as INCWAGE value.</li>
+</ul></li>
+<li>INCEARN includes self-employment income, INCWAGE does not.
+<ul>
+<li>INCWAGE does not include Farming income and self-employment income, but INCEARN does.</li>
+</ul></li>
+</ol>
+<p>The survey data used was downloaded from IPUMS on April 10th 2023. Files that end with .gz are compressed versions of the .dta and .dat files. Files with .xml are for the labels of the variables. It is just the DDI that comes with the download that I renamed for clarity in Box.</p>
+<!--# usa_00011.xml and usa_00011.dat.gz are the same as Box files named IL_2021_1yr_ACS.dat.gz and IL_2021_1yr_ACS_datDDI.xml original xml file references the file name that it is called in the download. Either change the XML file to reference the correct .dat.gz files OR just keep track of which extracts are the same as the box file names. -->
+</section>
+<section id="recoding-and-labeling-variables" class="level2" data-number="4.2">
+<h2 data-number="4.2" class="anchored" data-anchor-id="recoding-and-labeling-variables"><span class="header-section-number">4.2</span> Recoding and labeling variables</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co">#  version with 147 variables. </span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="co"># uses same file as Box file named "IL_2021_1yr_ACS.dat.gz and IL_2021_1yr_ACS_datDDI.xml</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>ddi <span class="ot">&lt;-</span> <span class="fu">read_ipums_ddi</span>(<span class="st">"./data/usa_00011.xml"</span>) <span class="co"># downloaded April 10 2023</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>data2021 <span class="ot">&lt;-</span> <span class="fu">read_ipums_micro</span>(ddi) <span class="co"># 126623 observations before any filtering</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>data2021 <span class="ot">&lt;-</span> data2021 <span class="sc">%&gt;%</span> <span class="fu">select</span>(YEAR, INCEARN, INCWAGE, INCTOT, TRANWORK, OCCSOC, CLASSWKR, EMPSTAT, LABFORCE, PERWT, COUNTYFIP, PUMA, PWSTATE2, AGE, STRATA, CLUSTER, RACE, HISPAN, SEX, CIHISPEED, CINETHH, MULTGEN, NCHILD, NCHLT5, MARST, FERTYR, EDUC, DEGFIELD, OCC, IND, OCC2010, METRO, CITY, HHINCOME, SERIAL,HHWT, NUMPREC, SUBSAMP, HHTYPE)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>ddi <span class="ot">&lt;-</span> <span class="fu">read_ipums_ddi</span>(<span class="st">"./data/IL_2019_1yearACS_datDDI.xml"</span>) <span class="co"># downloaded April 10 2023</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>data2019 <span class="ot">&lt;-</span> <span class="fu">read_ipums_micro</span>(ddi) <span class="co"># 126623 observations before any filtering</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>data2019 <span class="ot">&lt;-</span> data2019 <span class="sc">%&gt;%</span> <span class="fu">select</span>(YEAR, INCEARN, INCWAGE, INCTOT, TRANWORK, OCCSOC, CLASSWKR, EMPSTAT, LABFORCE, PERWT, COUNTYFIP, PUMA, PWSTATE2, AGE, STRATA, CLUSTER, RACE, HISPAN, SEX, CIHISPEED, CINETHH, MULTGEN, NCHILD, NCHLT5, MARST, FERTYR, EDUC, DEGFIELD, OCC, IND, OCC2010, METRO, CITY, HHINCOME, SERIAL,HHWT, NUMPREC, SUBSAMP, HHTYPE)</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>data <span class="ot">&lt;-</span> <span class="fu">rbind</span>(data2019, data2021) <span class="co">#125,007 observations before any filtering.</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="section" class="level2" data-number="4.3">
+<h2 data-number="4.3" class="anchored" data-anchor-id="section"><span class="header-section-number">4.3</span> </h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># replaces 0 with NA for variables listed. </span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="co"># Allows topline to calculate "Valid Percent" when it recognizes missing values</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>data <span class="ot">&lt;-</span> data <span class="sc">%&gt;%</span> <span class="fu">replace_with_na</span>(<span class="at">replace =</span> <span class="fu">list</span>(</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">EMPSTAT=</span> <span class="fu">c</span>(<span class="dv">0</span>), </span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">LABFORCE=</span><span class="fu">c</span>(<span class="dv">0</span>), </span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">CLASSWKR =</span> <span class="fu">c</span>(<span class="dv">0</span>),</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">OCCSOC =</span> <span class="fu">c</span>(<span class="dv">0</span>),</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">CIHISPEED =</span> <span class="fu">c</span>(<span class="dv">0</span>),</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">CINETHH =</span> <span class="fu">c</span>(<span class="dv">0</span>),</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>  <span class="at">TRANWORK =</span> <span class="fu">c</span>(<span class="st">"N/A"</span>,<span class="st">"0"</span>))) <span class="sc">%&gt;%</span> </span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(LABFORCE <span class="sc">==</span> <span class="dv">2</span> <span class="sc">&amp;</span> INCEARN <span class="sc">&gt;</span> <span class="dv">0</span>) <span class="co"># in labor force and 18 years old and up abd positive earned incomes. </span></span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>data <span class="ot">&lt;-</span> data <span class="sc">%&gt;%</span> <span class="fu">mutate</span>(<span class="at">age_cat =</span> </span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>                              <span class="fu">case_when</span>(AGE <span class="sc">&lt;</span> <span class="dv">24</span> <span class="sc">~</span> <span class="st">"16to24"</span>,</span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>                                        AGE <span class="sc">&gt;</span> <span class="dv">24</span> <span class="sc">&amp;</span> AGE <span class="sc">&lt;</span> <span class="dv">35</span> <span class="sc">~</span> <span class="st">"25to34"</span>,</span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>                                        AGE <span class="sc">&gt;</span> <span class="dv">34</span> <span class="sc">&amp;</span> AGE <span class="sc">&lt;</span> <span class="dv">45</span> <span class="sc">~</span> <span class="st">"35to44"</span>,</span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a>                                        AGE <span class="sc">&gt;</span> <span class="dv">44</span> <span class="sc">&amp;</span> AGE <span class="sc">&lt;</span> <span class="dv">55</span> <span class="sc">~</span> <span class="st">"45to54"</span>,</span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a>                                        AGE <span class="sc">&gt;</span> <span class="dv">54</span> <span class="sc">&amp;</span> AGE <span class="sc">&lt;</span> <span class="dv">65</span> <span class="sc">~</span> <span class="st">"55to64"</span>,</span>
+<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a>                                        AGE <span class="sc">&gt;</span> <span class="dv">64</span> <span class="sc">~</span> <span class="st">"65+"</span>),</span>
+<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a>                        <span class="at">sex_cat =</span> <span class="fu">case_when</span>(SEX <span class="sc">==</span> <span class="dv">1</span> <span class="sc">~</span> <span class="st">"Male"</span>,</span>
+<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a>                                            SEX <span class="sc">==</span> <span class="dv">2</span> <span class="sc">~</span> <span class="st">"Female"</span>))</span>
+<span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-25"><a href="#cb3-25" aria-hidden="true" tabindex="-1"></a>data <span class="ot">&lt;-</span>  data <span class="sc">%&gt;%</span> <span class="fu">mutate</span>(<span class="at">white =</span> <span class="fu">if_else</span>(RACE <span class="sc">==</span><span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">0</span>),</span>
+<span id="cb3-26"><a href="#cb3-26" aria-hidden="true" tabindex="-1"></a>         <span class="at">black =</span> <span class="fu">if_else</span>(RACE <span class="sc">==</span><span class="dv">2</span>, <span class="dv">1</span>, <span class="dv">0</span>), </span>
+<span id="cb3-27"><a href="#cb3-27" aria-hidden="true" tabindex="-1"></a>         <span class="at">asian =</span> <span class="fu">if_else</span>(RACE <span class="sc">%in%</span> <span class="fu">c</span>(<span class="dv">4</span>,<span class="dv">5</span>,<span class="dv">6</span>), <span class="dv">1</span>, <span class="dv">0</span>),</span>
+<span id="cb3-28"><a href="#cb3-28" aria-hidden="true" tabindex="-1"></a>         <span class="at">otherrace =</span> <span class="fu">if_else</span>(RACE <span class="sc">%in%</span> <span class="fu">c</span>(<span class="dv">3</span>,<span class="dv">7</span>,<span class="dv">8</span>,<span class="dv">9</span>),<span class="dv">1</span>,<span class="dv">0</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb3-29"><a href="#cb3-29" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(COUNTYFIP,PUMA) <span class="sc">%&gt;%</span></span>
+<span id="cb3-30"><a href="#cb3-30" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">pct_white =</span> <span class="fu">sum</span>(white)<span class="sc">/</span><span class="fu">n</span>(),</span>
+<span id="cb3-31"><a href="#cb3-31" aria-hidden="true" tabindex="-1"></a>         <span class="at">pct_black =</span> <span class="fu">sum</span>(black)<span class="sc">/</span><span class="fu">n</span>()) <span class="sc">%&gt;%</span> </span>
+<span id="cb3-32"><a href="#cb3-32" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ungroup</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb3-33"><a href="#cb3-33" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">race_cat =</span> <span class="fu">case_when</span>(</span>
+<span id="cb3-34"><a href="#cb3-34" aria-hidden="true" tabindex="-1"></a>    RACE <span class="sc">==</span><span class="dv">1</span><span class="sc">~</span><span class="st">"White"</span>,</span>
+<span id="cb3-35"><a href="#cb3-35" aria-hidden="true" tabindex="-1"></a>    RACE <span class="sc">==</span><span class="dv">2</span> <span class="sc">~</span> <span class="st">"Black"</span>, </span>
+<span id="cb3-36"><a href="#cb3-36" aria-hidden="true" tabindex="-1"></a>    RACE <span class="sc">%in%</span> <span class="fu">c</span>(<span class="dv">4</span>,<span class="dv">5</span>,<span class="dv">6</span>)<span class="sc">~</span><span class="st">"Asian"</span>,</span>
+<span id="cb3-37"><a href="#cb3-37" aria-hidden="true" tabindex="-1"></a>    RACE <span class="sc">%in%</span> <span class="fu">c</span>(<span class="dv">3</span>,<span class="dv">7</span>,<span class="dv">8</span>,<span class="dv">9</span>)<span class="sc">~</span><span class="st">"Other"</span>))</span>
+<span id="cb3-38"><a href="#cb3-38" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-39"><a href="#cb3-39" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-40"><a href="#cb3-40" aria-hidden="true" tabindex="-1"></a><span class="do">## numbers used for income breaks are calculated in Income Deciles section. </span></span>
+<span id="cb3-41"><a href="#cb3-41" aria-hidden="true" tabindex="-1"></a><span class="co"># created now so that the variable exists in the joined dataset before creating the survey design object</span></span>
+<span id="cb3-42"><a href="#cb3-42" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-43"><a href="#cb3-43" aria-hidden="true" tabindex="-1"></a>data <span class="ot">&lt;-</span> data <span class="sc">%&gt;%</span> </span>
+<span id="cb3-44"><a href="#cb3-44" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">incdecile_w =</span> <span class="fu">case_when</span>(</span>
+<span id="cb3-45"><a href="#cb3-45" aria-hidden="true" tabindex="-1"></a>    INCEARN <span class="sc">&lt;</span> <span class="dv">8000</span> <span class="sc">~</span> <span class="dv">1</span>, </span>
+<span id="cb3-46"><a href="#cb3-46" aria-hidden="true" tabindex="-1"></a>    INCEARN <span class="sc">&gt;=</span> <span class="dv">8000</span> <span class="sc">&amp;</span> INCEARN <span class="sc">&lt;</span> <span class="dv">18000</span> <span class="sc">~</span> <span class="dv">2</span>,</span>
+<span id="cb3-47"><a href="#cb3-47" aria-hidden="true" tabindex="-1"></a>    INCEARN <span class="sc">&gt;=</span> <span class="dv">18000</span> <span class="sc">&amp;</span> INCEARN <span class="sc">&lt;</span> <span class="dv">26000</span> <span class="sc">~</span> <span class="dv">3</span>,</span>
+<span id="cb3-48"><a href="#cb3-48" aria-hidden="true" tabindex="-1"></a>    INCEARN <span class="sc">&gt;=</span> <span class="dv">26000</span> <span class="sc">&amp;</span> INCEARN <span class="sc">&lt;</span> <span class="dv">35000</span> <span class="sc">~</span> <span class="dv">4</span>,</span>
+<span id="cb3-49"><a href="#cb3-49" aria-hidden="true" tabindex="-1"></a>    INCEARN <span class="sc">&gt;=</span> <span class="dv">35000</span> <span class="sc">&amp;</span> INCEARN <span class="sc">&lt;</span> <span class="dv">43000</span> <span class="sc">~</span> <span class="dv">5</span>,</span>
+<span id="cb3-50"><a href="#cb3-50" aria-hidden="true" tabindex="-1"></a>    INCEARN <span class="sc">&gt;=</span> <span class="dv">43000</span> <span class="sc">&amp;</span> INCEARN <span class="sc">&lt;</span> <span class="dv">54000</span> <span class="sc">~</span> <span class="dv">6</span>,</span>
+<span id="cb3-51"><a href="#cb3-51" aria-hidden="true" tabindex="-1"></a>    INCEARN <span class="sc">&gt;=</span> <span class="dv">54000</span> <span class="sc">&amp;</span> INCEARN <span class="sc">&lt;</span> <span class="dv">68000</span> <span class="sc">~</span> <span class="dv">7</span>,</span>
+<span id="cb3-52"><a href="#cb3-52" aria-hidden="true" tabindex="-1"></a>    INCEARN <span class="sc">&gt;=</span> <span class="dv">68000</span> <span class="sc">&amp;</span> INCEARN <span class="sc">&lt;</span> <span class="dv">85000</span> <span class="sc">~</span> <span class="dv">8</span>,</span>
+<span id="cb3-53"><a href="#cb3-53" aria-hidden="true" tabindex="-1"></a>    INCEARN <span class="sc">&gt;=</span> <span class="dv">85000</span> <span class="sc">&amp;</span> INCEARN <span class="sc">&lt;</span> <span class="dv">120000</span> <span class="sc">~</span> <span class="dv">9</span>,</span>
+<span id="cb3-54"><a href="#cb3-54" aria-hidden="true" tabindex="-1"></a>    INCEARN <span class="sc">&gt;=</span> <span class="dv">120000</span> <span class="sc">~</span> <span class="dv">10</span>)</span>
+<span id="cb3-55"><a href="#cb3-55" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
+<span id="cb3-56"><a href="#cb3-56" aria-hidden="true" tabindex="-1"></a>  <span class="do">## Padding FIPS code for merging with spatial geometry later</span></span>
+<span id="cb3-57"><a href="#cb3-57" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">county_pop_type =</span> <span class="fu">if_else</span>(COUNTYFIP<span class="sc">==</span><span class="dv">0</span>, </span>
+<span id="cb3-58"><a href="#cb3-58" aria-hidden="true" tabindex="-1"></a>                                   <span class="st">"Rural Counties"</span>, <span class="st">"Urban Counties"</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb3-59"><a href="#cb3-59" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">PUMA =</span> <span class="fu">str_pad</span>(PUMA, <span class="dv">5</span>, <span class="at">pad=</span><span class="st">"0"</span>),</span>
+<span id="cb3-60"><a href="#cb3-60" aria-hidden="true" tabindex="-1"></a>         <span class="at">countyFIP =</span> <span class="fu">str_pad</span>(COUNTYFIP, <span class="dv">3</span>, <span class="at">pad =</span> <span class="st">"0"</span>))</span>
+<span id="cb3-61"><a href="#cb3-61" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-62"><a href="#cb3-62" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-63"><a href="#cb3-63" aria-hidden="true" tabindex="-1"></a>data <span class="ot">&lt;-</span> data <span class="sc">%&gt;%</span></span>
+<span id="cb3-64"><a href="#cb3-64" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">occ_2digits =</span> <span class="fu">substr</span>(OCCSOC,<span class="dv">1</span>,<span class="dv">2</span>)) <span class="sc">%&gt;%</span> </span>
+<span id="cb3-65"><a href="#cb3-65" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">occ_2dig_labels =</span> <span class="fu">case_when</span>(</span>
+<span id="cb3-66"><a href="#cb3-66" aria-hidden="true" tabindex="-1"></a>    occ_2digits <span class="sc">%in%</span> <span class="fu">c</span>(<span class="dv">11</span>,<span class="dv">13</span>,<span class="dv">19</span>,<span class="dv">15</span>,<span class="dv">17</span>,<span class="dv">19</span>,<span class="dv">21</span>,<span class="dv">23</span>,<span class="dv">25</span>,<span class="dv">27</span>,<span class="dv">29</span>) <span class="sc">~</span> <span class="st">"Management, Business, Science, Arts"</span>,</span>
+<span id="cb3-67"><a href="#cb3-67" aria-hidden="true" tabindex="-1"></a>    occ_2digits <span class="sc">%in%</span> <span class="fu">c</span>(<span class="dv">31</span>,<span class="dv">32</span>,<span class="dv">33</span>,<span class="dv">34</span>,<span class="dv">35</span>,<span class="dv">36</span>,<span class="dv">37</span>,<span class="dv">38</span>,<span class="dv">39</span>) <span class="sc">~</span> <span class="st">"Service Occupations"</span>,</span>
+<span id="cb3-68"><a href="#cb3-68" aria-hidden="true" tabindex="-1"></a>    occ_2digits <span class="sc">%in%</span> <span class="fu">c</span>(<span class="dv">41</span>,<span class="dv">42</span>,<span class="dv">43</span>) <span class="sc">~</span> <span class="st">"Sales &amp; Office Jobs"</span>,</span>
+<span id="cb3-69"><a href="#cb3-69" aria-hidden="true" tabindex="-1"></a>    occ_2digits <span class="sc">%in%</span> <span class="fu">c</span>(<span class="dv">45</span>,<span class="dv">46</span>,<span class="dv">47</span>,<span class="dv">48</span>,<span class="dv">49</span> ) <span class="sc">~</span><span class="st">"Natural Resources, Construction"</span>,</span>
+<span id="cb3-70"><a href="#cb3-70" aria-hidden="true" tabindex="-1"></a>    occ_2digits <span class="sc">%in%</span> <span class="fu">c</span>(<span class="dv">51</span>, <span class="dv">52</span>, <span class="dv">53</span>) <span class="sc">~</span> <span class="st">"Production, Transportation"</span>,</span>
+<span id="cb3-71"><a href="#cb3-71" aria-hidden="true" tabindex="-1"></a>    occ_2digits <span class="sc">==</span> <span class="dv">55</span> <span class="sc">~</span> <span class="st">"Military"</span>)) </span>
+<span id="cb3-72"><a href="#cb3-72" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-73"><a href="#cb3-73" aria-hidden="true" tabindex="-1"></a>data <span class="ot">&lt;-</span> data <span class="sc">%&gt;%</span></span>
+<span id="cb3-74"><a href="#cb3-74" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">occ_2digits =</span> <span class="fu">substr</span>(OCCSOC,<span class="dv">1</span>,<span class="dv">2</span>)) <span class="sc">%&gt;%</span> </span>
+<span id="cb3-75"><a href="#cb3-75" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">occ_2dig_labels_d =</span> <span class="fu">case_when</span>(</span>
+<span id="cb3-76"><a href="#cb3-76" aria-hidden="true" tabindex="-1"></a>    occ_2digits <span class="sc">%in%</span> <span class="fu">c</span>(<span class="dv">11</span>) <span class="sc">~</span> <span class="st">"Management"</span>,</span>
+<span id="cb3-77"><a href="#cb3-77" aria-hidden="true" tabindex="-1"></a>    occ_2digits <span class="sc">%in%</span> <span class="fu">c</span>(<span class="dv">13</span>) <span class="sc">~</span> <span class="st">"Business &amp; Finance"</span>,</span>
+<span id="cb3-78"><a href="#cb3-78" aria-hidden="true" tabindex="-1"></a>    occ_2digits <span class="sc">%in%</span> <span class="fu">c</span>(<span class="dv">15</span>) <span class="sc">~</span> <span class="st">"Computer, Engineering &amp; Science"</span>,</span>
+<span id="cb3-79"><a href="#cb3-79" aria-hidden="true" tabindex="-1"></a>    occ_2digits <span class="sc">%in%</span> <span class="fu">c</span>(<span class="dv">17</span>) <span class="sc">~</span> <span class="st">"Architecture &amp; Engineering"</span>,</span>
+<span id="cb3-80"><a href="#cb3-80" aria-hidden="true" tabindex="-1"></a>    occ_2digits <span class="sc">%in%</span> <span class="fu">c</span>(<span class="dv">19</span>) <span class="sc">~</span> <span class="st">"Life/Social Sciences"</span>,</span>
+<span id="cb3-81"><a href="#cb3-81" aria-hidden="true" tabindex="-1"></a>    occ_2digits <span class="sc">==</span> <span class="dv">21</span> <span class="sc">~</span> <span class="st">"Community &amp; Social Services"</span>,</span>
+<span id="cb3-82"><a href="#cb3-82" aria-hidden="true" tabindex="-1"></a>    occ_2digits <span class="sc">==</span> <span class="dv">23</span> <span class="sc">~</span> <span class="st">"Legal"</span>,</span>
+<span id="cb3-83"><a href="#cb3-83" aria-hidden="true" tabindex="-1"></a>    occ_2digits <span class="sc">==</span> <span class="dv">25</span> <span class="sc">~</span> <span class="st">"Educational Instruction"</span>,</span>
+<span id="cb3-84"><a href="#cb3-84" aria-hidden="true" tabindex="-1"></a>    occ_2digits <span class="sc">==</span> <span class="dv">27</span> <span class="sc">~</span> <span class="st">"Arts, Design, Entertainainment"</span>,</span>
+<span id="cb3-85"><a href="#cb3-85" aria-hidden="true" tabindex="-1"></a>    occ_2digits <span class="sc">==</span> <span class="dv">29</span> <span class="sc">~</span> <span class="st">"Health Practictioners"</span>,</span>
+<span id="cb3-86"><a href="#cb3-86" aria-hidden="true" tabindex="-1"></a>    occ_2digits <span class="sc">==</span> <span class="dv">31</span> <span class="sc">~</span> <span class="st">"Healthcare Support"</span>,</span>
+<span id="cb3-87"><a href="#cb3-87" aria-hidden="true" tabindex="-1"></a>    occ_2digits <span class="sc">==</span> <span class="dv">33</span> <span class="sc">~</span> <span class="st">"Protective services"</span>,</span>
+<span id="cb3-88"><a href="#cb3-88" aria-hidden="true" tabindex="-1"></a>    occ_2digits <span class="sc">==</span> <span class="dv">35</span> <span class="sc">~</span> <span class="st">"Food Services"</span>,</span>
+<span id="cb3-89"><a href="#cb3-89" aria-hidden="true" tabindex="-1"></a>    occ_2digits <span class="sc">==</span> <span class="dv">37</span> <span class="sc">~</span> <span class="st">"Building Cleaning &amp; Maintenance"</span>,</span>
+<span id="cb3-90"><a href="#cb3-90" aria-hidden="true" tabindex="-1"></a>    occ_2digits <span class="sc">==</span> <span class="dv">41</span> <span class="sc">~</span> <span class="st">"Sales"</span>,</span>
+<span id="cb3-91"><a href="#cb3-91" aria-hidden="true" tabindex="-1"></a>    occ_2digits <span class="sc">==</span> <span class="dv">43</span> <span class="sc">~</span><span class="st">"Office &amp; Administration"</span>,</span>
+<span id="cb3-92"><a href="#cb3-92" aria-hidden="true" tabindex="-1"></a>    occ_2digits <span class="sc">==</span> <span class="dv">45</span> <span class="sc">~</span> <span class="st">"Farm, Fish, Forest"</span>,</span>
+<span id="cb3-93"><a href="#cb3-93" aria-hidden="true" tabindex="-1"></a>    occ_2digits <span class="sc">==</span> <span class="dv">47</span> <span class="sc">~</span> <span class="st">"Construction &amp; Extractraction"</span>,</span>
+<span id="cb3-94"><a href="#cb3-94" aria-hidden="true" tabindex="-1"></a>    occ_2digits <span class="sc">==</span> <span class="dv">49</span> <span class="sc">~</span><span class="st">"Installation, Maintenance"</span>,</span>
+<span id="cb3-95"><a href="#cb3-95" aria-hidden="true" tabindex="-1"></a>    occ_2digits <span class="sc">==</span> <span class="dv">51</span> <span class="sc">~</span><span class="st">"Production"</span>,</span>
+<span id="cb3-96"><a href="#cb3-96" aria-hidden="true" tabindex="-1"></a>    occ_2digits <span class="sc">==</span> <span class="dv">53</span> <span class="sc">~</span> <span class="st">"Transportation &amp; Material Moving"</span>,</span>
+<span id="cb3-97"><a href="#cb3-97" aria-hidden="true" tabindex="-1"></a>    occ_2digits <span class="sc">==</span> <span class="dv">55</span> <span class="sc">~</span> <span class="st">"Military"</span>,</span>
+<span id="cb3-98"><a href="#cb3-98" aria-hidden="true" tabindex="-1"></a>    <span class="cn">TRUE</span><span class="sc">~</span><span class="st">"Other"</span>) )</span>
+<span id="cb3-99"><a href="#cb3-99" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-100"><a href="#cb3-100" aria-hidden="true" tabindex="-1"></a>data <span class="ot">&lt;-</span> data <span class="sc">%&gt;%</span> </span>
+<span id="cb3-101"><a href="#cb3-101" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">did_wfh =</span> <span class="fu">if_else</span>(TRANWORK<span class="sc">==</span><span class="dv">80</span>, <span class="dv">1</span>, <span class="dv">0</span>)) <span class="co"># 1 = wfh, 0 = did not wfh</span></span>
+<span id="cb3-102"><a href="#cb3-102" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-103"><a href="#cb3-103" aria-hidden="true" tabindex="-1"></a>data <span class="ot">&lt;-</span> data <span class="sc">%&gt;%</span> </span>
+<span id="cb3-104"><a href="#cb3-104" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb3-105"><a href="#cb3-105" aria-hidden="true" tabindex="-1"></a>    <span class="at">PWSTATE2 =</span> <span class="fu">ifelse</span>(PWSTATE2 <span class="sc">==</span> <span class="dv">0</span>, <span class="cn">NA</span>, PWSTATE2),</span>
+<span id="cb3-106"><a href="#cb3-106" aria-hidden="true" tabindex="-1"></a>    <span class="at">work_in_IL =</span> <span class="fu">ifelse</span>(PWSTATE2 <span class="sc">==</span> <span class="st">"17"</span>, <span class="st">"In Illinois"</span>, <span class="st">"Out of IL"</span>),</span>
+<span id="cb3-107"><a href="#cb3-107" aria-hidden="true" tabindex="-1"></a>    <span class="at">did_wfh_labels =</span> <span class="fu">ifelse</span>(did_wfh <span class="sc">==</span> <span class="dv">1</span>, <span class="st">"Did WFH"</span>, <span class="st">"Did not WFH"</span>),</span>
+<span id="cb3-108"><a href="#cb3-108" aria-hidden="true" tabindex="-1"></a>    <span class="at">has_incearn =</span> <span class="fu">ifelse</span>(INCEARN <span class="sc">&gt;</span> <span class="dv">0</span>, <span class="dv">1</span>, <span class="dv">0</span>), <span class="do">## has earned income = 1</span></span>
+<span id="cb3-109"><a href="#cb3-109" aria-hidden="true" tabindex="-1"></a>    <span class="at">has_occsoc =</span> <span class="fu">ifelse</span>(OCCSOC <span class="sc">&gt;</span> <span class="dv">0</span>, <span class="dv">1</span>, <span class="dv">0</span>),<span class="co"># has occupation = 1</span></span>
+<span id="cb3-110"><a href="#cb3-110" aria-hidden="true" tabindex="-1"></a>    <span class="at">has_incearn_labels =</span> <span class="fu">ifelse</span>(INCEARN <span class="sc">&gt;</span> <span class="dv">0</span>, <span class="st">"Has EarnInc"</span>, <span class="st">"No IncData"</span>), <span class="do">## has earned income = 1</span></span>
+<span id="cb3-111"><a href="#cb3-111" aria-hidden="true" tabindex="-1"></a>    <span class="at">has_occsoc_labels =</span> <span class="fu">ifelse</span>(OCCSOC <span class="sc">&gt;</span> <span class="dv">0</span>, <span class="st">"Has Occ"</span>, <span class="st">"No Occ"</span>) <span class="do">## OCCSOC code greater than zero coded as 1</span></span>
+<span id="cb3-112"><a href="#cb3-112" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb3-113"><a href="#cb3-113" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-114"><a href="#cb3-114" aria-hidden="true" tabindex="-1"></a><span class="fu">rm</span>(ddi)</span>
+<span id="cb3-115"><a href="#cb3-115" aria-hidden="true" tabindex="-1"></a><span class="fu">rm</span>(data2019)</span>
+<span id="cb3-116"><a href="#cb3-116" aria-hidden="true" tabindex="-1"></a><span class="fu">rm</span>(data2021)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="teleworkable-scores" class="level2" data-number="4.4">
+<h2 data-number="4.4" class="anchored" data-anchor-id="teleworkable-scores"><span class="header-section-number">4.4</span> Teleworkable Scores</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co"># bring in the teleworkable scores based on D&amp;N's work.</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>telework <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"./data/teleworkable_AWM.csv"</span>)</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>joined <span class="ot">&lt;-</span> <span class="fu">left_join</span>(data, telework, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"OCCSOC"</span> <span class="ot">=</span> <span class="st">"occ_codes"</span>))</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a><span class="co">#May 22 2023, Changed 399011 occupation to 0. Was coding Nannies and Child care as teleworkable.</span></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>joined <span class="ot">&lt;-</span> joined <span class="sc">%&gt;%</span> <span class="fu">mutate</span>(<span class="at">teleworkable =</span> <span class="fu">ifelse</span>(OCCSOC <span class="sc">==</span> <span class="st">"399011"</span> <span class="sc">|</span> OCCSOC <span class="sc">==</span> <span class="st">"399010"</span>, <span class="dv">0</span>, teleworkable))</span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a><span class="co">#table(joined$teleworkable)</span></span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a><span class="co"># mostly 0's and 1's.</span></span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a><span class="co">#hist(joined$teleworkable)</span></span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>joined <span class="ot">&lt;-</span> joined <span class="sc">%&gt;%</span> </span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">CanWorkFromHome =</span> <span class="fu">case_when</span>(</span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a>  teleworkable <span class="sc">==</span> <span class="dv">0</span> <span class="sc">~</span> <span class="st">"No WFH"</span>,</span>
+<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a>  teleworkable <span class="sc">&lt;</span> <span class="dv">1</span> <span class="sc">~</span> <span class="st">"Some WFH"</span>,</span>
+<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a>  teleworkable <span class="sc">==</span> <span class="dv">1</span> <span class="sc">~</span> <span class="st">"Can WFH"</span>,</span>
+<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a>  <span class="cn">TRUE</span> <span class="sc">~</span> <span class="st">"Check Me"</span>)) <span class="sc">%&gt;%</span> </span>
+<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a>  <span class="co"># keeps observations that have earned income values and are in the labor force.</span></span>
+<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(has_incearn <span class="sc">==</span> <span class="dv">1</span> <span class="sc">&amp;</span> LABFORCE <span class="sc">==</span> <span class="dv">2</span>) </span>
+<span id="cb4-22"><a href="#cb4-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-23"><a href="#cb4-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-24"><a href="#cb4-24" aria-hidden="true" tabindex="-1"></a><span class="fu">table</span>(joined<span class="sc">$</span>CanWorkFromHome)</span>
+<span id="cb4-25"><a href="#cb4-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-26"><a href="#cb4-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-27"><a href="#cb4-27" aria-hidden="true" tabindex="-1"></a><span class="fu">table</span>(joined<span class="sc">$</span>did_wfh, joined<span class="sc">$</span>YEAR)</span>
+<span id="cb4-28"><a href="#cb4-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-29"><a href="#cb4-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-30"><a href="#cb4-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-31"><a href="#cb4-31" aria-hidden="true" tabindex="-1"></a>joined <span class="ot">&lt;-</span> joined <span class="sc">%&gt;%</span> <span class="fu">filter</span>(HHINCOME <span class="sc">&gt;</span> <span class="dv">0</span> <span class="sc">&amp;</span> HHINCOME<span class="sc">!=</span> <span class="dv">9999999</span> <span class="sc">&amp;</span> HHINCOME <span class="sc">!=</span> <span class="dv">9999998</span>)  <span class="co"># 105 observations </span></span>
+<span id="cb4-32"><a href="#cb4-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-33"><a href="#cb4-33" aria-hidden="true" tabindex="-1"></a><span class="do">## Deciles checked in Income section</span></span>
+<span id="cb4-34"><a href="#cb4-34" aria-hidden="true" tabindex="-1"></a>joined <span class="ot">&lt;-</span> joined <span class="sc">%&gt;%</span></span>
+<span id="cb4-35"><a href="#cb4-35" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">HHincdecile_w =</span> <span class="fu">case_when</span>(</span>
+<span id="cb4-36"><a href="#cb4-36" aria-hidden="true" tabindex="-1"></a>    INCEARN <span class="sc">&lt;</span> <span class="dv">34000</span> <span class="sc">~</span> <span class="dv">1</span>,</span>
+<span id="cb4-37"><a href="#cb4-37" aria-hidden="true" tabindex="-1"></a>    INCEARN <span class="sc">&gt;=</span> <span class="dv">34000</span> <span class="sc">&amp;</span> INCEARN <span class="sc">&lt;</span> <span class="dv">51900</span> <span class="sc">~</span> <span class="dv">2</span>,</span>
+<span id="cb4-38"><a href="#cb4-38" aria-hidden="true" tabindex="-1"></a>    INCEARN <span class="sc">&gt;=</span> <span class="dv">51900</span> <span class="sc">&amp;</span> INCEARN <span class="sc">&lt;</span> <span class="dv">68000</span> <span class="sc">~</span> <span class="dv">3</span>,</span>
+<span id="cb4-39"><a href="#cb4-39" aria-hidden="true" tabindex="-1"></a>    INCEARN <span class="sc">&gt;=</span> <span class="dv">68000</span> <span class="sc">&amp;</span> INCEARN <span class="sc">&lt;</span> <span class="dv">83600</span> <span class="sc">~</span> <span class="dv">4</span>,</span>
+<span id="cb4-40"><a href="#cb4-40" aria-hidden="true" tabindex="-1"></a>    INCEARN <span class="sc">&gt;=</span> <span class="dv">83699</span> <span class="sc">&amp;</span> INCEARN <span class="sc">&lt;</span> <span class="dv">100000</span> <span class="sc">~</span> <span class="dv">5</span>,</span>
+<span id="cb4-41"><a href="#cb4-41" aria-hidden="true" tabindex="-1"></a>    INCEARN <span class="sc">&gt;=</span> <span class="dv">100000</span> <span class="sc">&amp;</span> INCEARN <span class="sc">&lt;</span> <span class="dv">120000</span> <span class="sc">~</span> <span class="dv">6</span>,</span>
+<span id="cb4-42"><a href="#cb4-42" aria-hidden="true" tabindex="-1"></a>    INCEARN <span class="sc">&gt;=</span> <span class="dv">120000</span> <span class="sc">&amp;</span> INCEARN <span class="sc">&lt;</span> <span class="dv">142400</span> <span class="sc">~</span> <span class="dv">7</span>,</span>
+<span id="cb4-43"><a href="#cb4-43" aria-hidden="true" tabindex="-1"></a>    INCEARN <span class="sc">&gt;=</span> <span class="dv">142400</span> <span class="sc">&amp;</span> INCEARN <span class="sc">&lt;</span> <span class="dv">175000</span> <span class="sc">~</span> <span class="dv">8</span>,</span>
+<span id="cb4-44"><a href="#cb4-44" aria-hidden="true" tabindex="-1"></a>    INCEARN <span class="sc">&gt;=</span> <span class="dv">175000</span> <span class="sc">&amp;</span> INCEARN <span class="sc">&lt;</span> <span class="dv">235000</span> <span class="sc">~</span> <span class="dv">9</span>,</span>
+<span id="cb4-45"><a href="#cb4-45" aria-hidden="true" tabindex="-1"></a>    INCEARN <span class="sc">&gt;=</span> <span class="dv">235000</span> <span class="sc">~</span> <span class="dv">10</span>)</span>
+<span id="cb4-46"><a href="#cb4-46" aria-hidden="true" tabindex="-1"></a>  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="dealing-with-survey-data" class="level2" data-number="4.5">
+<h2 data-number="4.5" class="anchored" data-anchor-id="dealing-with-survey-data"><span class="header-section-number">4.5</span> Dealing with Survey Data</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co">#as_survey() from srvyr package</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="do">## both years together: calculations using this will have incorrect standard errors</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="co"># might be easier sometimes to graph together. Maybe. </span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>dstrata <span class="ot">&lt;-</span> survey<span class="sc">::</span><span class="fu">svydesign</span>(<span class="at">id =</span> <span class="sc">~</span>CLUSTER, <span class="at">strata =</span> <span class="sc">~</span>STRATA, <span class="at">weights =</span> <span class="sc">~</span>PERWT, <span class="at">data =</span> joined) <span class="sc">%&gt;%</span> </span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">as_survey</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">decile =</span> <span class="fu">ntile</span>(INCEARN, <span class="dv">10</span>))</span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a><span class="co"># 2019 data turned into survey item</span></span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>dstrata2019 <span class="ot">&lt;-</span> joined <span class="sc">%&gt;%</span> <span class="fu">filter</span>(YEAR<span class="sc">==</span><span class="dv">2019</span>) </span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>dstrata2019 <span class="ot">&lt;-</span> survey<span class="sc">::</span><span class="fu">svydesign</span>(<span class="at">id =</span> <span class="sc">~</span>CLUSTER, <span class="at">strata =</span> <span class="sc">~</span>STRATA, </span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a>                                 <span class="at">weights =</span> <span class="sc">~</span>PERWT, <span class="at">data =</span> dstrata2019) <span class="sc">%&gt;%</span> </span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">as_survey</span>() <span class="sc">%&gt;%</span> </span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">decile =</span> <span class="fu">ntile</span>(INCEARN, <span class="dv">10</span>))</span>
+<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a>dstrata2021 <span class="ot">&lt;-</span> joined <span class="sc">%&gt;%</span> <span class="fu">filter</span>(YEAR<span class="sc">==</span><span class="dv">2021</span>) </span>
+<span id="cb5-22"><a href="#cb5-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-23"><a href="#cb5-23" aria-hidden="true" tabindex="-1"></a>dstrata2021 <span class="ot">&lt;-</span> survey<span class="sc">::</span><span class="fu">svydesign</span>(<span class="at">id =</span> <span class="sc">~</span>CLUSTER, <span class="at">strata =</span> <span class="sc">~</span>STRATA, <span class="at">weights =</span> <span class="sc">~</span>PERWT, <span class="at">data =</span> dstrata2021) <span class="sc">%&gt;%</span> <span class="fu">as_survey</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb5-24"><a href="#cb5-24" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">decile =</span> <span class="fu">ntile</span>(INCEARN, <span class="dv">10</span>))</span>
+<span id="cb5-25"><a href="#cb5-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-26"><a href="#cb5-26" aria-hidden="true" tabindex="-1"></a><span class="co"># deciles using ntile(). Not weighted!!  Close to income deciles from weighted suvey design though.</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>joined <span class="ot">&lt;-</span> joined <span class="sc">%&gt;%</span> <span class="fu">filter</span>(HHINCOME <span class="sc">&gt;</span> <span class="dv">0</span> <span class="sc">&amp;</span> HHINCOME<span class="sc">!=</span> <span class="dv">9999999</span> <span class="sc">&amp;</span> HHINCOME <span class="sc">!=</span> <span class="dv">9999998</span>)  <span class="co"># 105 observations </span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>joined <span class="sc">%&gt;%</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>() <span class="sc">+</span> <span class="fu">geom_histogram</span>(<span class="fu">aes</span>(<span class="at">x=</span>HHINCOME, <span class="at">weight =</span> HHWT))</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>joined <span class="sc">%&gt;%</span> <span class="co"># 122000 observations </span></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>() <span class="sc">+</span> <span class="fu">geom_histogram</span>(<span class="fu">aes</span>(<span class="at">x=</span>HHINCOME))</span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>HHdesign <span class="ot">&lt;-</span> survey<span class="sc">::</span><span class="fu">svydesign</span>(<span class="at">id =</span> <span class="sc">~</span>CLUSTER, <span class="at">strata =</span> <span class="sc">~</span>STRATA, <span class="at">weights =</span> <span class="sc">~</span>HHWT, <span class="at">data =</span> joined)</span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>inc_quantiles <span class="ot">&lt;-</span>survey<span class="sc">::</span><span class="fu">svyquantile</span>(<span class="sc">~</span>HHINCOME, <span class="at">design=</span>HHdesign, </span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>                    <span class="at">quantiles =</span> <span class="fu">c</span>(<span class="dv">0</span>,<span class="fl">0.1</span>,<span class="fl">0.2</span>,<span class="fl">0.3</span>,<span class="fl">0.4</span>,<span class="fl">0.5</span>,<span class="fl">0.6</span>,<span class="fl">0.7</span>,<span class="fl">0.8</span>,<span class="fl">0.9</span>,<span class="dv">1</span>) ,</span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>                    <span class="at">na.rm=</span><span class="cn">TRUE</span>, <span class="at">ci =</span> <span class="cn">FALSE</span>  )</span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a>inc_quantiles</span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a><span class="co"># With  HH Weights:  4 32900 50000 66600 82000 99000 117000 140000 171000 230000 1797000</span></span>
+<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a><span class="co"># With WRONG weights:  (34000, 51900, 68000, 83600, 1e+05 120,000 142,400 175,000 235,000</span></span>
+<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a><span class="co">#Code done above when creating variables in beginning chunks.</span></span>
+<span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a>joined <span class="ot">&lt;-</span> joined <span class="sc">%&gt;%</span></span>
+<span id="cb6-20"><a href="#cb6-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">HHincdecile_w =</span> <span class="fu">case_when</span>(</span>
+<span id="cb6-21"><a href="#cb6-21" aria-hidden="true" tabindex="-1"></a>    INCEARN <span class="sc">&lt;</span> <span class="dv">32900</span> <span class="sc">~</span> <span class="dv">1</span>,</span>
+<span id="cb6-22"><a href="#cb6-22" aria-hidden="true" tabindex="-1"></a>    INCEARN <span class="sc">&gt;=</span> <span class="dv">32900</span> <span class="sc">&amp;</span> INCEARN <span class="sc">&lt;</span> <span class="dv">50000</span> <span class="sc">~</span> <span class="dv">2</span>,</span>
+<span id="cb6-23"><a href="#cb6-23" aria-hidden="true" tabindex="-1"></a>    INCEARN <span class="sc">&gt;=</span> <span class="dv">50000</span> <span class="sc">&amp;</span> INCEARN <span class="sc">&lt;</span> <span class="dv">66600</span> <span class="sc">~</span> <span class="dv">3</span>,</span>
+<span id="cb6-24"><a href="#cb6-24" aria-hidden="true" tabindex="-1"></a>    INCEARN <span class="sc">&gt;=</span> <span class="dv">66600</span> <span class="sc">&amp;</span> INCEARN <span class="sc">&lt;</span> <span class="dv">82000</span> <span class="sc">~</span> <span class="dv">4</span>,</span>
+<span id="cb6-25"><a href="#cb6-25" aria-hidden="true" tabindex="-1"></a>    INCEARN <span class="sc">&gt;=</span> <span class="dv">82000</span> <span class="sc">&amp;</span> INCEARN <span class="sc">&lt;</span> <span class="dv">99000</span> <span class="sc">~</span> <span class="dv">5</span>,</span>
+<span id="cb6-26"><a href="#cb6-26" aria-hidden="true" tabindex="-1"></a>    INCEARN <span class="sc">&gt;=</span> <span class="dv">99000</span> <span class="sc">&amp;</span> INCEARN <span class="sc">&lt;</span> <span class="dv">117000</span> <span class="sc">~</span> <span class="dv">6</span>,</span>
+<span id="cb6-27"><a href="#cb6-27" aria-hidden="true" tabindex="-1"></a>    INCEARN <span class="sc">&gt;=</span> <span class="dv">117000</span> <span class="sc">&amp;</span> INCEARN <span class="sc">&lt;</span> <span class="dv">140000</span> <span class="sc">~</span> <span class="dv">7</span>,</span>
+<span id="cb6-28"><a href="#cb6-28" aria-hidden="true" tabindex="-1"></a>    INCEARN <span class="sc">&gt;=</span> <span class="dv">140000</span> <span class="sc">&amp;</span> INCEARN <span class="sc">&lt;</span> <span class="dv">171000</span> <span class="sc">~</span> <span class="dv">8</span>,</span>
+<span id="cb6-29"><a href="#cb6-29" aria-hidden="true" tabindex="-1"></a>    INCEARN <span class="sc">&gt;=</span> <span class="dv">171000</span> <span class="sc">&amp;</span> INCEARN <span class="sc">&lt;</span> <span class="dv">230000</span> <span class="sc">~</span> <span class="dv">9</span>,</span>
+<span id="cb6-30"><a href="#cb6-30" aria-hidden="true" tabindex="-1"></a>    INCEARN <span class="sc">&gt;=</span> <span class="dv">230000</span> <span class="sc">~</span> <span class="dv">10</span>)</span>
+<span id="cb6-31"><a href="#cb6-31" aria-hidden="true" tabindex="-1"></a>  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">save</span>(joined, dstrata, dstrata2019, dstrata2021, <span class="at">file =</span> <span class="st">"./data/WFH.RData"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    text: function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+  function tippyHover(el, contentFn) {
+    const config = {
+      allowHTML: true,
+      content: contentFn,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start'
+    };
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      return note.innerHTML;
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+      <a href="./DescriptiveStatistics.html" class="pagination-link">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Descriptive Statistics</span></span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="./WFH_Models.html" class="pagination-link">
+        <span class="nav-page-text"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Models for Paper</span></span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav>
+</div> <!-- /content -->
+
+
+
+</body></html>
