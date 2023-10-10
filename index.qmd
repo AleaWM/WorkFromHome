@@ -1,0 +1,35 @@
+---
+title: "Working From Home in Illinois: Who Can and Who Does?"
+format:
+  html:
+    df-print: paged
+    toc: true
+---
+
+
+```{r setup, warning=FALSE, message=FALSE, include=FALSE}
+
+library(scales)
+library(reldist)
+library(pollster)
+library(labelled)
+library(weights)
+library(tigris)
+library(ipumsr)
+library(srvyr)
+library(survey)
+library(tidyverse)
+library(naniar)
+library(gmodels)
+library(gtsummary)
+library(quarto)
+
+library(huxtable) # for summ() and regression output formatting
+# Create the DB connection with the default name expected by PTAXSIM functions
+library(jtools)
+library(modelsummary)
+library(car)
+
+knitr::opts_chunk$set(warning=FALSE, message=FALSE, tidy = TRUE)
+
+```

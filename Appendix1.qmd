@@ -1,7 +1,30 @@
 # Appendix 1. Detailed Methodology
 
-```{r}
-load("WFH.RData")
+```{r setup, warning=FALSE, message=FALSE}
+
+library(scales)
+library(reldist)
+library(pollster)
+library(labelled)
+library(weights)
+library(tigris)
+library(ipumsr)
+library(srvyr)
+library(survey)
+library(tidyverse)
+library(naniar)
+library(gmodels)
+library(gtsummary)
+library(quarto)
+library(huxtable) # for summ() and regression output formatting
+library(jtools)
+library(modelsummary)
+library(car)
+
+knitr::opts_chunk$set(warning=FALSE, message=FALSE)
+
+load("./data/WFH.RData")
+
 ```
 
 
