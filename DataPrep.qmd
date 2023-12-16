@@ -69,15 +69,10 @@ earned income.
 
 ::: {.callout-important appearance="minimal" icon="false"}
 the ntile() decile variable is what is used to graph all decile images
-and for all income decile tables/calculations. ~~Find a way to apply the
-summarized version of the svyquantiles as a new variable in the dstrata
-datasets.~~ - Done.
-
-`incdecile_w` is made using the breaks returned from the svyquantile
-command.
-
--   ~~now use this variable in graphs? or create the summary tables
-    using weights and then pass that to the graph commands.~~ - done
+and for all income decile tables/calculations. `incdecile_w` is made
+using the breaks returned from the svyquantile command. This variable is
+weighted and used in graphs and summary tables that involve calculations
+of deciles using survey data.
 :::
 
 I combine the 2019 and 2021 datasets when creating new variables and
@@ -106,7 +101,7 @@ library(jtools)
 library(modelsummary)
 library(car)
 
-knitr::opts_chunk$set(warning=FALSE, message=FALSE, eval=FALSE)
+knitr::opts_chunk$set(warning=FALSE, message=FALSE)
 
 ```
 
@@ -187,7 +182,7 @@ ddi <- read_ipums_ddi("./data/IL_2019_1yearACS_datDDI.xml") # downloaded April 1
 
 data2019 <- read_ipums_micro(ddi) # 126623 observations before any filtering
 
-data2019 <- data2019 %>% select(YEAR, INCEARN, INCWAGE, INCTOT, TRANWORK, OCCSOC, CLASSWKR, EMPSTAT, LABFORCE, PERWT, COUNTYFIP, PUMA, PWSTATE2, AGE, STRATA, CLUSTER, RACE, HISPAN, SEX, CIHISPEED, CINETHH, MULTGEN, NCHILD, NCHLT5, MARST, FERTYR, EDUC, DEGFIELD, OCC, IND, OCC2010, METRO, CITY, HHINCOME, SERIAL,HHWT, NUMPREC, SUBSAMP, HHTYPE)
+data2019 <- data2019 %>% select(YEAR, INCEARN, INCWAGE, INCTOT, TRANWORK, OCCSOC, CLASSWKR, EMPSTAT, LABFORCE, PERWT, COUNTYFIP, PUMA, PWSTATE2, AGE, STRATA, CLUSTER, RACE, HISPAN, SEX, CIHISPEED, CINETHH, MULTGEN, NCHILD, NCHLT5, MARST, FERTYR, EDUC, DEGFIELD, OCC, IND, OCC2010, METRO, CITY, HHINCOME, SERIAL, HHWT, NUMPREC, SUBSAMP, HHTYPE)
 
 data <- rbind(data2019, data2021) #125,007 observations before any filtering.
 ```
