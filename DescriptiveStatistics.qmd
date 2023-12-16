@@ -36,7 +36,7 @@ library(pollster)
 
 knitr::opts_chunk$set(warning=FALSE, message=FALSE)
 
-load("WFH.RData")
+load("data/WFH.RData")
 ```
 
 
