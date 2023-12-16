@@ -1,17 +1,51 @@
 project:
-  type: website
+  type: book
   output-dir: docs
 
-website:
-  title: "Work From Home in Illinois"
+book:
+  title: "Working From Home in Illinois:"
+  subtitle: "Who Can and Who Does?"
+  author: "Alea Wilbur-Mujtaba"
+  description: "Replication files, appendix items, summary tables, and images used when authoring the WFH paper."
+  status: "forthcoming"
+  repo-branch: "https://github.com/AleaWM/WorkFromHome/tree/main"
+  page-navigation: true
+  back-to-top-navigation: true
+  chapters: 
+    - index.qmd
+    - Maps.qmd
+    - DescriptiveStatistics.qmd
+    - DataPrep.qmd
+    - WFH_Models.qmd
+    - Appendix1.qmd
   navbar:
+    search: true
     left:
-      - href: WFH_geographicComparison.qmd
-        text: "Data Prep"
+      - Maps.qmd
+      - DescriptiveStatistics.qmd
       - WFH_Models.qmd
+      - DataPrep.qmd
+    right: 
+      - icon: github
+        href: "https://github.com/AleaWM/WorkFromHome"
+        aria-label: GitHub
+      
       
 format:
   html:
     theme: cosmo
     toc: true
+    df-print: paged
+    code-fold: true
+    code-summary: "Show the code"
+    code-overflow: wrap
+    code-tools: true
+    code-copy: true
+    fig-cap-location: top
+    tbl-cap-location: top
+    grid: 
+      sidebar-width: 200px
+      body-width: 900px
+      margin-width: 200px
+    
 
