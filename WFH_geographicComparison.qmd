@@ -1,14 +1,11 @@
 ---
-title: "Work From Home: Who Can and Who Does?"
+title: "Working From Home in Illinois: Who Can and Who Does?"
 format:
   html:
     df-print: paged
     toc: true
 ---
 
-# Getting Data
-
-I combine the 2019 and 2021 datasets when creating new variables and then separate them by year again before creating the survey design object for each sample year.
 
 ```{r setup, warning=FALSE, message=FALSE, include=FALSE}
 
@@ -239,7 +236,7 @@ rm(data2019)
 rm(data2021)
 ```
 
-# Descriptive Statistics
+## Descriptive Statistics
 
 251630 observations originally in ACS 2021 and 2019 1-year samples.
 
@@ -2435,7 +2432,7 @@ table(joined$NCHLT5)
 
 ```
 
-# Geographic Data
+## Geographic Data
 
 ```{r}
 table(data$PWSTATE2)
@@ -3743,7 +3740,7 @@ joined %>%
 ```
 
 
-# Other Sources and Papers
+## Other Sources and Papers
 
 Ability to work from home: evidence from two surveys and implications for the labor market in the COVID-19 pandemic. June 2020. [BLS Monthly Labor Review](https://www.bls.gov/opub/mlr/2020/article/ability-to-work-from-home.htm)
 
