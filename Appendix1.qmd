@@ -27,35 +27,37 @@ load("./data/WFH.RData")
 
 ```
 
-
 This section explains how the constructs of "WFH Feasibility" and "WFH Occurrence" were derived in greater detail. All data, replication code, and additional graphs can be found on Github at [Alea Wilbur-Mujtaba's WorkFromHome Project](https://github.com/AleaWM/WorkFromHome).
 
 ## Construct: Work from Home Feasibility
 
 WFH Feasibility is based on the methodology used by Dingel & Neiman's (2020) working paper that assessed WFH feasibility in the USA and other countries during the early stages of the COVID-19 pandemic. Dingel and Neiman first classify the WFH feasibility for all occupations in the United States using survey responses from the Occupational Information Network (ONET)*. O*NET is an online database sponsored by the US Department of Labor and provides detailed information on types of job in the United States. Two ONET surveys on Work Context and Generalized Work Activities were used to approximate if an occupation must be performed on site or if it could feasibly be done at the worker's home. For example, some questions implied that a physical presence at the work site was expected in order to do the job; others implied working closely with other individuals. Dingel & Nieman used these survey questions as a proxy for which occupations could feasibly be done at home and which could not. Please see Dingel & Neiman's (2020) section on "Classification of Occupations" for more details on survey questions used to assign "teleworkable" scores to occupation codes. The authors created a publicly available file with 968 ONET occupations with their assigned value of 0 (WFH not feasible) or 1 (WFH is feasible) to indicate an occupation's WFH feasibility.
 
+![Example of 8-digit O\*NET occupation codes. These would be assigned a value of 0 or 1, and then averaged together to create a 6-digit teleworkable score for occupation 113071.](images/Appendix Figure 1.png)
+
+![Bureau of Labor Services occupations using a 6-digit identifier. Image is a screen capture from https://www.bls.gov/oes/current/oes_stru.htm.](images/Appendix Figure 2.png)
+
 Occupations in ONET are given an 8-digit, detailed version of the Standard Occupational Classification (SOC) system structure. The ACS and Bureau of Labor Statistics use a 6-digit version of the SOC-based 2018 occupation codes. As can be seen in Figure 1, there are cases in which multiple ONET occupations map to a single occupation code used by the ACS. For these codes, we average the feasibility scores of the 8-digit O\*NET occupations to create a 6-digit occupation code that matches the ones used by the ACS. This creates values ranging from 0 to 1; values between 0 and 1 were labeled as "Some WFH feasible" to indicate that some occupations feasibly could be done at home and others could not. Those occupations can be grouped into 23 major groups using the first 2 digits of their occupation code.
 
 ## Expanded Work from Home Feasibility Codes
 
-When merging Dingel and Neiman\'s file of occupation codes with ACS occupation codes, there were many unmatched occupations which limited the sample size of respondents that had occupation data at the individual level. Some unmatched values were due to new SOC codes that began to be used in 2018, others were due to the ACS data aggregating to 4-digit SOC codes (e.g. 5140XX) to protect respondent anonymity in occupations with few workers. In order to better assess one\'s ability to work at home based on their job requirements, we added additional occupation codes and teleworkable scores to Dingel and Neiman\'s WFH feasibility classification and then merged the updated classifications with the Illinois ACS data.
+When merging Dingel and Neiman's file of occupation codes with ACS occupation codes, there were many unmatched occupations which limited the sample size of respondents that had occupation data at the individual level. Some unmatched values were due to new SOC codes that began to be used in 2018, others were due to the ACS data aggregating to 4-digit SOC codes (e.g. 5140XX) to protect respondent anonymity in occupations with few workers. In order to better assess one's ability to work at home based on their job requirements, we added additional occupation codes and teleworkable scores to Dingel and Neiman's WFH feasibility classification and then merged the updated classifications with the Illinois ACS data.
 
-Occupation codes for Illinois workers that did not match were identified and manually given \"teleworkable\" codes based on similar occupation codes and job title or O\*NET survey responses (as was done for Dingel & Neiman\'s original teleworkable scores). Additional occupation codes not included in Dingel & Neiman\'s coded occupations were also added by comparing the most recent list of current and past occupation codes according to 2018 Standard Occupational Classification (SOC) for 2018-onward and identifying occupation codes that had changed.^[\[1\]](#_ftn1)^  [Using only the codes provided by Dingel & Neiman resulted in 331 unique occupation codes matching for 31,563 observations. Our expanded occupation codes resulted in 520 unique occupation codes matching 61,234 observations.]{.underline}
+Occupation codes for Illinois workers that did not match were identified and manually given "teleworkable" codes based on similar occupation codes and job title or O\*NET survey responses (as was done for Dingel & Neiman's original teleworkable scores). Additional occupation codes not included in Dingel & Neiman's coded occupations were also added by comparing the most recent list of current and past occupation codes according to 2018 Standard Occupational Classification (SOC) for 2018-onward and identifying occupation codes that had changed.[^appendix1-1] [Using only the codes provided by Dingel & Neiman resulted in 331 unique occupation codes matching for 31,563 observations. Our expanded occupation codes resulted in 520 unique occupation codes matching 61,234 observations.]{.underline}
 
+[^appendix1-1]: OCCSOC reports an individual's primary occupation, classified according to 2018 Standard Occupational Classification (SOC) for 2018-onward. <https://usa.ipums.org/usa-action/variables/occsoc#description_section>
 
-## Construct: Worked from Home 
+## Construct: Worked from Home
 
 Our main analysis is performed at the individual level using IPUMS USA (Integrated Public Use Microdata Series) data from 2019 and 2021 American Community Surveys (ACS) for all Illinois residents.  Summaries calculated using individual level data were compared to ACS Detailed Summary Tables when possible during the analysis as intermediate robustness checks. The summary level ACS data closely align with the individual level ACS data on WFH.
 
-In 2021, there were 58,085 observations representing a 5,972,987 person workforce aged 16 and above. In 2019, there were 59,979 observations representing a 6,213,391 person workforce in Illinois.  The ACS asks individuals how they got to work in the last week with an option for \"Worked from home,\" represented by the TRANWORK variable. Responses are weighted by PERWT. \"did_wfh\" is recoded form of TRANWORK transformed into a binary variable indicating whether someone did or did not work from home.
+In 2021, there were 58,085 observations representing a 5,972,987 person workforce aged 16 and above. In 2019, there were 59,979 observations representing a 6,213,391 person workforce in Illinois.  The ACS asks individuals how they got to work in the last week with an option for "Worked from home," represented by the TRANWORK variable. Responses are weighted by PERWT. "did_wfh" is recoded form of TRANWORK transformed into a binary variable indicating whether someone did or did not work from home.
 
-The ACS asks respondents about their primary means of transportation to work through a variable *tranwork.*^[\[1\]](#_ftn1)^ We use this variable as the proxy to indicate whether respondents have actually worked from home by creating *did_WFH* by recoding all forms of transportation as 0 and responses where an individual worked from home as 1.   
+The ACS asks respondents about their primary means of transportation to work through a variable *tranwork.*[^appendix1-2] We use this variable as the proxy to indicate whether respondents have actually worked from home by creating *did_WFH* by recoding all forms of transportation as 0 and responses where an individual worked from home as 1.   
 
-**Table 4** below shows summary statistics for variable *tranwork*. We use the weighting variable *perwt* to obtain the population-level estimate. Before the pandemic, individuals that worked from home made up 5.3% of Illinois\' labor force; after COVID-19 individuals that worked from home increased to 19.2% of the labor force. 
+[^appendix1-2]: According to IPUMS ACS, *tranwork* reports a respondent's primary means of transportation to work on the most recent day worked or over the course of the previous week. See Appendix 3 for the question design. <https://usa.ipums.org/usa-action/variables/TRANWORK#description_section>
 
-[\[1\]](#_ftnref1) According to IPUMS ACS, *tranwork* reports a respondent's primary means of transportation to work on the most recent day worked or over the course of the previous week. See Appendix 3 for the question design.
-
-<https://usa.ipums.org/usa-action/variables/TRANWORK#description_section>
+**Table 4** below shows summary statistics for variable *tranwork*. We use the weighting variable *perwt* to obtain the population-level estimate. Before the pandemic, individuals that worked from home made up 5.3% of Illinois' labor force; after COVID-19 individuals that worked from home increased to 19.2% of the labor force. 
 
 ```{r export-occ-matched-csv, eval=FALSE}
 #Tables for Appendix Items with counts of observations by OCC types:
@@ -99,7 +101,6 @@ dataset_names <- list('All Matched OCC Codes' = all_occs,
 
 write.xlsx(dataset_names, file = 'WFH_feasibility_comparison_AWM.xlsx')
 ```
-
 
 # Appendix Item 2
 
@@ -344,8 +345,6 @@ ggsave("Figure1.png", limitsize = FALSE, width = 8, height = 4, units = "in")
 
 ```
 
-
-
 After merging our expanded WFH classification to the Illinois ACS data, 55% of them cannot be performed at home, 31.8% of them can be performed at home, and 13.2% of occupations have less clear designations and scores between 0 and 1 indicating that some of the jobs that had been combined into a 6-digit code used by the ACS should be able to be done at home.
 
 **Table 2** below shows the WFH feasibility in Illinois based on our updated classification. According to Table 2, individuals who may be able to work from home in Illinois based on likely job requirements are around 30% of the labor force in both 2019 and 2020.
@@ -355,4 +354,3 @@ After merging our expanded WFH classification to the Illinois ACS data, 55% of t
 In 2021, 4.1% of Illinois individuals are in occupations where WFH was coded as not feasible but they did work from home. 10.9% of Illinois individuals are classified as being able to work from home and they have indeed worked at home.
 
 [\[1\]](#_ftnref1) OCCSOC reports an individual's primary occupation, classified according to 2018 Standard Occupational Classification (SOC) for 2018-onward. <https://usa.ipums.org/usa-action/variables/occsoc#description_section>
-
