@@ -158,6 +158,9 @@ Survey questions for INCEARN:
 7.  INCEARN includes self-employment income, INCWAGE does not.
     -   INCWAGE does not include Farming income and self-employment
         income, but INCEARN does.
+8.  MARST is marital status. Used as proxy for "Lives with Partner"
+    -   MARST_1=Married, spouse present
+    -   2,3,4,5,6 = No spouse present
 
 The survey data used was downloaded from IPUMS on April 10th 2023. Files
 that end with .gz are compressed versions of the .dta and .dat files.
@@ -222,7 +225,8 @@ data <-  data %>% mutate(white = if_else(RACE ==1, 1, 0),
          otherrace = if_else(RACE %in% c(3,7,8,9),1,0)) %>%
   group_by(COUNTYFIP,PUMA) %>%
   mutate(pct_white = sum(white)/n(),
-         pct_black = sum(black)/n()) %>% 
+         pct_black = sum(black)/n(),
+         spouse = ifelse(1, 1, 0)) %>% 
   ungroup() %>%
   mutate(race_cat = case_when(
     RACE ==1~"White",
@@ -284,7 +288,7 @@ data <- data %>%
     occ_2digits == 41 ~ "Sales",
     occ_2digits == 43 ~"Office & Administration",
     occ_2digits == 45 ~ "Farm, Fish, Forest",
-    occ_2digits == 47 ~ "Construction & Extractraction",
+    occ_2digits == 47 ~ "Construction & Extraction",
     occ_2digits == 49 ~"Installation, Maintenance",
     occ_2digits == 51 ~"Production",
     occ_2digits == 53 ~ "Transportation & Material Moving",
@@ -306,8 +310,8 @@ data <- data %>%
     )
 
 rm(ddi)
-rm(data2019)
-rm(data2021)
+#rm(data2019)
+#rm(data2021)
 ```
 
 ## Teleworkable Scores
@@ -316,7 +320,7 @@ rm(data2021)
 # bring in the teleworkable scores based on D&N's work.
 telework <- read_csv("./data/teleworkable_AWM.csv")
 
-
+hist(telework$teleworkable)
 joined <- left_join(data, telework, by = c("OCCSOC" = "occ_codes"))
 
 #May 22 2023, Changed 399011 occupation to 0. Was coding Nannies and Child care as teleworkable.
@@ -334,6 +338,8 @@ joined <- joined %>%
   TRUE ~ "Check Me")) %>% 
   # keeps observations that have earned income values and are in the labor force.
   filter(has_incearn == 1 & LABFORCE == 2) 
+
+joined$CanWorkFromHome <- factor(joined$CanWorkFromHome, levels = c("No WFH", "Some WFH", "Can WFH") )
 
 
 table(joined$CanWorkFromHome)
@@ -436,5 +442,5 @@ joined <- joined %>%
 ```
 
 ```{r}
-save(joined, dstrata, dstrata2019, dstrata2021, file = "./data/WFH.RData")
+save(joined, data2019, data2021, dstrata, dstrata2019, dstrata2021, file = "./data/WFH.RData")
 ```
