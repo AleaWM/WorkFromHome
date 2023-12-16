@@ -36,7 +36,7 @@ library(pollster)
 
 knitr::opts_chunk$set(warning=FALSE, message=FALSE)
 
-load("data/WFH.RData")
+load("./data/WFH.RData")
 ```
 
 
@@ -245,7 +245,6 @@ ACS 1 year samples for 2019 and 2021 used for weighted population estimates. Gra
 ```{r fig-A2-Figure3}
 #| layout-nrow: 1
 #| column: page
-#| fig-cap: ""
 
 # Both years, detailed observation types
 table <- svytable(~YEAR+CanWorkFromHome+occ_2dig_labels_d, design = dstrata) 

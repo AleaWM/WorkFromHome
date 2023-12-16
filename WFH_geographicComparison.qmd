@@ -210,7 +210,7 @@ data <- data %>%
     occ_2digits == 41 ~ "Sales",
     occ_2digits == 43 ~"Office & Administration",
     occ_2digits == 45 ~ "Farm, Fish, Forest",
-    occ_2digits == 47 ~ "Construction & Extractraction",
+    occ_2digits == 47 ~ "Construction & Extraction",
     occ_2digits == 49 ~"Installation, Maintenance",
     occ_2digits == 51 ~"Production",
     occ_2digits == 53 ~ "Transportation & Material Moving",
