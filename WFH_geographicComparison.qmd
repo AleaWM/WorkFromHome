@@ -831,7 +831,7 @@ scale_x_discrete(labels = function(x) str_wrap(x, width=25))+ # makes labels bet
 ```
 
 
-```{rv export-figA2-Fig1, include = FALSE}
+```{r export-figA2-Fig1, include = FALSE}
 table %>% filter(occ_2dig_labels != "Military") %>% ggplot(aes(x=fct_rev(fct_inorder(occ_2dig_labels)), y=n, group = YEAR)) + 
   geom_col(stat = "identity", fill="lightblue") +
   facet_wrap(~YEAR)+
@@ -889,7 +889,7 @@ table %>% ggplot(aes(x=fct_rev(fct_inorder(occ_2dig_labels_d)), y=n, group = YEA
          legend.background = element_rect(fill='transparent'),
          legend.box.background = element_rect(fill='transparent')
        )+
-  labs(title ="WFH Feasibility by Occupation Type",
+  labs(title ="Occupations in Illinois",
        #subtitle = "Little change between 2019 and 2021 Occurred",
        x = "", y = "Estimated Number of Workers") + scale_y_continuous(labels = scales::comma)+
   
@@ -1074,8 +1074,8 @@ table %>%ggplot(aes(x=fct_rev(fct_inorder(occ_2dig_labels_d)), y=n, fill = did_w
   scale_fill_manual(values = c("#a6bddb", "#2b8cbe")) +
   coord_flip()
 
-ggsave("Figure-A2Fig4.png", limitsize = FALSE, width = 8, height = 4, units = "in")
-ggsave("Figure-A2Fig4.eps", limitsize = FALSE, width = 8, height = 4, units = "in")
+ggsave("./paper_figures/A2-Figure4.png", limitsize = FALSE, width = 8, height = 4, units = "in")
+ggsave("./paper_figures/A2-Figure4.eps", limitsize = FALSE, width = 8, height = 4, units = "in")
 ```
 
 ACS 1 year samples for 2019 and 2021 used for weighted population estimates. Graph interpretation: 3.6% of all worker in the labor force in 2021 were in Management occupations and worked from home. 8.3% of all workers were in management and did not work from home. Workers in Management occupations make up 11.9% of the entire workforce.
@@ -1126,8 +1126,8 @@ theme_classic()  +
   scale_fill_manual(values = c( "#117733","#44AA99","#D8D5C5")) +
   coord_flip()
 
-ggsave("./paper_figures/Figure-A2Fig3.png", limitsize = FALSE, width = 8, height = 4, units = "in")
-ggsave("./paper_figures/Figure-A2Fig3.eps", limitsize = FALSE, width = 8, height = 4, units = "in")
+ggsave("./paper_figures/A2-Figure3.png", limitsize = FALSE, width = 8, height = 4, units = "in")
+ggsave("./paper_figures/A2-Figure3.eps", limitsize = FALSE, width = 8, height = 4, units = "in")
 ```
 
 OCCSOC codes and Teleworkable scores from occupation characteristics. 11.6% of all workers in Illinois had management occupations (6.6 Can WFH + 1.8 No WFH + 3.2 Some WFH in 2021). 6.6% of all workers in Illinois had management occupations and could feasibly WFH. ACS 1 year samples for 2019 and 2021 used for weighted population estimates.
@@ -1150,7 +1150,8 @@ table %>%
   geom_text(aes(label = scales::percent(as.numeric(ifelse(Prop>0.01,Prop, "")), accuracy = .1), accuracy= 0.1L ), position = position_stack(vjust=.5), size=3) +
 theme_classic() + theme(legend.position = "bottom", legend.title = element_blank())+
   labs(x = "", y = "# of People",
-      caption = "Occupation codes (OCCSOC)from the 2021 1-year ACS merged with work from home feasibility scores.") + scale_y_continuous(labels = scales::comma)+
+      caption = "Occupation codes (OCCSOC)from the 2021 1-year ACS merged with work from home feasibility scores."
+      ) + scale_y_continuous(labels = scales::comma)+
   scale_fill_manual(values = c( "#2b8cbe","#a6bddb","gray80")) +
   coord_flip()
 ```
@@ -1238,14 +1239,26 @@ table %>% ggplot(aes(CanWorkFromHome, y=n, fill = did_wfh_labels, group = YEAR))
   facet_wrap(~YEAR)+
     geom_text(aes(label = scales::percent(Prop)), position = position_stack(vjust=.5), size=3) +
   #scale_fill_manual(values = c("#a6bddb", "#2b8cbe"))+
-  theme_classic() + theme(legend.position = "none", legend.title = element_blank())+
+  theme_classic() + 
+  #theme(legend.position = "none", legend.title = element_blank()) +
+  
+    theme(legend.position = "none", legend.title = element_blank(),
+         panel.background = element_rect(fill='transparent'),
+         plot.background = element_rect(fill='transparent', color=NA),
+         panel.grid.major = element_blank(),
+         panel.grid.minor = element_blank(),
+         legend.background = element_rect(fill='transparent')       ) +
+  
   labs(#title ="Did those who could work from home actually work from home?",subtitle = "2019 vs 2021",
        x = "", y = "Estimated Number of Workers") + 
   scale_y_continuous(labels = scales::comma) + 
   scale_fill_manual(values = c("#a6bddb",  "#2b8cbe"))
 
-ggsave("./paper_figures/Figure7.eps", limitsize = FALSE,width = 8, height = 4, units = "in")
+ggsave("./paper_figures/Figure7.eps", limitsize = FALSE,width = 7, height = 5, units = "in")
 ggsave("./paper_figures/Figure7.png", limitsize = FALSE, width = 7, height = 5, units = "in")
+
+ggsave("./paper_figures/A1-Figure3.eps", limitsize = FALSE,width = 7, height = 5, units = "in")
+ggsave("./paper_figures/A1-Figure3.png", limitsize = FALSE, width = 7, height = 5, units = "in")
 ```
 
 ```{r}
@@ -1327,7 +1340,6 @@ table %>% ggplot(aes(fct_inorder(CanWorkFromHome), y=n, fill = did_wfh_labels, g
 ### Creating Income Deciles
 
 ```{r figure6}
-
 # svyquantile shows the breaks for the quantiles. hypothetically uses weights of observations for calculation of deciles.
 # equal number of people should be in each decile after weights are applied 
 inc_quantiles <- survey::svyquantile(~INCEARN, design=dstrata2019, 
@@ -1411,12 +1423,40 @@ table %>%
     scale_fill_manual(values = c("#a6bddb", "#2b8cbe")) +
   scale_y_continuous(labels = scales::percent)
 
-
-#ggsave("Figure6.eps", limitsize = FALSE,width = 8, height = 4, units = "in")
-#ggsave("Figure6.pdf", limitsize = FALSE,width = 8, height = 4, units = "in")
-ggsave("Figure6.png", limitsize = FALSE, width = 8, height = 4, units = "in")
-
 decile_labels <- c("Bottom 10%", "20%", "30%", "40%", "50%", "60%", "70%", "80%", "90%", "Top 10%")
+```
+
+
+```{r export-figure6, include=FALSE}
+
+table %>%
+  ggplot(aes(factor(incdecile_w, levels = c(1,2,3,4,5,6,7,8,9,10), labels = c("Bottom 10%", "20%", "30%", "40%", "50%", "60%", "70%", "80%", "90%", "Top 10%")), 
+                     y=Prop, fill = YEAR, group = factor(YEAR, levels = "2021","2019"))) + 
+  geom_col(stat="identity", position = "dodge")+
+  #geom_col(stat = "identity", position = "stack") +   # scale_x_discrete(limits = c("Bottom 10%", "20%", "30%", "40%", "50%", "60%", "70%", "80%", "90%", "Top 10%"))+
+
+ # facet_wrap(~YEAR)+
+   coord_flip()+
+    geom_text(aes(label = scales::percent(Prop, accuracy = 0.1L)), position = position_dodge(width = 0.8), hjust = 1.1,
+              size = 4) + 
+  labs(#title ="Working From Home by Earned Income Deciles",
+  #subtitle = "2019 vs 2021",
+ #      caption = "ACS 1 year samples for 2019 and 2021. Working from home based on TRANWORK question on commuting.
+#       All workers in the labor force, all ages included.
+#       Income based on INCEARN for total earned income of survey respondents.", 
+       x= "Income Deciles", 
+       y = "Percent of earners working from home") + 
+
+  theme_classic()+
+   theme(legend.position = "none", legend.title = element_blank())+
+    scale_fill_manual(values = c("#a6bddb", "#2b8cbe")) +
+  scale_y_continuous(labels = scales::percent)
+
+ggsave("./paper_figures/Figure6.eps", limitsize = FALSE, width = 8, height = 4, units = "in")
+#ggsave("Figure6.pdf", limitsize = FALSE,width = 8, height = 4, units = "in")
+ggsave("./paper_figures/Figure6.png", limitsize = FALSE, width = 8, height = 4, units = "in")
+
+
 
 ```
 
@@ -2224,9 +2264,7 @@ ggplot(out_col, aes(incdecile_w, INCEARN, ymin=lower, ymax=upper)) +
 
 ```
 
-```{r other-teleworkable-graphs}
-#| include: FALSE
-
+```{r other-teleworkable-graphs, include=FALSE, eval=FALSE}
 
 dstrata %>% filter(YEAR==2019) %>%
 as_data_frame() %>%
@@ -2275,12 +2313,12 @@ as_data_frame() %>%
 ```
 
 ```{r}
-# data has 2019 and 2021 observatins TOGETHER
+# data has 2019 and 2021 observations TOGETHER
 topline(data, did_wfh,  weight=PERWT)
 
 
-
 # All members of the labor force could have said they either work from home (TRANWORK=80), go to work using some form of transportation, or didn't answer the question. 8.2% of the labor force did not answer the TRANWORK question and should not be included in calculations.
+
 data %>% filter(YEAR == 2021) %>% crosstab(x=RACE, y=did_wfh_labels, weight = PERWT, pct_type = "row", unwt_n=TRUE, n=FALSE)  # matches Francis Total Row in Race output
 
 
@@ -3508,9 +3546,9 @@ mapPUMAboth %>% pivot_wider(id_cols = -c(n), names_from ="YEAR", values_from = "
                         #name = "Percent of Population", 
              #label = scales::percent
              )#+labs(title = "Change in access to High Speed Internet")
-ggsave("./paper_figures/Figure8bV2.png", limitsize = FALSE, width = 5, height = 4, units = "in")
+ggsave("./paper_figures/Figure8-map.png", limitsize = FALSE, width = 5, height = 4, units = "in")
 
-ggsave("./paper_figures/Figure8bV2.eps", limitsize = FALSE, width = 5, height = 4, units = "in")
+ggsave("./paper_figures/Figure8-map.eps", limitsize = FALSE, width = 5, height = 4, units = "in")
 ```
 
 
@@ -3607,32 +3645,33 @@ mapPUMAboth %>%
                     na.value = "gray",
                     show.limits=TRUE,
                     n.breaks = 4,
-                    name = "Population %", label = scales::percent) + Alea_theme()
-
-
-
+                    name = "Population %", 
+                    label = scales::percent) + 
+  Alea_theme()
 
 mapPUMAboth %>% 
   pivot_wider(id_cols = -c(n), names_from ="YEAR", values_from = "Prop") %>%
   mutate(pct_change = `2021`-`2019`) %>%
-  ggplot(aes(fill = pct_change)) +
+  ggplot(aes(fill = pct_change*100)) +
   geom_sf(aes(geometry = geometry), color = "black")+ Alea_theme()+ 
   scale_fill_binned(low= "white", high ="darkblue", 
                     na.value = "gray",
                     show.limits=TRUE,
                     nice.breaks=FALSE,
                     n.breaks = 4,
-                    limits = c(0,.20),
-                    name = "Percentage Point\nIncrease", label = scales::percent) #+
- # labs(title = "Percentage Point Change in Labor Force that Did WFH")
+                    limits = c(0,20),
+                    name = "Percentage Point\nIncrease"
+                    #label = scales::percent
+                    ) +
+  labs(title = "Percentage Point Change in Labor Force that Did WFH")
 
 ```
 
-```{r export-figure4-map, include=FALSE}
+```{r export-figure4-map, include=FALSE, eval=FALSE}
 mapPUMAboth %>% 
   pivot_wider(id_cols = -c(n), names_from ="YEAR", values_from = "Prop") %>%
   mutate(pct_change = `2021`-`2019`) %>%
-  ggplot(aes(fill = pct_change)) +
+  ggplot(aes(fill = pct_change*100)) +
   geom_sf(aes(geometry = geometry), color = "black")+ 
   theme_void()+
   theme(legend.position = "none") +
@@ -3642,13 +3681,14 @@ mapPUMAboth %>%
                     show.limits=TRUE,
                     nice.breaks=FALSE,
                     n.breaks = 4,
-                    limits = c(0,.20),
-                    name = "Percentage Point\nIncrease", 
-                    label = scales::percent) #+
+                    limits = c(0,20),
+                    name = "Percentage Point\nIncrease"
+                   # label = scales::percent
+                    ) #+
  # labs(title = "Percentage Point Change in Labor Force that Did WFH")
 
-ggsave("./paper_figures/Figure4bV2.eps", limitsize = FALSE, width = 4, height = 5, units = "in")
-ggsave("./paper_figures/Figure4bV2.png", limitsize = FALSE, width = 4, height = 5, units = "in")
+ggsave("./paper_figures/Figure4-map.eps", limitsize = FALSE, width = 4, height = 5, units = "in")
+ggsave("./paper_figures/Figure4-map.png", limitsize = FALSE, width = 4, height = 5, units = "in")
 ```
 
 ```{r}
@@ -3667,7 +3707,7 @@ mapPUMAboth <- left_join(mapPUMAboth, order)
 
 mapPUMAboth %>%
   filter(did_wfh_labels == "Did WFH" & NAME != "NA" & YEAR != "NA")%>%
-  ggplot(aes(x = Prop*100, y= reorder(NAME, Prop_2021*100)))+
+  ggplot(aes(x = Prop, y= reorder(NAME, Prop_2021)))+
   geom_line(aes(group = NAME))+
   theme_classic()+
    geom_point(aes(color=YEAR), size = 3) +
@@ -3681,11 +3721,11 @@ mapPUMAboth %>%
 #  Working from home is based on TRANWORK variable from ACS 1-year surveys.", 
 x = "Labor Force Working from Home (%)", 
 y = "" 
-)#+  scale_x_continuous(label = scales::percent)
+)+  scale_x_continuous(label = scales::percent)
 
 ```
 
-```{r export-figure4, include=FALSE}
+```{r export-figure4-dotplot, include=FALSE, eval=FALSE}
 
 mapPUMAboth %>%
   filter(did_wfh_labels == "Did WFH" & NAME != "NA" & YEAR != "NA")%>%
@@ -3877,13 +3917,13 @@ Figure2a
 
 # ggsave("Figure2a.eps", limitsize = FALSE,width = 8, height = 4, units = "in")
 # ggsave("Figure2a.pdf", limitsize = FALSE,width = 8, height = 4, units = "in")
-ggsave("Figure2a.png", limitsize = FALSE, width = 8, height = 4, units = "in")
+#ggsave("Figure2a.png", limitsize = FALSE, width = 8, height = 4, units = "in")
 
 Figure2b
 
 # ggsave("Figure2b.eps", limitsize = FALSE,width = 8, height = 4, units = "in")
 # ggsave("Figure2b.pdf", limitsize = FALSE,width = 8, height = 4, units = "in")
-ggsave("Figure2b.png", limitsize = FALSE, width = 8, height = 4, units = "in")
+#ggsave("Figure2b.png", limitsize = FALSE, width = 8, height = 4, units = "in")
 ```
 
 ```{r export-Figure2-couldWFH-bycounty, include=FALSE}
