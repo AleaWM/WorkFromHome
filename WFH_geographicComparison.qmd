@@ -105,7 +105,7 @@ Survey questions for INCEARN:
 #data <- read_ipums_micro(ddi) # 126623 observations before any filtering
 
 # larger version with 147 variables. uses same file as Box file named "IL_2021_1yr_ACS.dat.gz and IL_2021_1yr_ACS_datDDI.xml
-ddi <- read_ipums_ddi("usa_00011.xml") # downloaded April 10 2023
+ddi <- read_ipums_ddi("./data/usa_00011.xml") # downloaded April 10 2023
 
 data2021 <- read_ipums_micro(ddi) # 126623 observations before any filtering
 
@@ -114,7 +114,7 @@ data2021 <- data2021 %>% select(YEAR, INCEARN, INCWAGE, INCTOT, TRANWORK, OCCSOC
 # same sample but with 150+ variables. 
 # NEED TO CHANGE XML file that references the data file. currently says usa_00011.dat.gz so these two lines of code do not work. 
 
-ddi <- read_ipums_ddi("C:/Users/aleaw/Box/Fiscal Futures/FY22_Working/WFH/Data/IL_2019_1yearACS_datDDI.xml") # downloaded April 10 2023
+ddi <- read_ipums_ddi("./data/IL_2019_1yearACS_datDDI.xml") # downloaded April 10 2023
 data2019 <- read_ipums_micro(ddi) # 126623 observations before any filtering
 data2019 <- data2019 %>% select(YEAR, INCEARN, INCWAGE, INCTOT, TRANWORK, OCCSOC, CLASSWKR, EMPSTAT, LABFORCE, PERWT, COUNTYFIP, PUMA, PWSTATE2, AGE, STRATA, CLUSTER, RACE, HISPAN, SEX, CIHISPEED, CINETHH, MULTGEN, NCHILD, NCHLT5, MARST, FERTYR, EDUC, DEGFIELD, OCC, IND, OCC2010, METRO, CITY, HHINCOME, SERIAL,HHWT, NUMPREC, SUBSAMP,HHTYPE   )
 
@@ -271,7 +271,7 @@ topline(did_wfh_labels, weight = PERWT)
 
 ```{r could-wfh}
 # bring in the teleworkable scores based on D&N's work.
-telework <- read_csv("teleworkable_AWM.csv")
+telework <- read_csv("./data/teleworkable_AWM.csv")
 joined <- left_join(data, telework, by = c("OCCSOC" = "occ_codes"))
 
 #May 22 2023, Changed 399011 occupation to 0. Was coding Nannies and Child care as teleworkable.
@@ -785,7 +785,10 @@ table %>%
 
 Combined into 6 major occupation groups. Broadest categories are made up of multiple 2-digit OCCSOC codes.
 
-```{r A2-Figure1, fig.cap="ACS 1 year samples for 2019 and 2021 used for weighted population estimates. Military occupations make up less than 0.5% of the labor force and were removed from the  graph. Occupation categories are based on broadest aggregated BLS categories used by the BLS."}
+```{r}
+#| label: fig-A2-Figure1
+#| fig-cap: "Proportion of Occupation Types in  Illinois by Aggregated Occupation Groups used by BLS & ACS"
+#| fig-subcap: "ACS 1 year samples for 2019 and 2021 used for weighted population estimates. Military occupations make up less than 0.5% of the labor force and were removed from the  graph. Occupation categories are based on broadest aggregated BLS categories used by the BLS."
 #| code-fold: true
 
 #table includes observations from BOTH years.
@@ -808,7 +811,15 @@ table %>% filter(occ_2dig_labels != "Military") %>% ggplot(aes(x=fct_rev(fct_ino
   geom_col(stat = "identity", fill="lightblue") +
   facet_wrap(~YEAR)+
         geom_text(aes(label = scales::percent(as.numeric(ifelse(Prop>0.02,Prop, "")), accuracy = .1),accuracy  = .1L ),position = position_stack(vjust=.5), size=3) +
-  theme_classic() + theme(legend.position = "bottom", legend.title = element_blank())+
+  theme_classic() + 
+  theme(legend.position = "bottom", legend.title = element_blank(),
+         panel.background = element_rect(fill='transparent'),
+         plot.background = element_rect(fill='transparent', color=NA),
+         panel.grid.major = element_blank(),
+         panel.grid.minor = element_blank(),
+         legend.background = element_rect(fill='transparent'),
+         legend.box.background = element_rect(fill='transparent')
+       )+
   labs(
     title ="Proportion of Occupation Types in  Illinois",
     subtitle = "By Most Aggregated Occupation Groups used by BLS & ACS",
@@ -819,9 +830,43 @@ scale_x_discrete(labels = function(x) str_wrap(x, width=25))+ # makes labels bet
   coord_flip()
 ```
 
+
+```{r include = FALSE}
+table %>% filter(occ_2dig_labels != "Military") %>% ggplot(aes(x=fct_rev(fct_inorder(occ_2dig_labels)), y=n, group = YEAR)) + 
+  geom_col(stat = "identity", fill="lightblue") +
+  facet_wrap(~YEAR)+
+        geom_text(aes(label = scales::percent(as.numeric(ifelse(Prop>0.02,Prop, "")), accuracy = .1),accuracy  = .1L ),position = position_stack(vjust=.5), size=3) +
+  theme_classic() + 
+  theme(legend.position = "bottom", legend.title = element_blank(),
+         panel.background = element_rect(fill='transparent'),
+         plot.background = element_rect(fill='transparent', color=NA),
+         panel.grid.major = element_blank(),
+         panel.grid.minor = element_blank(),
+         legend.background = element_rect(fill='transparent'),
+         legend.box.background = element_rect(fill='transparent')
+       )+
+  labs(
+  #  title ="Proportion of Occupation Types in  Illinois",
+  #  subtitle = "By Most Aggregated Occupation Groups used by BLS & ACS",
+       x = "", y = "Estimated Number of Workers")+
+ scale_y_continuous(labels = scales::comma)+
+scale_x_discrete(labels = function(x) str_wrap(x, width=25))+ # makes labels better on axsis
+
+  coord_flip()
+
+ggsave("A2-Figure1.png", limitsize = FALSE,width = 8, height = 4, units = "in")
+
+ggsave("A2-Figure1.eps", limitsize = FALSE,width = 8, height = 4, units = "in")
+
+```
+
 ACS 1 year samples for 2019 and 2021 used for weighted population estimates. Military occupations make up less than 0.5% of the labor force and were removed from the graph. Occupation categories are based on broadest aggregated BLS categories used by the BLS.
 
-```{r A2-Figure2, fig.cap="ACS 1 year samples for 2019 and 2021 used for weighted population estimates. Occupation categories based on first 2 digits of OCCSOC occupation codes. Labels for occupations that make up less than 2% of the workers were not labeled for legibility reasons."}
+```{r}
+#| label: fig-A2-Figure2
+#| fig-cap: "ACS 1 year samples for 2019 and 2021 used for weighted population estimates. Occupation categories based on first 2 digits of OCCSOC occupation codes. Labels for occupations that make up less than 2% of the workers were not labeled for legibility reasons."
+
+
 ### Proportion of All Workers in each Occupation Type ###
 table <- svytable(~YEAR+occ_2dig_labels_d, design = dstrata) 
 table <- table %>% 
@@ -841,9 +886,37 @@ table %>% ggplot(aes(x=fct_rev(fct_inorder(occ_2dig_labels_d)), y=n, group = YEA
        x = "", y = "Estimated Number of Workers") + scale_y_continuous(labels = scales::comma)+
   coord_flip()
 
+ggsave("A2-Figure2.png", limitsize = FALSE,width = 8, height = 4, units = "in")
 
+ggsave("A2-Figure2.eps", limitsize = FALSE,width = 8, height = 4, units = "in")
+```
 
+```{r export-A1figure2, include = FALSE}
+### Proportion of All Workers in each Occupation Type ###
+table <- svytable(~YEAR+occ_2dig_labels_d, design = dstrata) 
+table <- table %>% 
+  as_tibble() %>% 
+  group_by(YEAR)%>% 
+  mutate(Prop =round(n/sum(n), digits=3)) %>%
+  arrange(-n)
+table
 
+table %>% ggplot(aes(x=fct_rev(fct_inorder(occ_2dig_labels_d)), y=n, group = YEAR)) + 
+  geom_col(stat = "identity", fill="lightblue") +
+  facet_wrap(~YEAR)+
+        geom_text(aes(label = scales::percent(as.numeric(ifelse(Prop>0.02,Prop, "")), accuracy = .1),accuracy  = .1L ),position = position_stack(vjust=.5), size=3) +
+  theme_classic() + theme(legend.position = "bottom", legend.title = element_blank())+
+  labs(title ="WFH Feasibility by Occupation Type",
+       #subtitle = "Little change between 2019 and 2021 Occurred",
+       x = "", y = "Estimated Number of Workers") + scale_y_continuous(labels = scales::comma)+
+  coord_flip()
+
+ggsave("A2-Figure2.png", limitsize = FALSE,width = 8, height = 4, units = "in")
+
+ggsave("A2-Figure2.eps", limitsize = FALSE,width = 8, height = 4, units = "in")
+```
+
+```{r}
 ### Percent of Workers working from home within each Broad Occupation type ###
 table <- svytable(~YEAR+did_wfh_labels+occ_2dig_labels, design = dstrata) 
 
@@ -906,7 +979,10 @@ scale_y_continuous(labels = scales::comma) +
 ggsave("Figure3.png", limitsize = FALSE, width = 8, height = 4, units = "in")
 ```
 
-```{r A2-Figure4}
+```{r}
+#| label: fig-A2-figure4
+
+
 ### Detailed Occuation Types ## 
 table <- svytable(~YEAR+did_wfh_labels+occ_2dig_labels_d, design = dstrata) 
 
