@@ -831,7 +831,7 @@ scale_x_discrete(labels = function(x) str_wrap(x, width=25))+ # makes labels bet
 ```
 
 
-```{r include = FALSE}
+```{rv export-figA2-Fig1, include = FALSE}
 table %>% filter(occ_2dig_labels != "Military") %>% ggplot(aes(x=fct_rev(fct_inorder(occ_2dig_labels)), y=n, group = YEAR)) + 
   geom_col(stat = "identity", fill="lightblue") +
   facet_wrap(~YEAR)+
@@ -1202,7 +1202,7 @@ ggsave("./paper_figures/Figure1.png", limitsize = FALSE, width = 8, height = 4, 
 ### Could WFH vs. did WFH
 
 ```{r}
-#| label: fig-Figure8
+#| label: fig-Figure7
 #| fig-cap: "Percentages add up to 100 when adding all workers together within a year. Did work from home based on TRANWORK==80 variable from ACS surveys. Can Work from home based on teleworkable classification in Dingel & Niemen (2020). ACS 1 year samples for 2019 and 2021 used for weighted population estimates."
 #| code-fold: true
 
@@ -1228,9 +1228,24 @@ table %>% ggplot(aes(CanWorkFromHome, y=n, fill = did_wfh_labels, group = YEAR))
        x = "", y = "Estimated Number of Workers") + 
   scale_y_continuous(labels = scales::comma) + 
   scale_fill_manual(values = c("#a6bddb",  "#2b8cbe"))
+```
 
-ggsave("./paper_figures/Figure8.eps", limitsize = FALSE,width = 8, height = 4, units = "in")
-ggsave("./paper_figures/Figure8.png", limitsize = FALSE, width = 7, height = 5, units = "in")
+
+```{r export-Figure7, include=FALSE}
+## percentages add up to 100 when adding all workers together for a year
+table %>% ggplot(aes(CanWorkFromHome, y=n, fill = did_wfh_labels, group = YEAR)) + 
+  geom_col(stat = "identity", position = "stack") +
+  facet_wrap(~YEAR)+
+    geom_text(aes(label = scales::percent(Prop)), position = position_stack(vjust=.5), size=3) +
+  #scale_fill_manual(values = c("#a6bddb", "#2b8cbe"))+
+  theme_classic() + theme(legend.position = "none", legend.title = element_blank())+
+  labs(#title ="Did those who could work from home actually work from home?",subtitle = "2019 vs 2021",
+       x = "", y = "Estimated Number of Workers") + 
+  scale_y_continuous(labels = scales::comma) + 
+  scale_fill_manual(values = c("#a6bddb",  "#2b8cbe"))
+
+ggsave("./paper_figures/Figure7.eps", limitsize = FALSE,width = 8, height = 4, units = "in")
+ggsave("./paper_figures/Figure7.png", limitsize = FALSE, width = 7, height = 5, units = "in")
 ```
 
 ```{r}
@@ -3361,12 +3376,13 @@ mapPUMAboth %>%
   labs(title = "Percent of population that lacked access to Internet", 
        caption = "Geography = Counties with populations > ~60K") + 
   facet_wrap(~YEAR)  +
+   theme_void() +
     theme(legend.title = element_blank())+
   scale_fill_steps2( low =  "white",  high = "red4", 
                        n.breaks=4,
                   nice.breaks = FALSE,
                   show.limits = TRUE,
-                        "Population %", label = scales::percent) + Alea_theme()
+                        "Population %", label = scales::percent) 
 
 ### Change in LACK OF ACCESS
 mapPUMAboth %>% 
@@ -3381,11 +3397,12 @@ mapPUMAboth %>%
                        n.breaks=5,
                  # nice.breaks = FALSE,
                   show.limits = TRUE,
-                        name = "Change in Access", label = scales::percent) + Alea_theme()
+                        name = "Change in Access", label = scales::percent) + theme_void()
 
 ```
 
-```{r Figure7}
+```{r}
+#| label: fig-Figure8
 #| column: page
 #| layout-ncol: 2
 #| code-fold: true
@@ -3442,23 +3459,58 @@ mapPUMAboth %>%
                     name = "Percent of Population", label = scales::percent)+ Alea_theme()
 
 
-mapPUMAboth %>% pivot_wider(id_cols = -c(n), names_from ="YEAR", values_from = "Prop") %>%
+mapPUMAboth %>% 
+  pivot_wider(id_cols = -c(n), names_from ="YEAR", values_from = "Prop") %>%
   mutate(pct_change = `2021`-`2019`) %>%
-  ggplot(aes(fill = pct_change)) +
+  ggplot(aes(fill = pct_change*100)) +
   geom_sf(aes(geometry = geometry), color = "black") + 
-  theme_void()+ 
+  theme_void()+
    scale_fill_steps2(low ="red4", mid= "white", high = "forestgreen", 
                        n.breaks = 7,
                      na.value="gray",
                    #  nice.breaks=FALSE,
                      show.limits = TRUE,
              #          limits = c(-.2,.2),
-                        name = "Percent of Population", label = scales::percent)#+labs(title = "Change in access to High Speed Internet")
+                        name = "Pct Pt Change", 
+            # label = scales::percent
+             )
+#+labs(title = "Change in access to High Speed Internet")
+```
 
-ggsave("Figure7bV2.png", limitsize = FALSE, width = 5, height = 4, units = "in")
 
-#ggsave("Figure7b.eps", limitsize = FALSE,width = 8, height = 4, units = "in")
-#ggsave("Figure7b.pdf", limitsize = FALSE,width = 8, height = 4, units = "in")
+```{r export-figure8, include = FALSE}
+mapPUMAboth %>%
+  filter(CIHISPEED == 10) %>%
+  ggplot(aes(fill = Prop)) +
+  geom_sf(aes(geometry = geometry), color = "black")+ 
+  labs(title = "Percent of population with High-speed Internet"  ) + 
+  facet_wrap(~YEAR)+
+  scale_fill_binned(low  = "white", high = "green4", 
+                    na.value = NA,
+                    n.breaks = 4,
+                    show.limits=TRUE,
+                    nice.breaks = FALSE,
+                    name = "Percent of Population", label = scales::percent)+ Alea_theme()
+
+
+mapPUMAboth %>% pivot_wider(id_cols = -c(n), names_from ="YEAR", values_from = "Prop") %>%
+  mutate(pct_change = `2021`-`2019`) %>%
+  ggplot(aes(fill = pct_change)) +
+  geom_sf(aes(geometry = geometry), color = "black") + 
+  theme_void()+
+  theme(legend.position = "none")+ 
+   scale_fill_steps2(low ="red4", mid= "white", high = "forestgreen", 
+                       n.breaks = 7,
+                     na.value="gray",
+                   #  nice.breaks=FALSE,
+                     show.limits = TRUE,
+             #          limits = c(-.2,.2),
+                        #name = "Percent of Population", 
+             #label = scales::percent
+             )#+labs(title = "Change in access to High Speed Internet")
+ggsave("./paper_figures/Figure8bV2.png", limitsize = FALSE, width = 5, height = 4, units = "in")
+
+ggsave("./paper_figures/Figure8bV2.eps", limitsize = FALSE, width = 5, height = 4, units = "in")
 ```
 
 
@@ -3501,12 +3553,31 @@ mapPUMAboth %>%
 
   labs(title = "Change in Access to High-speed Internet", x = "", y = "" ) +
   scale_x_continuous(label = scales::percent)
+```
 
 
-ggsave("Figure7v2.png", limitsize = FALSE, width = 5, height = 4, units = "in")
+```{r export-figure8dotplot}
+mapPUMAboth %>%
+  filter(NAME != "NA" & YEAR != "NA")%>%
+  ggplot(aes(x = Prop, y= reorder(NAME, Prop_2019)))+
+  geom_line(aes(group = NAME))+
+   geom_point(aes(color=YEAR), size = 3) +
+  theme_minimal() + 
+  theme(legend.position = "none", legend.title = element_blank(),
+               plot.title.position = "plot",
+     #   panel.background = element_rect(fill='transparent'), #transparent panel bg
+    plot.background = element_rect(fill='transparent', color=NA) #transparent plot bg
+   )+
+        scale_color_brewer(palette="Paired", labels = c("2019", "2021"), direction = 1) +
+# 
+#   labs(#title = "Change in Access to High-speed Internet", 
+#     x = "", y = "" 
+#     ) +
+  scale_x_continuous(label = scales::percent)
 
-#ggsave("Figure7.eps", limitsize = FALSE,width = 8, height = 4, units = "in")
-#ggsave("Figure7.pdf", limitsize = FALSE,width = 8, height = 4, units = "in")
+ggsave("./paper_figures/Figure8-dotplot.png", limitsize = FALSE, width = 5, height = 4, units = "in")
+
+ggsave("./paper_figures/Figure8-dotplot.eps", limitsize = FALSE,width = 5, height = 4, units = "in")
 
 ```
 
@@ -3526,40 +3597,59 @@ mapPUMAboth <- mapPUMAboth %>% as_tibble() %>%
   full_join(countyIL, by = c("countyFIP" = "COUNTYFP"))
 
 mapPUMAboth %>%
-      filter(did_wfh_labels == "Did WFH") %>%
-
+  filter(did_wfh_labels == "Did WFH") %>%
   ggplot(aes(fill = Prop)) +
   geom_sf(aes(geometry = geometry), color = "black")+ 
   labs(title = "Percent of Labor  Force that Worked from Home", 
        caption = "Geography = Counties with populations > ~60K") + 
   facet_wrap(~YEAR)  +
- scale_fill_binned(low= "white", high ="darkblue", 
-                   na.value = "gray",
-                   show.limits=TRUE,
-                       n.breaks = 4,
-                        name = "Population %", label = scales::percent) + Alea_theme()
+  scale_fill_binned(low= "white", high ="darkblue", 
+                    na.value = "gray",
+                    show.limits=TRUE,
+                    n.breaks = 4,
+                    name = "Population %", label = scales::percent) + Alea_theme()
 
 
 
 
-mapPUMAboth %>% pivot_wider(id_cols = -c(n), names_from ="YEAR", values_from = "Prop") %>%
+mapPUMAboth %>% 
+  pivot_wider(id_cols = -c(n), names_from ="YEAR", values_from = "Prop") %>%
   mutate(pct_change = `2021`-`2019`) %>%
   ggplot(aes(fill = pct_change)) +
   geom_sf(aes(geometry = geometry), color = "black")+ Alea_theme()+ 
- scale_fill_binned(low= "white", high ="darkblue", 
-                   na.value = "gray",
-                   show.limits=TRUE,
-                   nice.breaks=FALSE,
-                       n.breaks = 4,
-                       limits = c(0,.20),
-                        name = "Percentage Point\nIncrease", label = scales::percent)#+
+  scale_fill_binned(low= "white", high ="darkblue", 
+                    na.value = "gray",
+                    show.limits=TRUE,
+                    nice.breaks=FALSE,
+                    n.breaks = 4,
+                    limits = c(0,.20),
+                    name = "Percentage Point\nIncrease", label = scales::percent) #+
  # labs(title = "Percentage Point Change in Labor Force that Did WFH")
 
-ggsave("Figure4bV2.eps", limitsize = FALSE, width = 8, height = 5, units = "in")
-ggsave("Figure4bV2.pdf", limitsize = FALSE,width = 8, height = 5, units = "in")
-ggsave("Figure4bV2.png", limitsize = FALSE, width = 8, height = 5, units = "in")
 ```
 
+```{r export-figure4-map, include=FALSE}
+mapPUMAboth %>% 
+  pivot_wider(id_cols = -c(n), names_from ="YEAR", values_from = "Prop") %>%
+  mutate(pct_change = `2021`-`2019`) %>%
+  ggplot(aes(fill = pct_change)) +
+  geom_sf(aes(geometry = geometry), color = "black")+ 
+  theme_void()+
+  theme(legend.position = "none") +
+  
+  scale_fill_binned(low= "white", high ="darkblue", 
+                    na.value = "gray",
+                    show.limits=TRUE,
+                    nice.breaks=FALSE,
+                    n.breaks = 4,
+                    limits = c(0,.20),
+                    name = "Percentage Point\nIncrease", 
+                    label = scales::percent) #+
+ # labs(title = "Percentage Point Change in Labor Force that Did WFH")
+
+ggsave("./paper_figures/Figure4bV2.eps", limitsize = FALSE, width = 4, height = 5, units = "in")
+ggsave("./paper_figures/Figure4bV2.png", limitsize = FALSE, width = 4, height = 5, units = "in")
+```
 
 ```{r}
 #| column: page
@@ -3584,18 +3674,40 @@ mapPUMAboth %>%
       scale_color_brewer(palette="Paired",
                          # labels = c("% WFH in 2019", "% WFH in 2021"), 
                          direction = 1)+
-  labs(title = "Change in County Labor Force that did WFH",
+  labs(title = "Change in County Labor Force that Did WFH",
 #  caption = "DuPage had around 8% of the labor force working from home in 2019 and 
 #  around 27% of its labor force working from home in 2021. 
 #       There was ~20 percentage point increase between 2019 and 2021 for DuPage County. 
 #  Working from home is based on TRANWORK variable from ACS 1-year surveys.", 
-x = "Labor force that WFH (%)", 
+x = "Labor Force Working from Home (%)", 
 y = "" 
 )#+  scale_x_continuous(label = scales::percent)
 
-ggsave("Figure4a.eps", limitsize = FALSE,width = 8, height = 5, units = "in")
-ggsave("Figure4a.pdf", limitsize = FALSE,width = 8, height = 5, units = "in")
-ggsave("Figure4a.png", limitsize = FALSE, width = 8, height = 5, units = "in")
+```
+
+```{r export-figure4, include=FALSE}
+
+mapPUMAboth %>%
+  filter(did_wfh_labels == "Did WFH" & NAME != "NA" & YEAR != "NA")%>%
+  ggplot(aes(x = Prop*100, y= reorder(NAME, Prop_2021*100)))+
+  geom_line(aes(group = NAME))+
+  theme_classic()+
+  theme(legend.position = "none") + 
+   geom_point(aes(color=YEAR), size = 3) +
+      scale_color_brewer(palette="Paired",
+                         # labels = c("% WFH in 2019", "% WFH in 2021"), 
+                         direction = 1)+
+  labs(#title = "Change in County Labor Force that did WFH",
+#  caption = "DuPage had around 8% of the labor force working from home in 2019 and 
+#  around 27% of its labor force working from home in 2021. 
+#       There was ~20 percentage point increase between 2019 and 2021 for DuPage County. 
+#  Working from home is based on TRANWORK variable from ACS 1-year surveys.", 
+x = "Labor Force Working From Home (%)", 
+y = "" 
+)#+  scale_x_continuous(label = scales::percent)
+
+ggsave("./paper_figures/Figure4-dotplot.eps", limitsize = FALSE,width = 8, height = 5, units = "in")
+ggsave("./paper_figures/Figure4-dotplot.png", limitsize = FALSE, width = 8, height = 5, units = "in")
 ```
 
 ```{r wfh-bycounty, include=FALSE}
@@ -3773,6 +3885,90 @@ Figure2b
 # ggsave("Figure2b.pdf", limitsize = FALSE,width = 8, height = 4, units = "in")
 ggsave("Figure2b.png", limitsize = FALSE, width = 8, height = 4, units = "in")
 ```
+
+```{r export-Figure2-couldWFH-bycounty, include=FALSE}
+
+# teleworkable is numeric
+# CanWorkFromHome is categorical variable with 3 options. 
+
+
+mapdataboth <- joined %>% 
+  filter(CanWorkFromHome != "NA" )%>% # create percentages withing missing values included. aka valid percent.
+   group_by(county_pop_type, YEAR, countyFIP, CanWorkFromHome) %>% 
+   dplyr::summarize(weightedcount=sum(PERWT), #weighted 
+                    unweightedcount = n()
+                    ) %>% 
+   mutate(pct_weight = weightedcount/sum(weightedcount), 
+          pct_noweight = unweightedcount/sum(unweightedcount))%>%
+  full_join(countyIL, by = c("countyFIP" = "COUNTYFP")) # %>%
+    #mutate(pct_weight = ifelse(is.na(county_pop_type), 0.04486351, pct_weight))%>%
+ #  mutate(pct_weight = ifelse(is.na(county_pop_type), 0.09237573, pct_weight))# %>%
+ # mutate(did_wfh_labels = ifelse(is.na(did_wfh_labels),"Rural", did_wfh_labels))
+mapdataboth 
+
+
+
+mapdataboth <- svytable(~CanWorkFromHome+YEAR+countyFIP, design = dstrata)
+
+mapdataboth <- mapdataboth %>% as_tibble() %>%
+   group_by(YEAR, countyFIP) %>% 
+     mutate(Prop = round(n/sum(n), digits =3)) %>%
+   # filter(CanWorkFromHome == "Can WFH") %>%
+filter(YEAR == 2021 & CanWorkFromHome == "Can WFH")%>%  
+
+     full_join(countyIL, by = c("countyFIP" = "COUNTYFP"))
+
+mapdataboth %>%
+  filter(CanWorkFromHome == "Can WFH") %>%
+  ggplot(aes(fill = Prop)) +
+  geom_sf(aes(geometry = geometry), color = "black")+ 
+  labs() + 
+  facet_wrap(~YEAR)+
+  Alea_theme()+ 
+  theme(legend.position="none") + 
+ scale_fill_binned(low= "white", high ="darkblue", 
+                   na.value = "gray",
+                   show.limits=TRUE,
+                   nice.breaks=FALSE,
+                       n.breaks = 4,
+                        limits = c(0,.45),
+      label = scales::percent)
+
+
+Figure2a <- mapdataboth %>%
+#filter(YEAR == 2021 & CanWorkFromHome == "Can WFH")%>%  
+  ggplot(aes(fill = Prop)) +
+  geom_sf(aes(geometry = geometry), color = "black")+ 
+  # labs(title = "Work from Home Feasibility Rate", 
+  #      subtitle = " Based on Occupation Characteristics", 
+  #      caption = "Teleworkability based on D&N 2020 methodology. 
+  #      OCCSOC codes from ACS 1 year Survey data at individual level.") +
+ theme_void() + 
+  theme(axis.ticks = element_blank(), axis.text = element_blank(),   
+        plot.title = element_text(hjust = 0.5), plot.caption = element_text(hjust=.5),  
+        plot.subtitle = element_text(hjust = 0.5)) +
+ scale_fill_binned(low= "white", high ="darkblue", 
+                   na.value = "gray",
+                   show.limits=TRUE,
+                   nice.breaks=FALSE,
+                       n.breaks = 4,
+                       limits = c(0,.6),
+                        name = "Labor Force with\nWFH Feasibility", 
+                       label = scales::percent)
+
+Figure2a
+
+
+
+ggsave("./paper_figures/Figure2a.eps", limitsize = FALSE,width = 8, height = 4, units = "in")
+ggsave("./paper_figures/Figure2a.png", limitsize = FALSE, width = 8, height = 4, units = "in")
+
+Figure2b
+
+ggsave("./paper_figures/Figure2b.eps", limitsize = FALSE,width = 8, height = 4, units = "in")
+ggsave("./paper_figures/Figure2b.png", limitsize = FALSE, width = 8, height = 4, units = "in")
+```
+
 
 ```{r teleworkable-bycounty}
 mapdataboth <- joined %>% 
