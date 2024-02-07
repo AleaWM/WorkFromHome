@@ -1,4 +1,4 @@
-# Geographic Data
+# Geographic Data {#sec-maps}
 
 ```{r setup, warning=FALSE, message=FALSE, include=FALSE}
 
@@ -191,11 +191,11 @@ figure5a <- mapPUMAboth %>%
   facet_wrap(~YEAR) 
 ```
 
-```{r include = FALSE}
+```{r include = FALSE, eval=FALSE}
 
-#ggsave("Figure5a.eps", limitsize = FALSE,width = 8, height = 5, units = "in")
-#ggsave("Figure5a.pdf", limitsize = FALSE,width = 8, height = 5, units = "in")
-#ggsave("Figure5aV2.png", limitsize = FALSE, width = 8, height = 5, units = "in")
+ggsave("Figure5a.eps", limitsize = FALSE,width = 8, height = 5, units = "in")
+
+ggsave("Figure5aV2.png", limitsize = FALSE, width = 8, height = 5, units = "in")
 
 ```
 
@@ -665,7 +665,7 @@ mapPUMAboth %>%
                     n.breaks=4,
                     show.limits=TRUE,
                     nice.breaks=FALSE,
-                    name = "Chance in Access", label = scales::percent)+
+                    name = "Change in Access", label = scales::percent)+
   labs(title = "Change in Labor Force with Internet at home",
        subtitle = "2019 to 2021") 
 
@@ -1251,9 +1251,9 @@ Figure2a <- mapdataboth %>%
                        label = scales::percent)
 
 Figure2a
+```
 
-
-
+```{r export-Figure2-couldWFH, include=FALSE, eval=FALSE}
 ggsave("./paper_figures/Figure2a.eps", limitsize = FALSE,width = 8, height = 4, units = "in")
 
 ggsave("./paper_figures/Figure2a.png", limitsize = FALSE, width = 8, height = 4, units = "in")

@@ -1,4 +1,4 @@
-# Appendix 1. Detailed Methodology
+# Appendix 1. Detailed Methodology {#sec-appendixitems}
 
 ```{r setup, warning=FALSE, message=FALSE}
 
@@ -33,9 +33,9 @@ This section explains how the constructs of "WFH Feasibility" and "WFH Occurrenc
 
 WFH Feasibility is based on the methodology used by Dingel & Neiman's (2020) working paper that assessed WFH feasibility in the USA and other countries during the early stages of the COVID-19 pandemic. Dingel and Neiman first classify the WFH feasibility for all occupations in the United States using survey responses from the Occupational Information Network (ONET)*. O*NET is an online database sponsored by the US Department of Labor and provides detailed information on types of job in the United States. Two ONET surveys on Work Context and Generalized Work Activities were used to approximate if an occupation must be performed on site or if it could feasibly be done at the worker's home. For example, some questions implied that a physical presence at the work site was expected in order to do the job; others implied working closely with other individuals. Dingel & Nieman used these survey questions as a proxy for which occupations could feasibly be done at home and which could not. Please see Dingel & Neiman's (2020) section on "Classification of Occupations" for more details on survey questions used to assign "teleworkable" scores to occupation codes. The authors created a publicly available file with 968 ONET occupations with their assigned value of 0 (WFH not feasible) or 1 (WFH is feasible) to indicate an occupation's WFH feasibility.
 
-![Example of 8-digit O\*NET occupation codes. These would be assigned a value of 0 or 1, and then averaged together to create a 6-digit teleworkable score for occupation 113071.](images/Appendix Figure 1.png)
+![Example of 8-digit O\*NET occupation codes. These would be assigned a value of 0 or 1, and then averaged together to create a 6-digit teleworkable score for occupation 113071.](images/Appendix%20Figure%201.png)
 
-![Bureau of Labor Services occupations using a 6-digit identifier. Image is a screen capture from https://www.bls.gov/oes/current/oes_stru.htm.](images/Appendix Figure 2.png)
+![Bureau of Labor Services occupations using a 6-digit identifier. Image is a screen capture from https://www.bls.gov/oes/current/oes_stru.htm.](images/Appendix%20Figure%202.png)
 
 Occupations in ONET are given an 8-digit, detailed version of the Standard Occupational Classification (SOC) system structure. The ACS and Bureau of Labor Statistics use a 6-digit version of the SOC-based 2018 occupation codes. As can be seen in Figure 1, there are cases in which multiple ONET occupations map to a single occupation code used by the ACS. For these codes, we average the feasibility scores of the 8-digit O\*NET occupations to create a 6-digit occupation code that matches the ones used by the ACS. This creates values ranging from 0 to 1; values between 0 and 1 were labeled as "Some WFH feasible" to indicate that some occupations feasibly could be done at home and others could not. Those occupations can be grouped into 23 major groups using the first 2 digits of their occupation code.
 

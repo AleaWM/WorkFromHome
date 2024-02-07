@@ -1,6 +1,4 @@
-
-# Descriptive Statistics
-
+# Descriptive Statistics {#sec-descriptivestats}
 
 251630 observations originally in ACS 2021 and 2019 1-year samples.
 
@@ -39,7 +37,6 @@ knitr::opts_chunk$set(warning=FALSE, message=FALSE)
 load("./data/WFH.RData")
 ```
 
-
 ```{r examine-didwfh, eval=FALSE}
 
 # data %>% 
@@ -72,14 +69,12 @@ crosstab_3way(joined, YEAR, occ_2dig_labels, did_wfh_labels, weight = PERWT)
 
 Combined into 6 major occupation groups. Broadest categories are made up of multiple 2-digit OCCSOC codes.
 
-```{r tbl-A2-Figure1}
+```{r}
+#| label: A2-Figure1
+#| column: page
+#| layout-ncol: 2
 #| tbl-cap: "Occupation types in Illinois changed very little between 2019 and 2021"
-
-#table includes observations from BOTH years.
-#table(joined$occ_2dig_labels, joined$did_wfh_labels)
-
-
-#table(joined$occ_2digits)
+#| fig-cap: "ACS 1 year samples for 2019 and 2021 used for weighted population estimates. Military occupations make up less than 0.5% of the labor force and were removed from the  graph. Occupation categories are based on broadest aggregated BLS categories used by the BLS."
 
 
 table <- svytable(~YEAR+occ_2dig_labels, design = dstrata) 
@@ -89,11 +84,8 @@ table <- table %>%
   mutate(Prop =round(n/sum(n), digits=3)) %>%
   arrange(-n)
 table
-```
 
 
-```{r fig-A2-Figure1}
-#| fig-cap: "ACS 1 year samples for 2019 and 2021 used for weighted population estimates. Military occupations make up less than 0.5% of the labor force and were removed from the  graph. Occupation categories are based on broadest aggregated BLS categories used by the BLS."
 
 table %>% filter(occ_2dig_labels != "Military") %>% ggplot(aes(x=fct_rev(fct_inorder(occ_2dig_labels)), y=n, group = YEAR)) + 
   geom_col(stat = "identity", fill="lightblue") +
@@ -142,7 +134,12 @@ table %>% ggplot(aes(x=fct_rev(fct_inorder(occ_2dig_labels_d)), y=n, group = YEA
 ```
 
 ```{r}
-#| tbl-cap: "Percent of Workers working from home within each Broad Occupation type"
+#| layout-ncol: 2
+#| column: page
+#| fig-location: right
+#| fig-cap-location: margin
+#| fig-cap: "Percent of Workers working from home within each Broad Occupation type. Same as above but percentages add up differently"
+
 
 table <- svytable(~YEAR+did_wfh_labels+occ_2dig_labels, design = dstrata) 
 
@@ -152,10 +149,6 @@ table <- table %>%
   mutate(Prop =round(n/sum(n), digits=3)) %>%
   arrange(did_wfh_labels, -n)
 table
-```
-
-```{r }
-#| fig-cap: "Same as above but percentages add up differently"
 
 table %>% filter(occ_2dig_labels != "Military" ) %>%
   ggplot(aes(x=fct_rev(fct_inorder(occ_2dig_labels)), y=n, fill = did_wfh_labels, group = YEAR)) + 
@@ -168,6 +161,11 @@ table %>% filter(occ_2dig_labels != "Military" ) %>%
       caption = "ACS 1 year samples for 2019 and 2021 used for weighted population estimates. Military occupations were excluded from graph due to low occurance of observations.") + scale_y_continuous(labels = scales::comma)+
   scale_fill_manual(name = "Reported Work Location", values = c("#a6bddb", "#2b8cbe")) +
   coord_flip()
+```
+
+```{r }
+
+
 ```
 
 ```{r fig-Figure3}
@@ -207,9 +205,9 @@ table %>%
   
   scale_fill_manual(name = "Work Location", values = c("#a6bddb",  "#2b8cbe")) + coord_flip()
 
-ggsave("./paper_figures/Figure3.eps", limitsize = FALSE,width = 8, height = 4, units = "in")
+# ggsave("./paper_figures/Figure3.eps", limitsize = FALSE,width = 8, height = 4, units = "in")
 #ggsave("Figure3.pdf", limitsize = FALSE,width = 8, height = 4, units = "in")
-ggsave("./paper_figures/Figure3.png", limitsize = FALSE, width = 8, height = 4, units = "in")
+# ggsave("./paper_figures/Figure3.png", limitsize = FALSE, width = 8, height = 4, units = "in")
 ```
 
 ```{r A2-Figure4}
@@ -231,8 +229,11 @@ table %>%ggplot(aes(x=fct_rev(fct_inorder(occ_2dig_labels_d)), y=n, fill = did_w
   facet_wrap(~YEAR)+
   geom_text(aes(label = scales::percent(as.numeric(ifelse(Prop>0.01,Prop, "")), accuracy = .1),accuracy  = .1L ),position = position_stack(vjust=.5), size=3) +
   theme_classic() + 
-  theme(legend.position = "bottom", #legend.title = element_blank()
-                          )+
+  theme(legend.position = "bottom",
+        plot.title.position = "plot",
+        panel.background = element_rect(fill='transparent'), #transparent panel bg
+        plot.background = element_rect(fill='transparent', color=NA) #transparent plot bg
+  )+
   labs(title ="Percent of Workers who Worked From Home",
        x = "2-Digit Occupation Groups", y = "Estimated Number of Workers") + 
   scale_y_continuous(labels = scales::comma)+
@@ -361,7 +362,6 @@ table <- table %>%
 table
 ```
 
-
 ```{r fig-figure7}
 #| fig-cap-location: margin
 #| fig-cap: "Percentages add up to 100 when adding all workers across WFH Feasibility categories within a year. Work location based on TRANWORK==80 variable from ACS surveys. Can Work from home based on teleworkable classification in Dingel & Niemen (2020). ACS 1 year samples for 2019 and 2021 used for weighted population estimates."
@@ -391,7 +391,6 @@ ggsave("./paper_figures/Figure7.eps", limitsize = FALSE,width = 8, height = 4, u
 
 ggsave("./paper_figures/Figure7.png", limitsize = FALSE, width = 7, height = 5, units = "in")
 ```
-
 
 ```{r tbl-canWFH-byYeardidWFH}
 #| tbl-cap: "Proportion of each respondant's sex and if they worked from home for each year in sample"
@@ -492,7 +491,6 @@ figure7_option3
 
 > Ideally switch order of categories so that Did WFH is on the bottom of stack. Allows easier visual comparison.
 
-
 ## Income Deciles
 
 ```{r create-figure6}
@@ -557,7 +555,6 @@ table <- table %>%
 
 table # has proportions calculated out of TOTAl for both years
 ```
-
 
 ```{r fig-figure6}
 table %>%
@@ -715,7 +712,6 @@ table25up %>%
 ```{r}
 joined %>% filter(did_wfh==1 & incdecile_w < 4) %>% group_by(incdecile_w, occ_2digits, occ_2dig_labels, OCCSOC) %>% summarize(obs = n()) %>% arrange(incdecile_w,-obs)
 ```
-
 
 > percent includes both years for combined strata.
 
@@ -1327,16 +1323,13 @@ joined %>%
 
 ```
 
-
-
 #### Household Income
 
-Mostly a robustness check. Not used in the paper or regressions. 
+Mostly a robustness check. Not used in the paper or regressions.
 
 hhbreaks2019 = (32100, 50000, 65600, 80500, 97300, 115700, 137500, 168000, 225010) and max is 1671000
 
 hhbreaks2021 = (34000, 51900, 68000, 83600, 1e+05 120,000 142,400 175,000 235,000) and max is 1,797,000.
-
 
 ## Gender and Working from home
 
@@ -1810,12 +1803,6 @@ glm(did_wfh~under5, data = childttest2021) %>% summary()
 
 ```
 
-
-
-
-
-
-
 ```{r}
 HHdesign <- survey::svydesign(id = ~CLUSTER, strata = ~STRATA, weights = ~HHWT, data = joined)
 
@@ -1853,9 +1840,6 @@ table %>%
 
 
 ```
-
-
-
 
 ## Race
 
@@ -2107,4 +2091,3 @@ table(joined$NCHLT5)
 
 
 ```
-
