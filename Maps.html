@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.3.433">
+<meta name="generator" content="quarto-1.3.450">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
@@ -240,7 +240,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<div class="quarto-title-block"><div><h1 class="title"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Geographic Data</span></h1><button type="button" class="btn code-tools-button dropdown-toggle" id="quarto-code-tools-menu" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi"></i> Code</button><ul class="dropdown-menu dropdown-menu-end" aria-labelelledby="quarto-code-tools-menu"><li><a id="quarto-show-all-code" class="dropdown-item" href="javascript:void(0)" role="button">Show All Code</a></li><li><a id="quarto-hide-all-code" class="dropdown-item" href="javascript:void(0)" role="button">Hide All Code</a></li><li><hr class="dropdown-divider"></li><li><a id="quarto-view-source" class="dropdown-item" href="javascript:void(0)" role="button">View Source</a></li></ul></div></div>
+<div class="quarto-title-block"><div><h1 class="title"><span id="sec-maps" class="quarto-section-identifier"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Geographic Data</span></span></h1><button type="button" class="btn code-tools-button dropdown-toggle" id="quarto-code-tools-menu" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi"></i> Code</button><ul class="dropdown-menu dropdown-menu-end" aria-labelelledby="quarto-code-tools-menu"><li><a id="quarto-show-all-code" class="dropdown-item" href="javascript:void(0)" role="button">Show All Code</a></li><li><a id="quarto-hide-all-code" class="dropdown-item" href="javascript:void(0)" role="button">Hide All Code</a></li><li><hr class="dropdown-divider"></li><li><a id="quarto-view-source" class="dropdown-item" href="javascript:void(0)" role="button">View Source</a></li></ul></div></div>
 </div>
 
 
@@ -845,7 +845,7 @@ who did actually WFH</p></div>
 <span id="cb12-30"><a href="#cb12-30" aria-hidden="true" tabindex="-1"></a>                    <span class="at">n.breaks=</span><span class="dv">4</span>,</span>
 <span id="cb12-31"><a href="#cb12-31" aria-hidden="true" tabindex="-1"></a>                    <span class="at">show.limits=</span><span class="cn">TRUE</span>,</span>
 <span id="cb12-32"><a href="#cb12-32" aria-hidden="true" tabindex="-1"></a>                    <span class="at">nice.breaks=</span><span class="cn">FALSE</span>,</span>
-<span id="cb12-33"><a href="#cb12-33" aria-hidden="true" tabindex="-1"></a>                    <span class="at">name =</span> <span class="st">"Chance in Access"</span>, <span class="at">label =</span> scales<span class="sc">::</span>percent)<span class="sc">+</span></span>
+<span id="cb12-33"><a href="#cb12-33" aria-hidden="true" tabindex="-1"></a>                    <span class="at">name =</span> <span class="st">"Change in Access"</span>, <span class="at">label =</span> scales<span class="sc">::</span>percent)<span class="sc">+</span></span>
 <span id="cb12-34"><a href="#cb12-34" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Change in Labor Force with Internet at home"</span>,</span>
 <span id="cb12-35"><a href="#cb12-35" aria-hidden="true" tabindex="-1"></a>       <span class="at">subtitle =</span> <span class="st">"2019 to 2021"</span>) </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
@@ -1360,37 +1360,17 @@ who did actually WFH</p></div>
 <span id="cb20-65"><a href="#cb20-65" aria-hidden="true" tabindex="-1"></a>                        <span class="at">name =</span> <span class="st">"Labor Force with</span><span class="sc">\n</span><span class="st">WFH Feasibility"</span>, </span>
 <span id="cb20-66"><a href="#cb20-66" aria-hidden="true" tabindex="-1"></a>                       <span class="at">label =</span> scales<span class="sc">::</span>percent)</span>
 <span id="cb20-67"><a href="#cb20-67" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb20-68"><a href="#cb20-68" aria-hidden="true" tabindex="-1"></a>Figure2a</span>
-<span id="cb20-69"><a href="#cb20-69" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb20-70"><a href="#cb20-70" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb20-71"><a href="#cb20-71" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb20-72"><a href="#cb20-72" aria-hidden="true" tabindex="-1"></a><span class="fu">ggsave</span>(<span class="st">"./paper_figures/Figure2a.eps"</span>, <span class="at">limitsize =</span> <span class="cn">FALSE</span>,<span class="at">width =</span> <span class="dv">8</span>, <span class="at">height =</span> <span class="dv">4</span>, <span class="at">units =</span> <span class="st">"in"</span>)</span>
-<span id="cb20-73"><a href="#cb20-73" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb20-74"><a href="#cb20-74" aria-hidden="true" tabindex="-1"></a><span class="fu">ggsave</span>(<span class="st">"./paper_figures/Figure2a.png"</span>, <span class="at">limitsize =</span> <span class="cn">FALSE</span>, <span class="at">width =</span> <span class="dv">8</span>, <span class="at">height =</span> <span class="dv">4</span>, <span class="at">units =</span> <span class="st">"in"</span>)</span>
-<span id="cb20-75"><a href="#cb20-75" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb20-76"><a href="#cb20-76" aria-hidden="true" tabindex="-1"></a>Figure2b</span>
-<span id="cb20-77"><a href="#cb20-77" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb20-78"><a href="#cb20-78" aria-hidden="true" tabindex="-1"></a><span class="fu">ggsave</span>(<span class="st">"./paper_figures/Figure2b.eps"</span>, <span class="at">limitsize =</span> <span class="cn">FALSE</span>,<span class="at">width =</span> <span class="dv">8</span>, <span class="at">height =</span> <span class="dv">4</span>, <span class="at">units =</span> <span class="st">"in"</span>)</span>
-<span id="cb20-79"><a href="#cb20-79" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb20-80"><a href="#cb20-80" aria-hidden="true" tabindex="-1"></a><span class="fu">ggsave</span>(<span class="st">"./paper_figures/Figure2b.png"</span>, <span class="at">limitsize =</span> <span class="cn">FALSE</span>, <span class="at">width =</span> <span class="dv">8</span>, <span class="at">height =</span> <span class="dv">4</span>, <span class="at">units =</span> <span class="st">"in"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb20-68"><a href="#cb20-68" aria-hidden="true" tabindex="-1"></a>Figure2a</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div id="fig-Figure2-couldWFH" class="cell column-page quarto-layout-panel">
 <p></p><figcaption>Figure&nbsp;2.7: Percent of Labor Force who could Feasibily Work from Home</figcaption><p></p>
 <figure class="figure">
 <div class="quarto-layout-row quarto-layout-valign-top">
 <div class="cell-output-display quarto-layout-cell quarto-layout-cell-subref" style="flex-basis: 50.0%;justify-content: center;">
-<div id="fig-Figure2-couldWFH-1" class="quarto-figure quarto-figure-center anchored">
+<div id="fig-Figure2-couldWFH" class="quarto-figure quarto-figure-center anchored">
 <figure class="figure">
 <figcaption class="figure-caption">(a) Counties</figcaption>
 <p><img src="Maps_files/figure-html/fig-Figure2-couldWFH-1.png" class="img-fluid figure-img" data-ref-parent="fig-Figure2-couldWFH" width="672"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output-display quarto-layout-cell quarto-layout-cell-subref" style="flex-basis: 50.0%;justify-content: center;">
-<div id="fig-Figure2-couldWFH-2" class="quarto-figure quarto-figure-center anchored">
-<figure class="figure">
-<figcaption class="figure-caption">(b) PUMAs</figcaption>
-<p><img src="Maps_files/figure-html/fig-Figure2-couldWFH-2.png" class="img-fluid figure-img" data-ref-parent="fig-Figure2-couldWFH" width="672"></p>
 </figure>
 </div>
 </div>
@@ -1721,7 +1701,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
       </a>
   </div>
 </nav><div class="modal fade" id="quarto-embedded-source-code-modal" tabindex="-1" aria-labelledby="quarto-embedded-source-code-modal-label" aria-hidden="true"><div class="modal-dialog modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="quarto-embedded-source-code-modal-label">Source Code</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="">
-<div class="sourceCode" id="cb22" data-shortcodes="false"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="fu"># Geographic Data</span></span>
+<div class="sourceCode" id="cb22" data-shortcodes="false"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="fu"># Geographic Data {#sec-maps}</span></span>
 <span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a><span class="in">```{r setup, warning=FALSE, message=FALSE, include=FALSE}</span></span>
 <span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a></span>
@@ -1748,7 +1728,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 <span id="cb22-25"><a href="#cb22-25" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb22-26"><a href="#cb22-26" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span>opts_chunk<span class="sc">$</span><span class="fu">set</span>(<span class="at">warning=</span><span class="cn">FALSE</span>, <span class="at">message=</span><span class="cn">FALSE</span>, <span class="at">tidy =</span> <span class="cn">TRUE</span>)</span>
 <span id="cb22-27"><a href="#cb22-27" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb22-28"><a href="#cb22-28" aria-hidden="true" tabindex="-1"></a><span class="fu">load</span>(<span class="st">"WFH.RData"</span>)</span>
+<span id="cb22-28"><a href="#cb22-28" aria-hidden="true" tabindex="-1"></a><span class="fu">load</span>(<span class="st">"./data/WFH.RData"</span>)</span>
 <span id="cb22-29"><a href="#cb22-29" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
 <span id="cb22-30"><a href="#cb22-30" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb22-31"><a href="#cb22-31" aria-hidden="true" tabindex="-1"></a><span class="in">```{r include=FALSE}</span></span>
@@ -1914,11 +1894,11 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 <span id="cb22-197"><a href="#cb22-197" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span>YEAR) </span>
 <span id="cb22-198"><a href="#cb22-198" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
 <span id="cb22-199"><a href="#cb22-199" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb22-200"><a href="#cb22-200" aria-hidden="true" tabindex="-1"></a><span class="in">```{r include = FALSE}</span></span>
+<span id="cb22-200"><a href="#cb22-200" aria-hidden="true" tabindex="-1"></a><span class="in">```{r include = FALSE, eval=FALSE}</span></span>
 <span id="cb22-201"><a href="#cb22-201" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb22-202"><a href="#cb22-202" aria-hidden="true" tabindex="-1"></a><span class="co">#ggsave("Figure5a.eps", limitsize = FALSE,width = 8, height = 5, units = "in")</span></span>
-<span id="cb22-203"><a href="#cb22-203" aria-hidden="true" tabindex="-1"></a><span class="co">#ggsave("Figure5a.pdf", limitsize = FALSE,width = 8, height = 5, units = "in")</span></span>
-<span id="cb22-204"><a href="#cb22-204" aria-hidden="true" tabindex="-1"></a><span class="co">#ggsave("Figure5aV2.png", limitsize = FALSE, width = 8, height = 5, units = "in")</span></span>
+<span id="cb22-202"><a href="#cb22-202" aria-hidden="true" tabindex="-1"></a><span class="fu">ggsave</span>(<span class="st">"Figure5a.eps"</span>, <span class="at">limitsize =</span> <span class="cn">FALSE</span>,<span class="at">width =</span> <span class="dv">8</span>, <span class="at">height =</span> <span class="dv">5</span>, <span class="at">units =</span> <span class="st">"in"</span>)</span>
+<span id="cb22-203"><a href="#cb22-203" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-204"><a href="#cb22-204" aria-hidden="true" tabindex="-1"></a><span class="fu">ggsave</span>(<span class="st">"Figure5aV2.png"</span>, <span class="at">limitsize =</span> <span class="cn">FALSE</span>, <span class="at">width =</span> <span class="dv">8</span>, <span class="at">height =</span> <span class="dv">5</span>, <span class="at">units =</span> <span class="st">"in"</span>)</span>
 <span id="cb22-205"><a href="#cb22-205" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb22-206"><a href="#cb22-206" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
 <span id="cb22-207"><a href="#cb22-207" aria-hidden="true" tabindex="-1"></a></span>
@@ -2388,7 +2368,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 <span id="cb22-675"><a href="#cb22-675" aria-hidden="true" tabindex="-1"></a>                    <span class="at">n.breaks=</span><span class="dv">4</span>,</span>
 <span id="cb22-676"><a href="#cb22-676" aria-hidden="true" tabindex="-1"></a>                    <span class="at">show.limits=</span><span class="cn">TRUE</span>,</span>
 <span id="cb22-677"><a href="#cb22-677" aria-hidden="true" tabindex="-1"></a>                    <span class="at">nice.breaks=</span><span class="cn">FALSE</span>,</span>
-<span id="cb22-678"><a href="#cb22-678" aria-hidden="true" tabindex="-1"></a>                    <span class="at">name =</span> <span class="st">"Chance in Access"</span>, <span class="at">label =</span> scales<span class="sc">::</span>percent)<span class="sc">+</span></span>
+<span id="cb22-678"><a href="#cb22-678" aria-hidden="true" tabindex="-1"></a>                    <span class="at">name =</span> <span class="st">"Change in Access"</span>, <span class="at">label =</span> scales<span class="sc">::</span>percent)<span class="sc">+</span></span>
 <span id="cb22-679"><a href="#cb22-679" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Change in Labor Force with Internet at home"</span>,</span>
 <span id="cb22-680"><a href="#cb22-680" aria-hidden="true" tabindex="-1"></a>       <span class="at">subtitle =</span> <span class="st">"2019 to 2021"</span>) </span>
 <span id="cb22-681"><a href="#cb22-681" aria-hidden="true" tabindex="-1"></a></span>
@@ -2974,9 +2954,9 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 <span id="cb22-1265"><a href="#cb22-1265" aria-hidden="true" tabindex="-1"></a>                       <span class="at">label =</span> scales<span class="sc">::</span>percent)</span>
 <span id="cb22-1266"><a href="#cb22-1266" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb22-1267"><a href="#cb22-1267" aria-hidden="true" tabindex="-1"></a>Figure2a</span>
-<span id="cb22-1268"><a href="#cb22-1268" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-1268"><a href="#cb22-1268" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
 <span id="cb22-1269"><a href="#cb22-1269" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb22-1270"><a href="#cb22-1270" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-1270"><a href="#cb22-1270" aria-hidden="true" tabindex="-1"></a><span class="in">```{r export-Figure2-couldWFH, include=FALSE, eval=FALSE}</span></span>
 <span id="cb22-1271"><a href="#cb22-1271" aria-hidden="true" tabindex="-1"></a><span class="fu">ggsave</span>(<span class="st">"./paper_figures/Figure2a.eps"</span>, <span class="at">limitsize =</span> <span class="cn">FALSE</span>,<span class="at">width =</span> <span class="dv">8</span>, <span class="at">height =</span> <span class="dv">4</span>, <span class="at">units =</span> <span class="st">"in"</span>)</span>
 <span id="cb22-1272"><a href="#cb22-1272" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb22-1273"><a href="#cb22-1273" aria-hidden="true" tabindex="-1"></a><span class="fu">ggsave</span>(<span class="st">"./paper_figures/Figure2a.png"</span>, <span class="at">limitsize =</span> <span class="cn">FALSE</span>, <span class="at">width =</span> <span class="dv">8</span>, <span class="at">height =</span> <span class="dv">4</span>, <span class="at">units =</span> <span class="st">"in"</span>)</span>
