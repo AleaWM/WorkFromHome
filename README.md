@@ -10,10 +10,10 @@ Working from Home in Illinois: Who Can and Who Does? by Alea Wilbur-Mujtaba, Fra
 
 ## Contents
 
--   Code and images for \[Descriptive Statistics\](<https://aleawm.github.io/WorkFromHome/DescriptiveStatistics.html>)
+-   Code and images for [Descriptive Statistics](https://aleawm.github.io/WorkFromHome/DescriptiveStatistics.html)
 
--   See the \[Maps section\](<https://aleawm.github.io/WorkFromHome/Maps.html>) for maps created in the paper (and bonus images!)
+-   See the [Maps section](https://aleawm.github.io/WorkFromHome/Maps.html) or maps created in the paper (and bonus images!)
 
--   See \[Appendix items\](<https://aleawm.github.io/WorkFromHome/Appendix1.html>) for code behind supporting graphs in the articles appendix.
+-   See [Appendix items](https://aleawm.github.io/WorkFromHome/Appendix1.html)for code behind supporting graphs in the articles appendix.
 
-[![](images/papercover.png){#papercover fig-alt="First page of WFH report."}](https://igpa.uillinois.edu/reports/working-from-home-in-illinois-who-can-and-does)
+[![](images/papercover.png){#papercover width="178"}](https://igpa.uillinois.edu/reports/working-from-home-in-illinois-who-can-and-does)
